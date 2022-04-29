@@ -1,0 +1,62 @@
+# https://github.com/github/gitignore
+tmp/
+.vscode/
+*.py[cod]
+*$py.class
+__pycache__/
+
+# Mac
+.DS_Store
+
+# Linux
+.Trash-*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# C extensions
+*.so
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Sphinx documentation
+docs/_build/
+
+# Outputs
+results/
+
+# Sync
+.sync
