@@ -82,7 +82,7 @@ def parse_args(args=None):
     parser.add_argument("coco_dir", type=str,
                         help="dataset root dir")
     parser.add_argument("-j", "--json_dir", type=str, default=None,
-                        help="coco file dir")
+                        help="coco json file dir")
     parser.add_argument("-s", "--seed", type=int, default=1234,
                         help="for split train/val")
 
