@@ -9,10 +9,10 @@ if sys.path[0] in ("", os.getcwd(), os.path.dirname(__file__)):
 
 help_doc_str = """
 Usage:
-    python -m hello <command> [options]
+    python -m hello.data <command> [options]
 
 Commands:
-    data
+    coco2yolo
 """
 
 
@@ -27,8 +27,8 @@ def main(args=None):
 
     command, *remainder = command.split(".", maxsplit=1)
 
-    if command == "data":
-        from hello.data.__main__ import main as _main
+    if command == "coco2yolo":
+        from hello.data.coco2yolo import main as _main
         _main(remainder + args)
     else:
         print(help_doc_str)
@@ -37,8 +37,8 @@ def main(args=None):
 
 
 # develop:
-# PYTHONPATH=$(pwd) python hello ...
+# PYTHONPATH=$(pwd) python hello/data ...
 # runtime:
-# python -m hello ...
+# python -m hello.data ...
 if __name__ == "__main__":
     sys.exit(main())
