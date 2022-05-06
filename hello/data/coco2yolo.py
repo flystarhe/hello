@@ -3,11 +3,13 @@ import shutil
 from pathlib import Path
 
 import numpy as np
-from hello.io import load_json
+from hello import io
 from tqdm import tqdm
 
+img_formats = set([".bmp", ".jpg", ".jpeg", ".png"])
 
-def coco_to_yolo(coco_dir, json_dir=None, seed=1234):
+
+def coco_to_yolo(coco_dir, json_dir=None, classes=None):
     coco_dir = Path(coco_dir)
 
     if json_dir is None:
@@ -15,28 +17,34 @@ def coco_to_yolo(coco_dir, json_dir=None, seed=1234):
     else:
         json_dir = coco_dir / json_dir
 
-    out_dir = coco_dir.name + "_yolo"
-    out_dir = coco_dir.parent / out_dir
+    out_dir = coco_dir.parent / (coco_dir.name + "_yolo")
     shutil.rmtree(out_dir, ignore_errors=True)
-
     (out_dir / "labels").mkdir(parents=True)
     (out_dir / "images").mkdir(parents=True)
 
-    for json_file in sorted(json_dir.glob("*.json")):
-        data = load_json(json_file)
+    real_path = {f.name: str(f) for f in coco_dir.glob("**/*")
+                 if f.suffix in img_formats}
+    total_images = len(real_path)
 
-        names = [c["supercategory"] + "." + c["name"]
-                 for c in data["categories"]]
-        images = {"%g" % x["id"]: x for x in data["images"]}
-        cvt_id = {c["id"]: i for i, c in enumerate(data["categories"])}
+    for json_file in sorted(json_dir.glob("*.json")):
+        data = io.load_json(json_file)
+
+        images = {x["id"]: x for x in data["images"]}
+        names = classes or [x["name"] for x in data["categories"]]
+        names = ["REMAINDER"] + sorted(set(names).difference(["REMAINDER"]))
+
+        name_dict = {s: i for i, s in enumerate(names, 0)}
+        cvt_id = {x["id"]: name_dict.get(x["name"], 0)
+                  for x in data["categories"]}
 
         image_path_list = []
-        for img in data["images"]:
-            src_path = coco_dir / img["file_name"]
-            dst_path = out_dir / "images" / src_path.name
+        for x in tqdm(data["images"], desc=f"{json_file.stem}"):
+            img_name = x["file_name"]
+            src_path = real_path[img_name]
+            dst_path = out_dir / "images" / img_name
             if not dst_path.exists():
                 shutil.copyfile(src_path, dst_path)
-            image_path_list.append(f"./images/{src_path.name}")
+            image_path_list.append(f"./images/{img_name}")
         image_path_list = sorted(set(image_path_list))
         n_images = len(image_path_list)
 
@@ -46,20 +54,12 @@ def coco_to_yolo(coco_dir, json_dir=None, seed=1234):
         with open(out_dir / (json_file.stem + ".txt"), "w") as file:
             file.write("\n".join(image_path_list))
 
-        np.random.seed(seed)
-        np.random.shuffle(image_path_list)
-
-        with open(out_dir / (json_file.stem + "_val.txt"), "w") as file:
-            file.write("\n".join(image_path_list[:(n_images // 5)]))
-
-        with open(out_dir / (json_file.stem + "_train.txt"), "w") as file:
-            file.write("\n".join(image_path_list[(n_images // 5):]))
-
-        for x in tqdm(data["annotations"], desc="%s (%g)" % (json_file.stem, n_images)):
+        for x in tqdm(data["annotations"], desc=f"{json_file.stem} ({n_images}/{total_images})"):
             if x.get("iscrowd"):
                 continue
 
-            img = images["%g" % x["image_id"]]
+            img = images[x["image_id"]]
+
             h, w, f = img["height"], img["width"], img["file_name"]
 
             # format is [top left x, top left y, width, height]
@@ -81,10 +81,10 @@ def parse_args(args=None):
 
     parser.add_argument("coco_dir", type=str,
                         help="dataset root dir")
-    parser.add_argument("-j", "--json_dir", type=str, default=None,
+    parser.add_argument("-j", "--json_dir", type=str,
                         help="coco json file dir")
-    parser.add_argument("-s", "--seed", type=int, default=1234,
-                        help="for split train/val")
+    parser.add_argument("--classes", nargs="+", type=str,
+                        help="filter by class: --classes c0 c2 c3")
 
     args = parser.parse_args(args=args)
     return vars(args)

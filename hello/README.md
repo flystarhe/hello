@@ -14,6 +14,6 @@ optional arguments:
   -h, --help            show this help message and exit
   -j JSON_DIR, --json_dir JSON_DIR
                         coco json file dir
-  -s SEED, --seed SEED
-                        for split train/val
+  --classes CLASSES [CLASSES ...]
+                        filter by class: --classes c0 c2 c3
 ```
