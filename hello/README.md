@@ -49,4 +49,10 @@ print(big_dataset.count_values("tags"))
 
 # export dataset
 export_dataset("/workspace/tmp/big", big_dataset, "detections")
+
+# load dataset
+import fiftyone as fo
+dataset_test = fo.Dataset.from_dir(dataset_dir="/workspace/tmp/big/test",
+                                   dataset_type=fo.types.COCODetectionDataset,
+                                   label_field="ground_truth")
 ```
