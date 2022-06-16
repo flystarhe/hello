@@ -28,7 +28,7 @@ from hello.fiftyone.utils import *
 
 # Download and load COCO-2017
 label_types = ("detections", "segmentations")
-dataset = foz.load_zoo_dataset("coco-2017", label_types=label_types)
+dataset = foz.load_zoo_dataset("coco-2017", label_types=label_types, classes=["cat", "dog"])  # max_samples=100
 print(dataset)
 
 # clone sample field
@@ -52,7 +52,7 @@ print(cat_dog_person.count_values("ground_truth.detections.label"))
 
 # merge datasets
 classes = ["CAT", "DOG", "PERSON", "OTHER"]
-info = {"description": "COCO 2017",
+info = {"dataset_name": "COCO 2017",
         "version": "1.0"}
 big_dataset = merge_datasets("big", classes, info, [cat_dog_person])
 print(big_dataset.count_values("tags"))

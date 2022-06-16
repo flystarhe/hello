@@ -56,6 +56,7 @@ def map_labels(dataset, mapping, field_name="ground_truth"):
 
 
 def filter_samples(dataset, classes, field_name="ground_truth"):
+    # tagged_view = dataset.match_tags("requires_annotation")
     match = F("label").is_in(classes)
     label_field = F(f"{field_name}.detections")
     view = dataset.match(label_field.filter(match).length() > 0)
@@ -78,9 +79,14 @@ def merge_datasets(name, classes, info, datasets, tmp_dir="/tmp"):
 
     num = 0
     for _dataset in datasets:
+        info = _dataset.info
+        assert "version" in info
+        assert "dataset_name" in info
+        prefix = f"{info['dataset_name']}:{info['version']}"
         for sample in _dataset:
             num += 1
             filepath = Path(sample.filepath)
+            sample["from"] = f"{prefix}/{filepath.name}"
             tempfile = tmp_dir / f"{num:012d}{filepath.suffix}"
             shutil.copyfile(filepath, tempfile)
             sample.filepath = str(tempfile)
