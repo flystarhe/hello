@@ -9,10 +9,10 @@ if sys.path[0] in ("", os.getcwd(), os.path.dirname(__file__)):
 
 help_doc_str = """
 Usage:
-    python -m hello.data <command> [options]
+    python -m hello.x3m <command> [options]
 
 Commands:
-    coco2yolo
+    preprocess
 """
 
 
@@ -25,12 +25,11 @@ def main(args=None):
     else:
         command, *args = ["--help"]
 
-    command, *remainder = command.split(".", maxsplit=1)
     args = ["--help"] if len(args) == 0 else args
 
-    if command == "coco2yolo":
-        from hello.data.coco2yolo import main as _main
-        _main(remainder + args)
+    if command == "preprocess":
+        from hello.x3m.preprocess import main as _main
+        _main(args)
     else:
         print(help_doc_str)
 
@@ -38,8 +37,8 @@ def main(args=None):
 
 
 # develop:
-# PYTHONPATH=$(pwd) python hello/data ...
+# PYTHONPATH=$(pwd) python hello/x3m ...
 # runtime:
-# python -m hello.data ...
+# python -m hello.x3m ...
 if __name__ == "__main__":
     sys.exit(main())

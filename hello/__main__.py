@@ -26,6 +26,7 @@ def main(args=None):
         command, *args = ["--help"]
 
     command, *remainder = command.split(".", maxsplit=1)
+    args = ["--help"] if len(args) == 0 else args
 
     if command == "data":
         from hello.data.__main__ import main as _main

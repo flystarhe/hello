@@ -91,8 +91,9 @@ def parse_args(args=None):
 
 
 def main(args=None):
-    print(f"{__file__}: {args}")
+    kwargs = parse_args(args)
+    print(f"{__file__}: {kwargs}")
 
-    print(coco_to_yolo(**parse_args(args)))
+    print(coco_to_yolo(**kwargs))
 
     return 0
