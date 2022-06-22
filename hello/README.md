@@ -2,7 +2,8 @@
 A collection of useful tools!
 
 ```sh
-pip install hello2
+pip install -U hello2
+pip install -U 'git+https://github.com/flystarhe/hello'
 ```
 
 ## hello.data
