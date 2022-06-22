@@ -13,6 +13,7 @@ Usage:
 
 Commands:
     data
+    x3m
 """
 
 
@@ -30,6 +31,9 @@ def main(args=None):
 
     if command == "data":
         from hello.data.__main__ import main as _main
+        _main(remainder + args)
+    elif command == "x3m":
+        from hello.x3m.__main__ import main as _main
         _main(remainder + args)
     else:
         print(help_doc_str)
