@@ -13,6 +13,7 @@ Usage:
 
 Commands:
     preprocess
+    config
 """
 
 
@@ -29,6 +30,9 @@ def main(args=None):
 
     if command == "preprocess":
         from hello.x3m.preprocess import main as _main
+        _main(args)
+    elif command == "config":
+        from hello.x3m.config import main as _main
         _main(args)
     else:
         print(help_doc_str)
