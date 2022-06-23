@@ -27,6 +27,10 @@ class Net(nn.Module):
         wh = (wh * wh) * 4
 
         y = torch.cat((xy, wh, x[:, 4:]), 1)
+
+        bs, nc, _, _ = y.shape
+        y = y.view(bs, nc, -1).permute(0, 2, 1).contiguous()
+
         return y
 
 
@@ -47,7 +51,7 @@ def to_numpy(tensor):
     return tensor.detach().cpu().numpy()
 
 
-def export_onnx(model, x, f, opset=11, device="cpu"):
+def export_onnx(model, x, f, opset=11, device="cpu", rtol=1e-3, atol=1e-5):
     # x = torch.zeros(1, 3, 640, 640)
     # x = torch.randn(1, 3, 224, 224)
     device = select_device(device)
@@ -82,7 +86,7 @@ def export_onnx(model, x, f, opset=11, device="cpu"):
     ort_outs = ort_session.run(None, ort_inputs)
 
     np.testing.assert_allclose(to_numpy(torch_out), ort_outs[0],
-                               rtol=1e-3, atol=1e-5)
+                               rtol=rtol, atol=atol)
     print("Exported model has been tested.")
     return f
 
