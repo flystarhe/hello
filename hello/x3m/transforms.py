@@ -40,6 +40,31 @@ class CHW2HWCTransformer(Transformer):
         return self.transformer.run_transform(data)
 
 
+class PadCropTransformer(Transformer):
+    def __init__(self, target_size, pad_value=127.):
+        self.rng = np.random.default_rng(41)
+        self.target_size = target_size
+        self.pad_value = pad_value
+        super(PadResizeTransformer, self).__init__()
+
+    def run_transform(self, data):
+        image = data[0]
+        image_h, image_w, _ = image.shape
+        target_h, target_w = self.target_size
+
+        _top = self.rng.integers(1 + max(0, image_h - target_h))
+        _left = self.rng.integers(1 + max(0, image_w - target_w))
+        resize_image = image[_top: _top + target_h, _left: _left + target_w]
+        new_h, new_w, _ = resize_image.shape
+
+        pad_image = np.full(shape=(target_h, target_w, 3),
+                            fill_value=self.pad_value).astype(image.dtype)
+        pad_image[:new_h, :new_w, :] = resize_image
+
+        data[0] = pad_image
+        return data
+
+
 class PadResizeTransformer(Transformer):
     def __init__(self, target_size, pad_value=127.):
         self.target_size = target_size
@@ -50,6 +75,7 @@ class PadResizeTransformer(Transformer):
         image = data[0]
         image_h, image_w, _ = image.shape
         target_h, target_w = self.target_size
+
         scale = min(target_w * 1.0 / image_w, target_h * 1.0 / image_h)
         new_h, new_w = int(scale * image_h), int(scale * image_w)
         resize_image = cv.resize(image, (new_w, new_h))

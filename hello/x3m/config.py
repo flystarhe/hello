@@ -55,7 +55,7 @@ def parse_args(args=None):
     from argparse import ArgumentParser
     parser = ArgumentParser(description="X3M config")
 
-    parser.add_argument("mode", type=str, default="f32",
+    parser.add_argument("mode", type=str,
                         choices=["f32", "qat"])
     parser.add_argument("onnx_model", type=str,
                         help="the model file of ONNX")
