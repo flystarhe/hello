@@ -45,7 +45,7 @@ class PadCropTransformer(Transformer):
         self.rng = np.random.default_rng(41)
         self.target_size = target_size
         self.pad_value = pad_value
-        super(PadResizeTransformer, self).__init__()
+        super(PadCropTransformer, self).__init__()
 
     def run_transform(self, data):
         image = data[0]
