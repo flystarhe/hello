@@ -3,6 +3,7 @@ A collection of useful tools!
 
 ```sh
 pip install -U hello2
+pip install -U hello2 -i https://pypi.org/simple
 pip install -U 'git+https://github.com/flystarhe/hello'
 ```
 
@@ -12,6 +13,9 @@ pip install -U 'git+https://github.com/flystarhe/hello'
 
 ## hello.fiftyone
 - For examples: [hello/fiftyone/examples.py](https://github.com/flystarhe/hello/blob/main/hello/fiftyone/examples.py).
+
+## hello.onnx
+- For examples: [hello/onnx/examples/](https://github.com/flystarhe/hello/tree/main/hello/onnx/examples)
 
 ## hello.x3m
 - `python -m hello.x3m preprocess -h`
