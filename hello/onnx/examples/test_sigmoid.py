@@ -39,7 +39,7 @@ class Net(nn.Module):
 
     def forward_fast(self, x):
         xywh = x[:, :4]
-        xywh = fast_sigmoid(xywh)
+        xywh = fast_sigmoid(xywh) * 2.
         x = torch.cat((xywh, x[:, 4:]), 1)
 
         return x
@@ -53,7 +53,7 @@ class Net(nn.Module):
 
     def forward_bn(self, x):
         xywh = x[:, :4].clamp(-6., 6.)
-        xywh = self.bn(xywh)
+        xywh = self.bn(xywh) * 2.
         x = torch.cat((xywh, x[:, 4:]), 1)
         return x
 
@@ -65,7 +65,7 @@ x = torch.randn(1, 85, *fmsize)
 with torch.no_grad():
     model.eval()
     y1 = model.forward_fast(x.clone())
-    y2 = model.forward_fast_2x(x.clone()) * 0.5
+    y2 = model.forward_fast_2x(x.clone())
     y3 = model.forward_bn(x.clone())
 
 np.testing.assert_allclose(y1.numpy(), y2.numpy(), rtol=1e-05, atol=1e-7)
@@ -73,11 +73,6 @@ np.testing.assert_allclose(y1.numpy(), y3.numpy(), rtol=1e-05, atol=1e-7)
 
 
 fmsize = (16, 16)
-model = Net(fmsize, inplace=False)
+model = Net(fmsize)
 x = torch.randn(1, 3, *fmsize)
-print(export_onnx(model, x, "test_inplace_false.onnx", device="cpu"))
-
-fmsize = (16, 16)
-model = Net(fmsize, inplace=True)
-x = torch.randn(1, 3, *fmsize)
-print(export_onnx(model, x, "test_inplace_true.onnx", device="cpu"))
+print(export_onnx(model, x, "test_16x16.onnx", device="cpu"))

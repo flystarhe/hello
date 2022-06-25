@@ -75,7 +75,9 @@ def export_onnx(model, x, f, opset=11, device="cpu", rtol=1e-3, atol=1e-5):
     model_onnx = onnx.load(f)  # load onnx model
     onnx.checker.check_model(model_onnx)  # check onnx model
 
-    torch_out = model(x)
+    torch_outs = model(x)
+    if isinstance(torch_outs, torch.Tensor):
+        torch_outs = [torch_outs]
 
     cuda = torch.cuda.is_available()
     providers = ["CUDAExecutionProvider",
@@ -85,7 +87,7 @@ def export_onnx(model, x, f, opset=11, device="cpu", rtol=1e-3, atol=1e-5):
     ort_inputs = {ort_session.get_inputs()[0].name: to_numpy(x)}
     ort_outs = ort_session.run(None, ort_inputs)
 
-    np.testing.assert_allclose(to_numpy(torch_out), ort_outs[0],
+    np.testing.assert_allclose(to_numpy(torch_outs[0]), ort_outs[0],
                                rtol=rtol, atol=atol)
     print("Exported model has been tested.")
     return f
