@@ -23,18 +23,20 @@ def regular_preprocess(img_path, out_path, transformers, dtype=np.uint8):
     return out_path
 
 
-def todo(src, dst, imgsz, layout, mode, ext):
+def todo(src, dst, mode, imgsz, layout, ext):
     in_dir = Path(src)
 
     if dst is None:
         dst = in_dir.name
-    out_dir = Path(f"{dst}_{imgsz}_{layout}_{mode}_{ext}")
+
+    if mode == "f32":
+        out_dir = Path(f"{dst}_{imgsz}_{layout}_{ext}_f32")
+    else:
+        out_dir = Path(f"{dst}_{imgsz}_{layout}_{ext}")
 
     imgsz = tuple(int(x) for x in imgsz.split("x"))
     assert len(imgsz) == 2, "format: HxW"
     layout = layout.upper()
-    mode = mode.lower()
-    ext = ext.lower()
 
     shutil.rmtree(out_dir, ignore_errors=True)
     out_dir.mkdir(parents=True)
@@ -66,12 +68,12 @@ def parse_args(args=None):
                         help="images src dir")
     parser.add_argument("--dst", type=str, default=None,
                         help="images dst dir")
+    parser.add_argument("--mode", type=str, default="f32",
+                        choices=["f32", "u8"])
     parser.add_argument("--imgsz", type=str, default="512x512",
                         help="HxW")
     parser.add_argument("--layout", type=str, default="chw",
                         choices=["chw", "hwc"])
-    parser.add_argument("--mode", type=str, default="f32",
-                        choices=["f32", "u8"])
     parser.add_argument("--ext", type=str, default="rgb",
                         choices=["rgb", "bgr", "nv12"])
 
