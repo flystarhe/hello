@@ -51,7 +51,7 @@ def to_numpy(tensor):
     return tensor.detach().cpu().numpy()
 
 
-def export_onnx(model, x, f, opset=11, device="cpu", rtol=1e-3, atol=1e-5):
+def export_onnx(model, x, f, opset=11, device="cpu", simplify=False, rtol=1e-3, atol=1e-5):
     # x = torch.zeros(1, 3, 640, 640)
     # x = torch.randn(1, 3, 224, 224)
     device = select_device(device)
@@ -74,6 +74,17 @@ def export_onnx(model, x, f, opset=11, device="cpu", rtol=1e-3, atol=1e-5):
     # Checks
     model_onnx = onnx.load(f)  # load onnx model
     onnx.checker.check_model(model_onnx)  # check onnx model
+
+    if simplify:
+        try:
+            import onnxsim
+            # pip install onnx-simplifier
+            model_onnx, check = onnxsim.simplify(model_onnx)
+            assert check, "assert check failed"
+            onnx.save(model_onnx, f)
+        except Exception as e:
+            print(f"simplifier failure: {e}")
+    print(f"export success, saved as {f}")
 
     torch_outs = model(x)
     if isinstance(torch_outs, torch.Tensor):
