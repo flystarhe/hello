@@ -5,6 +5,8 @@ from pathlib import Path
 
 import fiftyone as fo
 from fiftyone import ViewField as F
+from fiftyone.utils.labels import (segmentations_to_detections,
+                                   segmentations_to_polylines)
 
 
 def gen_name(suffix=".png"):
@@ -55,6 +57,11 @@ def map_labels(dataset, mapping, field_name="ground_truth"):
     return dataset
 
 
+def filter_labels(dataset, classes, field_name="ground_truth"):
+    view = dataset.filter_labels(field_name, F("label").is_in(classes))
+    return view
+
+
 def filter_samples(dataset, classes, field_name="ground_truth"):
     # tagged_view = dataset.match_tags("requires_annotation")
     match = F("label").is_in(classes)
@@ -63,9 +70,15 @@ def filter_samples(dataset, classes, field_name="ground_truth"):
     return view
 
 
-def filter_labels(dataset, classes, field_name="ground_truth"):
-    view = dataset.filter_labels(field_name, F("label").is_in(classes))
-    return view
+def merge_samples(A, B, **kwargs):
+    A = A.clone()
+
+    def key_fcn(sample):
+        return Path(sample.filepath).name
+
+    A.merge_samples(B, key_fcn=key_fcn, **kwargs)
+
+    return A
 
 
 def merge_datasets(name, classes, info, datasets, tmp_dir="/tmp"):
@@ -94,33 +107,51 @@ def merge_datasets(name, classes, info, datasets, tmp_dir="/tmp"):
     return dataset
 
 
+def segmentations_to(dataset, in_field, out_field, function="polylines", mask_targets=None, mask_types="stuff", tolerance=2):
+    if mask_targets is None:
+        mask_targets = dataset.default_mask_targets
+
+    assert function in ("polylines", "detections")
+
+    if function == "polylines":
+        segmentations_to_polylines(dataset, in_field, out_field,
+                                   mask_targets=mask_targets, mask_types=mask_types, tolerance=tolerance)
+    elif function == "detections":
+        segmentations_to_detections(dataset, in_field, out_field,
+                                    mask_targets=mask_targets, mask_types=mask_types)
+    else:
+        raise NotImplementedError
+
+    return dataset
+
+
 def split_dataset(dataset, splits, limit=500, field_name="ground_truth"):
     dataset.untag_samples(dataset.distinct("tags"))
     dataset = dataset.shuffle()
 
     if splits is None:
-        splits = {"train": 0.8, "val": 0.1}
+        splits = {"val": 0.1, "train": 0.9}
 
-    train_ids, val_ids = [], []
-    label_field = F(f"{field_name}.detections")
+    val_ids, train_ids = [], []
     for label in dataset.default_classes:
         match = (F("label") == label)
+        label_field = F(f"{field_name}.detections")
         view = dataset.match(label_field.filter(match).length() > 0)
         ids = view.take(limit).values("id")
 
         pos_val = splits.get("val", 0.1)
-        pos_train = splits.get("train", 0.8)
+        pos_train = splits.get("train", 0.9)
         if isinstance(pos_val, float):
             num_samples = len(ids)
             pos_val = int(pos_val * num_samples)
             pos_train = int(pos_train * num_samples)
+        ids = ids[:(pos_val+pos_train)]
 
-        ids = ids[:(pos_val + pos_train)]
-        train_ids.extend(ids[pos_val:])
         val_ids.extend(ids[:pos_val])
+        train_ids.extend(ids[pos_val:])
 
-    train_ids = set(train_ids)
-    val_ids = set(val_ids) - train_ids
+    val_ids = set(val_ids)
+    train_ids = set(train_ids) - val_ids
     dataset.select(train_ids).tag_samples("train")
     dataset.select(val_ids).tag_samples("validation")
     dataset.exclude(train_ids | val_ids).tag_samples("test")
@@ -128,19 +159,55 @@ def split_dataset(dataset, splits, limit=500, field_name="ground_truth"):
     return dataset
 
 
-def export_dataset(export_dir, dataset, label_field="ground_truth"):
+def export_dataset(export_dir, dataset, label_field="ground_truth", mask_label_field=None):
+    mask_targets = dataset.default_mask_targets
     splits = dataset.distinct("tags")
+
     for split in splits:
         view = dataset.match_tags(split)
-        view.export(export_dir=f"{export_dir}/{split}",
-                    dataset_type=fo.types.COCODetectionDataset,
-                    label_field=label_field)
+        curr_dir = str(Path(export_dir) / split)
+
+        view.export(
+            export_dir=curr_dir,
+            dataset_type=fo.types.COCODetectionDataset,
+            label_field=label_field,
+        )
+
+        if mask_label_field:
+            view.export(
+                dataset_type=fo.types.ImageSegmentationDirectory,
+                labels_path=f"{curr_dir}/labels",
+                label_field=mask_label_field,
+                mask_targets=mask_targets,
+            )
+
     return dataset.count_values("tags")
 
 
-def load_dataset(dataset_dir, label_field="ground_truth"):
-    dataset = fo.Dataset.from_dir(dataset_dir=dataset_dir,
-                                  dataset_type=fo.types.COCODetectionDataset,
-                                  label_field=label_field)
+def load_dataset(dataset_dir, dataset_type="COCODetectionDataset", label_field="ground_truth", det_labels="labels.json", seg_labels="labels/"):
+    # field_name: detections, segmentations, ground_truth, predictions
+    assert dataset_type in ("COCODetectionDataset", "ImageSegmentationDataset")
+
+    if dataset_type == "COCODetectionDataset":
+        data_path = str(Path(dataset_dir) / "data/")
+        labels_path = str(Path(dataset_dir) / det_labels)
+        dataset = fo.Dataset.from_dir(
+            dataset_type=fo.types.COCODetectionDataset,
+            data_path=data_path,
+            labels_path=labels_path,
+            label_field=label_field,
+        )
+    elif dataset_type == "ImageSegmentationDataset":
+        data_path = str(Path(dataset_dir) / "data/")
+        labels_path = str(Path(dataset_dir) / seg_labels)
+        dataset = fo.Dataset.from_dir(
+            dataset_type=fo.types.ImageSegmentationDirectory,
+            data_path=data_path,
+            labels_path=labels_path,
+            label_field=label_field,
+        )
+    else:
+        raise NotImplementedError
+
     dataset.tag_samples(Path(dataset_dir).name)
     return dataset
