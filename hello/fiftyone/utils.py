@@ -15,7 +15,7 @@ def gen_name(suffix=".png"):
 
 
 def get_classes(dataset, field_or_expr="detections.detections.label"):
-    return sorted(dataset.distinct(field_or_expr))
+    return sorted(set(dataset.distinct(field_or_expr)) - set(["other"])) + ["other"]
 
 
 def clone_sample_field(dataset, field_name="detections", new_field_name="ground_truth"):
@@ -39,10 +39,8 @@ def rename_sample_field(dataset, field_name, new_field_name):
     return dataset
 
 
-def map_labels(dataset, mapping, classes=None, field_name="ground_truth"):
-    # field_name: detections, segmentations, ground_truth, predictions
-    if classes is None:
-        classes = dataset.default_classes
+def map_labels(dataset, mapping, field_name="ground_truth"):
+    classes = dataset.distinct(f"{field_name}.detections.label")
 
     _map = {}
     for label in classes:
@@ -100,7 +98,7 @@ def merge_datasets(name, mask_targets, classes, info, datasets, tmp_dir="/tmp"):
         assert "version" in info
         assert "dataset_name" in info
         prefix = f"{info['dataset_name']}:{info['version']}"
-        for sample in _dataset:
+        for sample in _dataset.clone():
             num += 1
             filepath = Path(sample.filepath)
             sample["from"] = f"{prefix}/{filepath.name}"
@@ -148,8 +146,8 @@ def split_dataset(dataset, splits, limit=500, field_name="ground_truth"):
         pos_train = splits.get("train", 0.9)
         if isinstance(pos_val, float):
             num_samples = len(ids)
-            pos_val = int(pos_val * num_samples)
-            pos_train = int(pos_train * num_samples)
+            pos_val = int(1 + pos_val * num_samples)
+            pos_train = int(1 + pos_train * num_samples)
         ids = ids[:(pos_val+pos_train)]
 
         val_ids.extend(ids[:pos_val])
@@ -171,6 +169,7 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None)
 
     if label_field is None:
         label_field = "detections"
+        print("todo: segmentations_to_detections()")
         dataset = delete_sample_field(dataset, label_field)
         dataset = segmentations_to(dataset, mask_label_field, label_field)
 
