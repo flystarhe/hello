@@ -1,46 +1,61 @@
 import fiftyone.zoo as foz
 from hello.fiftyone.utils import *
 
-# Download and load COCO-2017
-label_types = ("detections", "segmentations")
-dataset = foz.load_zoo_dataset("coco-2017", label_types=label_types, classes=["cat", "dog"])  # max_samples=100
+# download and load COCO
+label_types = ["detections", "segmentations"]
+classes = ["cat", "dog"]
+dataset = foz.load_zoo_dataset("coco-2017",
+                               label_types=label_types,
+                               classes=classes,
+                               max_samples=30)
 print(dataset)
+
+# set classes & mask_targets
+dataset.default_classes = ["cat", "dog"]
+dataset.default_mask_targets = {127: "cat", 255: "dog"}
 
 # clone sample field
-dataset = clone_sample_field(dataset, "detections", "ground_truth")
+dataset = clone_sample_field(dataset, "segmentations", "ground_truth")
 print(dataset)
 
+# cat + dog
+cat_dog = dataset.clone()
+cat_dog.info.update(dataset_name="COCO 2017", version="1.0")
+print(cat_dog.count_values("tags"))
+print(cat_dog.count_values("ground_truth.detections.label"))
+
 # map labels
-mapping = {"cat": "CAT", "dog": "DOG", "person": "PERSON", "*": "OTHER"}
-cat_dog_person = map_labels(dataset, mapping, "ground_truth")
-print(cat_dog_person.count_values("ground_truth.detections.label"))
+mapping = {"cat": "cat", "dog": "dog", "*": "other"}
+classes = get_classes(cat_dog, "ground_truth.detections.label")
+cat_dog = map_labels(cat_dog, mapping, classes, "ground_truth")
+print(cat_dog.count_values("tags"))
+print(cat_dog.count_values("ground_truth.detections.label"))
 
 # filter samples
-classes = ["CAT", "DOG", "PERSON"]
-cat_dog_person = filter_samples(cat_dog_person, classes, field_name="ground_truth")
-print(cat_dog_person.count_values("ground_truth.detections.label"))
-
-# filter labels
-classes = ["CAT", "DOG", "PERSON"]
-cat_dog_person = filter_labels(cat_dog_person, classes, field_name="ground_truth")
-print(cat_dog_person.count_values("ground_truth.detections.label"))
+classes = ["cat", "dog"]
+cat_dog = filter_samples(cat_dog, classes, field_name="ground_truth")
+print(cat_dog.count_values("tags"))
+print(cat_dog.count_values("ground_truth.detections.label"))
 
 # merge datasets
-classes = ["CAT", "DOG", "PERSON", "OTHER"]
-info = {"dataset_name": "COCO 2017",
-        "version": "1.0"}
-big_dataset = merge_datasets("big", classes, info, [cat_dog_person])
+mask_targets = {90: "cat", 170: "dog", 255: "other"}
+classes = ["cat", "dog", "other"]
+info = {"dataset_name": "COCO 2017", "version": "1.0"}
+big_dataset = merge_datasets("big", mask_targets, classes, info, [cat_dog])
 print(big_dataset.count_values("tags"))
+print(big_dataset.count_values("ground_truth.detections.label"))
 
 # split dataset
-splits = {"train": 0.8, "val": 0.1}
+splits = {"val": 0.1, "train": 0.9}
 split_dataset(big_dataset, splits=splits, limit=200, field_name="ground_truth")
 print(big_dataset.count_values("tags"))
+print(big_dataset.count_values("ground_truth.detections.label"))
 
 # export dataset
-results = export_dataset("/workspace/tmp/big", big_dataset, "ground_truth")
+results = export_dataset("tmp/examples/big", big_dataset,
+                         label_field="ground_truth", mask_label_field="ground_truth")
 print(results)
 
 # load dataset
-test = load_dataset("/workspace/tmp/big/test", label_field="ground_truth")
+test = load_dataset("tmp/examples/big/test")
 print(test.count_values("tags"))

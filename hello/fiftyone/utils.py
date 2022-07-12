@@ -39,10 +39,13 @@ def rename_sample_field(dataset, field_name, new_field_name):
     return dataset
 
 
-def map_labels(dataset, mapping, field_name="ground_truth"):
+def map_labels(dataset, mapping, classes=None, field_name="ground_truth"):
     # field_name: detections, segmentations, ground_truth, predictions
+    if classes is None:
+        classes = dataset.default_classes
+
     _map = {}
-    for label in dataset.default_classes:
+    for label in classes:
         if label in mapping:
             _map[label] = mapping[label]
         elif "*" in mapping:
@@ -81,8 +84,9 @@ def merge_samples(A, B, **kwargs):
     return A
 
 
-def merge_datasets(name, classes, info, datasets, tmp_dir="/tmp"):
+def merge_datasets(name, mask_targets, classes, info, datasets, tmp_dir="/tmp"):
     dataset = fo.Dataset(name=name, overwrite=True)
+    dataset.default_mask_targets = mask_targets
     dataset.default_classes = classes
     dataset.info = info
 
@@ -107,7 +111,8 @@ def merge_datasets(name, classes, info, datasets, tmp_dir="/tmp"):
     return dataset
 
 
-def segmentations_to(dataset, in_field, out_field, function="polylines", mask_targets=None, mask_types="stuff", tolerance=2):
+def segmentations_to(dataset, in_field, out_field, function="detections", mask_targets=None, mask_types="stuff", tolerance=2):
+    # mask_types: "stuff"(amorphous regions of pixels), "thing"(connected regions, each representing an instance)
     if mask_targets is None:
         mask_targets = dataset.default_mask_targets
 
@@ -159,9 +164,15 @@ def split_dataset(dataset, splits, limit=500, field_name="ground_truth"):
     return dataset
 
 
-def export_dataset(export_dir, dataset, label_field="ground_truth", mask_label_field=None):
+def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None):
+    assert label_field is not None or mask_label_field is not None
     mask_targets = dataset.default_mask_targets
     splits = dataset.distinct("tags")
+
+    if label_field is None:
+        label_field = "detections"
+        dataset = delete_sample_field(dataset, label_field)
+        dataset = segmentations_to(dataset, mask_label_field, label_field)
 
     for split in splits:
         view = dataset.match_tags(split)
@@ -173,7 +184,7 @@ def export_dataset(export_dir, dataset, label_field="ground_truth", mask_label_f
             label_field=label_field,
         )
 
-        if mask_label_field:
+        if mask_label_field is not None:
             view.export(
                 dataset_type=fo.types.ImageSegmentationDirectory,
                 labels_path=f"{curr_dir}/labels",
@@ -184,30 +195,31 @@ def export_dataset(export_dir, dataset, label_field="ground_truth", mask_label_f
     return dataset.count_values("tags")
 
 
-def load_dataset(dataset_dir, dataset_type="COCODetectionDataset", label_field="ground_truth", det_labels="labels.json", seg_labels="labels/"):
+def load_dataset(dataset_dir, det_labels="labels.json", seg_labels="labels/"):
     # field_name: detections, segmentations, ground_truth, predictions
-    assert dataset_type in ("COCODetectionDataset", "ImageSegmentationDataset")
 
-    if dataset_type == "COCODetectionDataset":
-        data_path = str(Path(dataset_dir) / "data/")
-        labels_path = str(Path(dataset_dir) / det_labels)
-        dataset = fo.Dataset.from_dir(
-            dataset_type=fo.types.COCODetectionDataset,
-            data_path=data_path,
-            labels_path=labels_path,
-            label_field=label_field,
-        )
-    elif dataset_type == "ImageSegmentationDataset":
-        data_path = str(Path(dataset_dir) / "data/")
-        labels_path = str(Path(dataset_dir) / seg_labels)
-        dataset = fo.Dataset.from_dir(
-            dataset_type=fo.types.ImageSegmentationDirectory,
-            data_path=data_path,
-            labels_path=labels_path,
-            label_field=label_field,
-        )
-    else:
-        raise NotImplementedError
+    # COCODetectionDataset
+    data_path = str(Path(dataset_dir) / "data/")
+    labels_path = str(Path(dataset_dir) / det_labels)
+    A = fo.Dataset.from_dir(
+        dataset_type=fo.types.COCODetectionDataset,
+        label_types=["segmentations"],
+        data_path=data_path,
+        labels_path=labels_path,
+        label_field="detections",
+    )
 
-    dataset.tag_samples(Path(dataset_dir).name)
+    # ImageSegmentationDataset
+    data_path = str(Path(dataset_dir) / "data/")
+    labels_path = str(Path(dataset_dir) / seg_labels)
+    B = fo.Dataset.from_dir(
+        dataset_type=fo.types.ImageSegmentationDirectory,
+        data_path=data_path,
+        labels_path=labels_path,
+        label_field="segmentations",
+    )
+
+    dataset = merge_samples(A, B)
+    tag = Path(dataset_dir).name
+    dataset.tag_samples(tag)
     return dataset
