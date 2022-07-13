@@ -18,7 +18,10 @@ dataset.default_mask_targets = {127: "cat", 255: "dog"}
 # cat + dog
 cat_dog = dataset.select_fields("segmentations").clone()
 cat_dog = clone_sample_field(cat_dog, "segmentations", "ground_truth")
-cat_dog.info.update(dataset_name="COCO 2017: cat and dog", version="0.01")
+cat_dog.info = {"dataset_name": "cat and dog", "version": "0.01"}
+cat_dog.info["classes"] = cat_dog.default_classes
+cat_dog.info["mask_targets"] = cat_dog.default_mask_targets
+cat_dog.save()  # when `Dataset.info()` is modified
 print(cat_dog.count_values("tags"))
 print(cat_dog.count_values("ground_truth.detections.label"))
 
@@ -35,8 +38,8 @@ print(cat_dog.count_values("tags"))
 print(cat_dog.count_values("ground_truth.detections.label"))
 
 # merge datasets
-mask_targets = {70: "cat", 120: "dog", 255: "other"}
 classes = ["cat", "dog", "other"]
+mask_targets = {70: "cat", 120: "dog", 255: "other"}
 info = {"dataset_name": "COCO 2017", "version": "0.01"}
 big_dataset = merge_datasets("big", mask_targets, classes, info, [cat_dog])
 print(big_dataset.count_values("tags"))

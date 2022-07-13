@@ -18,24 +18,42 @@ def get_classes(dataset, field_or_expr="detections.detections.label"):
     return sorted(set(dataset.distinct(field_or_expr)) - set(["other"])) + ["other"]
 
 
-def clone_sample_field(dataset, field_name="detections", new_field_name="ground_truth"):
+def clone_sample_field(dataset, field_name, new_field_name):
     # dataset: Dataset or DatasetView
+    dataset.save()
     dataset = dataset.clone()
-    dataset.clone_sample_field(field_name, new_field_name)
+
+    sample_fields = dataset.get_field_schema()
+    if field_name in sample_fields:
+        dataset.clone_sample_field(field_name, new_field_name)
+    else:
+        print(f"not found: {field_name}\n{sample_fields.keys()}")
     return dataset
 
 
 def delete_sample_field(dataset, field_name, error_level=0):
     # dataset:  Dataset or DatasetView
+    dataset.save()
     dataset = dataset.clone()
-    dataset.delete_sample_field(field_name, error_level)
+
+    sample_fields = dataset.get_field_schema()
+    if field_name in sample_fields:
+        dataset.delete_sample_field(field_name, error_level)
+    else:
+        print(f"not found: {field_name}\n{sample_fields.keys()}")
     return dataset
 
 
 def rename_sample_field(dataset, field_name, new_field_name):
     # dataset:  Dataset or DatasetView
+    dataset.save()
     dataset = dataset.clone()
-    dataset.rename_sample_field(field_name, new_field_name)
+
+    sample_fields = dataset.get_field_schema()
+    if field_name in sample_fields:
+        dataset.rename_sample_field(field_name, new_field_name)
+    else:
+        print(f"not found: {field_name}\n{sample_fields.keys()}")
     return dataset
 
 
@@ -48,8 +66,8 @@ def map_labels(dataset, mapping, field_name="ground_truth"):
             _map[label] = mapping[label]
         elif "*" in mapping:
             _map[label] = mapping["*"]
-
     print(f"map_labels:\n{_map}")
+
     sample_fields = dataset.get_field_schema()
     if field_name in sample_fields:
         dataset = dataset.map_labels(field_name, _map)
@@ -72,6 +90,7 @@ def filter_samples(dataset, classes, field_name="ground_truth"):
 
 
 def merge_samples(A, B, **kwargs):
+    A.save()
     A = A.clone()
 
     def key_fcn(sample):
@@ -87,6 +106,7 @@ def merge_datasets(name, mask_targets, classes, info, datasets, tmp_dir="/tmp"):
     dataset.default_mask_targets = mask_targets
     dataset.default_classes = classes
     dataset.info = info
+    dataset.save()
 
     tmp_dir = Path(tmp_dir) / str(name)
     shutil.rmtree(tmp_dir, ignore_errors=True)
