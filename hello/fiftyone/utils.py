@@ -1,3 +1,4 @@
+import json
 import random
 import shutil
 import time
@@ -23,11 +24,10 @@ def clone_sample_field(dataset, field_name, new_field_name):
     dataset.save()
     dataset = dataset.clone()
 
-    sample_fields = dataset.get_field_schema()
-    if field_name in sample_fields:
+    if dataset.has_sample_field(field_name):
         dataset.clone_sample_field(field_name, new_field_name)
     else:
-        print(f"not found: {field_name}\n{sample_fields.keys()}")
+        print(f"not found: {field_name}")
     return dataset
 
 
@@ -36,11 +36,10 @@ def delete_sample_field(dataset, field_name, error_level=0):
     dataset.save()
     dataset = dataset.clone()
 
-    sample_fields = dataset.get_field_schema()
-    if field_name in sample_fields:
+    if dataset.has_sample_field(field_name):
         dataset.delete_sample_field(field_name, error_level)
     else:
-        print(f"not found: {field_name}\n{sample_fields.keys()}")
+        print(f"not found: {field_name}")
     return dataset
 
 
@@ -49,11 +48,10 @@ def rename_sample_field(dataset, field_name, new_field_name):
     dataset.save()
     dataset = dataset.clone()
 
-    sample_fields = dataset.get_field_schema()
-    if field_name in sample_fields:
+    if dataset.has_sample_field(field_name):
         dataset.rename_sample_field(field_name, new_field_name)
     else:
-        print(f"not found: {field_name}\n{sample_fields.keys()}")
+        print(f"not found: {field_name}")
     return dataset
 
 
@@ -66,13 +64,12 @@ def map_labels(dataset, mapping, field_name="ground_truth"):
             _map[label] = mapping[label]
         elif "*" in mapping:
             _map[label] = mapping["*"]
-    print(f"map_labels:\n{_map}")
+    print(f"[mapping]: {_map}\n")
 
-    sample_fields = dataset.get_field_schema()
-    if field_name in sample_fields:
+    if dataset.has_sample_field(field_name):
         dataset = dataset.map_labels(field_name, _map)
     else:
-        print(f"not found: {field_name}\n{sample_fields.keys()}")
+        print(f"not found: {field_name}")
     return dataset
 
 
@@ -101,14 +98,16 @@ def merge_samples(A, B, **kwargs):
     return A
 
 
-def merge_datasets(name, classes, mask_targets, info, datasets, field_name="ground_truth", tmp_dir="/tmp"):
+def merge_datasets(name, version, classes, mask_targets, datasets, field_name="ground_truth", tmp_dir="/tmp"):
     dataset = fo.Dataset(name=name, overwrite=True)
-    dataset.default_classes = classes
-    dataset.default_mask_targets = mask_targets
-    dataset.info = info
+    dataset.info.update(dataset_name=name)
+    dataset.info.update(version=version)
     dataset.save()
 
-    tmp_dir = Path(tmp_dir) / str(name)
+    dataset.default_classes = classes
+    dataset.default_mask_targets = mask_targets
+
+    tmp_dir = Path(tmp_dir) / name
     shutil.rmtree(tmp_dir, ignore_errors=True)
     tmp_dir.mkdir(parents=True, exist_ok=False)
 
@@ -118,7 +117,7 @@ def merge_datasets(name, classes, mask_targets, info, datasets, field_name="grou
         assert "version" in info
         assert "dataset_name" in info
         prefix = f"{info['dataset_name']}:{info['version']}"
-        for sample in _dataset.clone().select_fields(field_name):
+        for sample in _dataset.select_fields(field_name).clone():
             num += 1
             filepath = Path(sample.filepath)
             sample["from"] = f"{prefix}/{filepath.name}"
@@ -184,21 +183,26 @@ def split_dataset(dataset, splits, limit=500, field_name="ground_truth"):
 
 def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None):
     assert label_field is not None or mask_label_field is not None
-    mask_targets = dataset.default_mask_targets
-    splits = dataset.distinct("tags")
+
+    info = {
+        "dataset_name": dataset.info["dataset_name"],
+        "version": dataset.info["version"],
+        "classes": dataset.default_classes,
+    }
 
     if label_field is None:
         label_field = "detections"
         print("todo: segmentations_to_detections()")
-        dataset = delete_sample_field(dataset, label_field)
+        dataset = dataset.select_fields(mask_label_field).clone()
         dataset = segmentations_to(dataset, mask_label_field, label_field)
 
+    splits = dataset.distinct("tags")
     for split in splits:
         view = dataset.match_tags(split)
-        curr_dir = str(Path(export_dir) / split)
+        curr_dir = Path(export_dir) / split
 
         view.export(
-            export_dir=curr_dir,
+            export_dir=str(curr_dir),
             dataset_type=fo.types.COCODetectionDataset,
             label_field=label_field,
         )
@@ -206,20 +210,24 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None)
         if mask_label_field is not None:
             view.export(
                 dataset_type=fo.types.ImageSegmentationDirectory,
-                labels_path=f"{curr_dir}/labels",
+                labels_path=str(curr_dir / "labels"),
                 label_field=mask_label_field,
-                mask_targets=mask_targets,
+                mask_targets=dataset.default_mask_targets,
             )
+
+        with open(curr_dir / "info.py", "w") as f:
+            json.dump(info, f, indent=4)
 
     return dataset.count_values("tags")
 
 
 def load_dataset(dataset_dir, det_labels="labels.json", seg_labels="labels/"):
     # field_name: detections, segmentations, ground_truth, predictions
+    dataset_dir = Path(dataset_dir)
 
     # COCODetectionDataset
-    data_path = str(Path(dataset_dir) / "data/")
-    labels_path = str(Path(dataset_dir) / det_labels)
+    data_path = str(dataset_dir / "data/")
+    labels_path = str(dataset_dir / det_labels)
     A = fo.Dataset.from_dir(
         dataset_type=fo.types.COCODetectionDataset,
         label_types=["segmentations"],
@@ -229,8 +237,8 @@ def load_dataset(dataset_dir, det_labels="labels.json", seg_labels="labels/"):
     )
 
     # ImageSegmentationDataset
-    data_path = str(Path(dataset_dir) / "data/")
-    labels_path = str(Path(dataset_dir) / seg_labels)
+    data_path = str(dataset_dir / "data/")
+    labels_path = str(dataset_dir / seg_labels)
     B = fo.Dataset.from_dir(
         dataset_type=fo.types.ImageSegmentationDirectory,
         data_path=data_path,
@@ -239,6 +247,4 @@ def load_dataset(dataset_dir, det_labels="labels.json", seg_labels="labels/"):
     )
 
     dataset = merge_samples(A, B)
-    tag = Path(dataset_dir).name
-    dataset.tag_samples(tag)
     return dataset

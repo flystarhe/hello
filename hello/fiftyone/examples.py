@@ -1,6 +1,12 @@
-import fiftyone as fo
-import fiftyone.zoo as foz
 from hello.fiftyone.utils import *
+
+import fiftyone as fo
+import fiftyone.core.dataset as fod
+import fiftyone.zoo as foz
+
+# delete datasets
+for name in fod.list_datasets(info=False):
+    fod.delete_dataset(name)
 
 # download and load COCO
 label_types = ["detections", "segmentations"]
@@ -19,7 +25,7 @@ mask_targets = {127: "cat", 255: "dog"}
 cat_dog.default_classes = classes
 cat_dog.default_mask_targets = mask_targets
 cat_dog.info = {
-    "dataset_name": "cat and dog",
+    "dataset_name": "cat-and-dog",
     "version": "0.01",
     "classes": str(classes),
     "mask_targets": str(mask_targets),
@@ -43,14 +49,9 @@ print(cat_dog.count_values("ground_truth.detections.label"))
 # merge datasets
 classes = ["cat", "dog", "other"]
 mask_targets = {70: "cat", 120: "dog", 255: "other"}
-info = {
-    "dataset_name": "cat and dog",
-    "version": "0.01",
-    "classes": str(classes),
-    "mask_targets": str(mask_targets),
-}
 datasets = [cat_dog, ]
-big_dataset = merge_datasets("big", classes, mask_targets, info, datasets)
+big_dataset = merge_datasets("big-dataset", "0.01",
+                             classes, mask_targets, datasets)
 print(big_dataset.count_values("tags"))
 print(big_dataset.count_values("ground_truth.detections.label"))
 
@@ -68,5 +69,4 @@ print(results)
 
 # load dataset
 data = load_dataset("tmp/examples/big/train")
-print(data.count_values("tags"))
 session = fo.launch_app(data)
