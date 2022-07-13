@@ -101,10 +101,10 @@ def merge_samples(A, B, **kwargs):
     return A
 
 
-def merge_datasets(name, mask_targets, classes, info, datasets, tmp_dir="/tmp"):
+def merge_datasets(name, classes, mask_targets, info, datasets, tmp_dir="/tmp"):
     dataset = fo.Dataset(name=name, overwrite=True)
-    dataset.default_mask_targets = mask_targets
     dataset.default_classes = classes
+    dataset.default_mask_targets = mask_targets
     dataset.info = info
     dataset.save()
 
