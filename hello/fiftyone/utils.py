@@ -101,7 +101,7 @@ def merge_samples(A, B, **kwargs):
     return A
 
 
-def merge_datasets(name, classes, mask_targets, info, datasets, tmp_dir="/tmp"):
+def merge_datasets(name, classes, mask_targets, info, datasets, field_name="ground_truth", tmp_dir="/tmp"):
     dataset = fo.Dataset(name=name, overwrite=True)
     dataset.default_classes = classes
     dataset.default_mask_targets = mask_targets
@@ -118,7 +118,7 @@ def merge_datasets(name, classes, mask_targets, info, datasets, tmp_dir="/tmp"):
         assert "version" in info
         assert "dataset_name" in info
         prefix = f"{info['dataset_name']}:{info['version']}"
-        for sample in _dataset.clone():
+        for sample in _dataset.clone().select_fields(field_name):
             num += 1
             filepath = Path(sample.filepath)
             sample["from"] = f"{prefix}/{filepath.name}"

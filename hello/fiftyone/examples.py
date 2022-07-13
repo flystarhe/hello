@@ -12,8 +12,8 @@ dataset = foz.load_zoo_dataset("coco-2017",
 print(dataset)
 
 # cat + dog
-cat_dog = dataset.select_fields("segmentations").clone()
-cat_dog = clone_sample_field(cat_dog, "segmentations", "ground_truth")
+cat_dog = dataset.clone().select_fields("segmentations")
+cat_dog = rename_sample_field(cat_dog, "segmentations", "ground_truth")
 classes = ["cat", "dog"]
 mask_targets = {127: "cat", 255: "dog"}
 cat_dog.default_classes = classes
@@ -49,7 +49,8 @@ info = {
     "classes": str(classes),
     "mask_targets": str(mask_targets),
 }
-big_dataset = merge_datasets("big", classes, mask_targets, info, [cat_dog])
+datasets = [cat_dog, ]
+big_dataset = merge_datasets("big", classes, mask_targets, info, datasets)
 print(big_dataset.count_values("tags"))
 print(big_dataset.count_values("ground_truth.detections.label"))
 
