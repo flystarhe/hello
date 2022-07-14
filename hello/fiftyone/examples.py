@@ -18,17 +18,15 @@ dataset = foz.load_zoo_dataset("coco-2017",
 print(dataset)
 
 # cat + dog
-cat_dog = dataset.clone().select_fields("segmentations")
+cat_dog = dataset.select_fields("segmentations").clone()
 cat_dog = rename_sample_field(cat_dog, "segmentations", "ground_truth")
-classes = ["cat", "dog"]
-mask_targets = {127: "cat", 255: "dog"}
-cat_dog.default_classes = classes
-cat_dog.default_mask_targets = mask_targets
+cat_dog.default_classes = ["cat", "dog"]
+cat_dog.default_mask_targets = {127: "cat", 255: "dog"}
 cat_dog.info = {
     "dataset_name": "cat-and-dog",
+    "dataset_type": "segmentation",
     "version": "0.01",
-    "classes": str(classes),
-    "mask_targets": str(mask_targets),
+    "num_samples": {"all": 500, "train": 400, "validation": 100},
 }
 cat_dog.save()  # when `Dataset.info` is modified
 print(cat_dog.count_values("tags"))

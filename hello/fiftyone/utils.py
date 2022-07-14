@@ -1,13 +1,25 @@
-import json
 import random
 import shutil
 import time
 from pathlib import Path
+from string import Template
 
 import fiftyone as fo
 from fiftyone import ViewField as F
 from fiftyone.utils.labels import (segmentations_to_detections,
                                    segmentations_to_polylines)
+
+tmpl_info = """
+{
+    'dataset_name': '$dataset_name',
+    'dataset_type': '$dataset_type',
+    'version': '$version',
+    'classes': $classes,
+    'mask_targets': $mask_targets,
+    'num_samples': $num_samples
+}
+"""
+tmpl_info = Template(tmpl_info)
 
 
 def gen_name(suffix=".png"):
@@ -98,21 +110,20 @@ def merge_samples(A, B, **kwargs):
     return A
 
 
-def merge_datasets(name, version, classes, mask_targets, datasets, field_name="ground_truth", tmp_dir="/tmp"):
-    dataset = fo.Dataset(name=name, overwrite=True)
-    dataset.info.update(dataset_name=name)
-    dataset.info.update(version=version)
+def merge_datasets(info, datasets, field_name="ground_truth", tmp_dir="/tmp"):
+    dataset = fo.Dataset()
+    dataset.default_classes = info.pop("classes", [])
+    dataset.default_mask_targets = info.pop("mask_targets", {})
+    dataset.info = info
     dataset.save()
 
-    dataset.default_classes = classes
-    dataset.default_mask_targets = mask_targets
-
-    tmp_dir = Path(tmp_dir) / name
+    tmp_dir = Path(tmp_dir) / info["dataset_name"]
     shutil.rmtree(tmp_dir, ignore_errors=True)
-    tmp_dir.mkdir(parents=True, exist_ok=False)
+    tmp_dir.mkdir(parents=True)
 
     num = 0
     for _dataset in datasets:
+        _dataset.save()
         info = _dataset.info
         assert "version" in info
         assert "dataset_name" in info
@@ -181,22 +192,28 @@ def split_dataset(dataset, splits, limit=500, field_name="ground_truth"):
     return dataset
 
 
-def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None):
+def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None, mask_types="stuff"):
     assert label_field is not None or mask_label_field is not None
 
-    info = {
-        "dataset_name": dataset.info["dataset_name"],
-        "version": dataset.info["version"],
-        "classes": dataset.default_classes,
-    }
+    dataset.save()
+    classes = dataset.default_classes
+    mask_targets = dataset.default_mask_targets
+    info_py = tmpl_info.safe_substitute(dataset.info,
+                                        classes=classes,
+                                        mask_targets=mask_targets)
 
     if label_field is None:
         label_field = "detections"
         print("todo: segmentations_to_detections()")
         dataset = dataset.select_fields(mask_label_field).clone()
-        dataset = segmentations_to(dataset, mask_label_field, label_field)
+        dataset = segmentations_to(dataset, mask_label_field, label_field,
+                                   mask_types=mask_types)
 
     splits = dataset.distinct("tags")
+
+    if "all" not in splits:
+        dataset.tag_samples("all")
+
     for split in splits:
         view = dataset.match_tags(split)
         curr_dir = Path(export_dir) / split
@@ -212,11 +229,11 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None)
                 dataset_type=fo.types.ImageSegmentationDirectory,
                 labels_path=str(curr_dir / "labels"),
                 label_field=mask_label_field,
-                mask_targets=dataset.default_mask_targets,
+                mask_targets=mask_targets,
             )
 
         with open(curr_dir / "info.py", "w") as f:
-            json.dump(info, f, indent=4)
+            f.write(info_py)
 
     return dataset.count_values("tags")
 
@@ -247,4 +264,12 @@ def load_dataset(dataset_dir, det_labels="labels.json", seg_labels="labels/"):
     )
 
     dataset = merge_samples(A, B)
+
+    with open(dataset_dir / "info.py", "r") as f:
+        info = eval(f.read())
+        dataset.default_classes = info.pop("classes", [])
+        dataset.default_mask_targets = info.pop("mask_targets", {})
+        dataset.info = info
+        dataset.save()
+
     return dataset
