@@ -77,6 +77,7 @@ data = load_dataset("tmp/examples/big/train")
 session = fo.launch_app(data)
 
 # create dataset
+images_dir = "tmp/examples/big"
 info = {
     "dataset_name": "cat-and-dog",
     "dataset_type": "segmentation",
@@ -86,5 +87,4 @@ info = {
     "num_samples": {"all": 500, "train": 400, "validation": 100},
     "tail": {},
 }
-images_dir = "tmp/examples/big"
-data = create_dataset(info, images_dir)
+data = create_dataset(images_dir, info, predictions=None)

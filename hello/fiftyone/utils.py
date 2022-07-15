@@ -1,6 +1,7 @@
 import random
 import shutil
 import time
+from collections import defaultdict
 from pathlib import Path
 from string import Template
 
@@ -41,6 +42,7 @@ def clone_sample_field(dataset, field_name, new_field_name):
         dataset.clone_sample_field(field_name, new_field_name)
     else:
         print(f"not found: {field_name}")
+
     return dataset
 
 
@@ -53,6 +55,7 @@ def delete_sample_field(dataset, field_name, error_level=0):
         dataset.delete_sample_field(field_name, error_level)
     else:
         print(f"not found: {field_name}")
+
     return dataset
 
 
@@ -65,6 +68,7 @@ def rename_sample_field(dataset, field_name, new_field_name):
         dataset.rename_sample_field(field_name, new_field_name)
     else:
         print(f"not found: {field_name}")
+
     return dataset
 
 
@@ -83,6 +87,7 @@ def map_labels(dataset, mapping, field_name="ground_truth"):
         dataset = dataset.map_labels(field_name, _map)
     else:
         print(f"not found: {field_name}")
+
     return dataset
 
 
@@ -106,13 +111,14 @@ def merge_samples(A, B, **kwargs):
     def key_fcn(sample):
         return Path(sample.filepath).name
 
-    A.merge_samples(B, key_fcn=key_fcn, **kwargs)
+    A.merge_samples(B.clone(), key_fcn=key_fcn, **kwargs)
 
     return A
 
 
 def merge_datasets(info, datasets, field_name="ground_truth", tmp_dir="/tmp"):
     dataset = fo.Dataset()
+
     dataset.default_classes = info.pop("classes", [])
     dataset.default_mask_targets = info.pop("mask_targets", {})
     dataset.info = info
@@ -122,7 +128,7 @@ def merge_datasets(info, datasets, field_name="ground_truth", tmp_dir="/tmp"):
     shutil.rmtree(tmp_dir, ignore_errors=True)
     tmp_dir.mkdir(parents=True)
 
-    num = 0
+    num = 1
     for _dataset in datasets:
         _dataset.save()
         info = _dataset.info
@@ -130,13 +136,15 @@ def merge_datasets(info, datasets, field_name="ground_truth", tmp_dir="/tmp"):
         assert "dataset_name" in info
         prefix = f"{info['dataset_name']}:{info['version']}"
         for sample in _dataset.select_fields(field_name).clone():
-            num += 1
             filepath = Path(sample.filepath)
             sample["from"] = f"{prefix}/{filepath.name}"
             tempfile = tmp_dir / f"{num:012d}{filepath.suffix}"
             shutil.copyfile(filepath, tempfile)
             sample.filepath = str(tempfile)
+            sample.save()
+            num += 1
             dataset.add_sample(sample)
+
     return dataset
 
 
@@ -281,23 +289,42 @@ def load_dataset(dataset_dir, det_labels="labels.json", seg_labels="labels/"):
     return dataset
 
 
-def create_dataset(info, images_dir, label_field=None, predictions=None, relative=False, fmt="xyxy"):
-    # bounding_box: [<top-left-x>, <top-left-y>, <width>, <height>] \in [0, 1]
-    dataset = fo.Dataset()
+def create_dataset(dataset_dir, info, predictions=None, relative=False):
+    dataset = fo.Dataset.from_dir(
+        dataset_dir=dataset_dir,
+        dataset_type=fo.types.ImageDirectory,
+        compute_metadata=True,
+    )
+
     dataset.default_classes = info.pop("classes", [])
     dataset.default_mask_targets = info.pop("mask_targets", {})
     dataset.info = info
     dataset.save()
 
-    paths_or_samples = [f.as_posix()
-                        for f in Path(images_dir).glob("**/*.jpg")]
-    dataset.add_images(paths_or_samples=paths_or_samples)
-
-    if label_field is None:
-        label_field = "ground_truth"
-
     if predictions is None:
-        for sample in dataset:
-            sample[label_field] = fo.Detections()
+        predictions = defaultdict(list)
+
+    for sample in dataset:
+        metadata = sample.metadata
+        filename = Path(sample.filepath).name
+        im_w, im_h = metadata.width, metadata.height
+
+        detections = []
+        # bounding_box: [<top-left-x>, <top-left-y>, <width>, <height>] \in [0, 1]
+        for x1, y1, x2, y2, label, confidence in predictions[filename]:
+            if relative:
+                rel_box = [x1, y1, (x2 - x1), (y2 - y1)]
+            else:
+                rel_box = [x1 / im_w, y1 / im_h,
+                           (x2 - x1) / im_w, (y2 - y1) / im_h]
+            detections.append(
+                fo.Detection(
+                    label=label,
+                    bounding_box=rel_box,
+                    confidence=confidence,
+                )
+            )
+        sample["predictions"] = fo.Detections(detections=detections)
+        sample.save()
 
     return dataset
