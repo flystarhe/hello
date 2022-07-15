@@ -16,7 +16,8 @@ tmpl_info = """
     'version': '$version',
     'classes': $classes,
     'mask_targets': $mask_targets,
-    'num_samples': $num_samples
+    'num_samples': $num_samples,
+    'tail': $tail,
 }
 """
 tmpl_info = Template(tmpl_info)
@@ -265,11 +266,38 @@ def load_dataset(dataset_dir, det_labels="labels.json", seg_labels="labels/"):
 
     dataset = merge_samples(A, B)
 
-    with open(dataset_dir / "info.py", "r") as f:
+    filepath = (dataset_dir / "info.py")
+    if not filepath.is_file():
+        return dataset
+
+    with open(filepath, "r") as f:
         info = eval(f.read())
-        dataset.default_classes = info.pop("classes", [])
-        dataset.default_mask_targets = info.pop("mask_targets", {})
-        dataset.info = info
-        dataset.save()
+
+    dataset.default_classes = info.pop("classes", [])
+    dataset.default_mask_targets = info.pop("mask_targets", {})
+    dataset.info = info
+    dataset.save()
+
+    return dataset
+
+
+def create_dataset(info, images_dir, label_field=None, predictions=None, relative=False, fmt="xyxy"):
+    # bounding_box: [<top-left-x>, <top-left-y>, <width>, <height>] \in [0, 1]
+    dataset = fo.Dataset()
+    dataset.default_classes = info.pop("classes", [])
+    dataset.default_mask_targets = info.pop("mask_targets", {})
+    dataset.info = info
+    dataset.save()
+
+    paths_or_samples = [f.as_posix()
+                        for f in Path(images_dir).glob("**/*.jpg")]
+    dataset.add_images(paths_or_samples=paths_or_samples)
+
+    if label_field is None:
+        label_field = "ground_truth"
+
+    if predictions is None:
+        for sample in dataset:
+            sample[label_field] = fo.Detections()
 
     return dataset

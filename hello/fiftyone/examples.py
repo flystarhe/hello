@@ -27,6 +27,7 @@ cat_dog.info = {
     "dataset_type": "segmentation",
     "version": "0.01",
     "num_samples": {"all": 500, "train": 400, "validation": 100},
+    "tail": {},
 }
 cat_dog.save()  # when `Dataset.info` is modified
 print(cat_dog.count_values("tags"))
@@ -45,11 +46,17 @@ print(cat_dog.count_values("tags"))
 print(cat_dog.count_values("ground_truth.detections.label"))
 
 # merge datasets
-classes = ["cat", "dog", "other"]
-mask_targets = {70: "cat", 120: "dog", 255: "other"}
+info = {
+    "dataset_name": "cat-and-dog",
+    "dataset_type": "segmentation",
+    "version": "0.01",
+    "classes": ["cat", "dog", "other"],
+    "mask_targets": {70: "cat", 120: "dog", 255: "other"},
+    "num_samples": {"all": 500, "train": 400, "validation": 100},
+    "tail": {},
+}
 datasets = [cat_dog, ]
-big_dataset = merge_datasets("big-dataset", "0.01",
-                             classes, mask_targets, datasets)
+big_dataset = merge_datasets(info, datasets, field_name="ground_truth")
 print(big_dataset.count_values("tags"))
 print(big_dataset.count_values("ground_truth.detections.label"))
 
@@ -68,3 +75,16 @@ print(results)
 # load dataset
 data = load_dataset("tmp/examples/big/train")
 session = fo.launch_app(data)
+
+# create dataset
+info = {
+    "dataset_name": "cat-and-dog",
+    "dataset_type": "segmentation",
+    "version": "0.01",
+    "classes": ["cat", "dog", "other"],
+    "mask_targets": {70: "cat", 120: "dog", 255: "other"},
+    "num_samples": {"all": 500, "train": 400, "validation": 100},
+    "tail": {},
+}
+images_dir = "tmp/examples/big"
+data = create_dataset(info, images_dir)
