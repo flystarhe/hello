@@ -311,7 +311,7 @@ def create_dataset(dataset_dir, info, predictions=None, relative=False):
 
         detections = []
         # bounding_box: [<top-left-x>, <top-left-y>, <width>, <height>] \in [0, 1]
-        for x1, y1, x2, y2, label, confidence in predictions[filename]:
+        for x1, y1, x2, y2, confidence, label in predictions[filename]:
             if relative:
                 rel_box = [x1, y1, (x2 - x1), (y2 - y1)]
             else:
