@@ -197,7 +197,7 @@ def split_dataset(dataset, splits, limit=500, field_name="ground_truth"):
     dataset.select(train_ids).tag_samples("train")
     dataset.select(val_ids).tag_samples("validation")
     dataset.exclude(train_ids | val_ids).tag_samples("test")
-
+    print(dataset.count_values("tags"))
     return dataset
 
 
@@ -205,11 +205,10 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
     assert label_field is not None or mask_label_field is not None
 
     dataset.save()
+    info = dataset.info
     classes = dataset.default_classes
     mask_targets = dataset.default_mask_targets
-    info_py = tmpl_info.safe_substitute(dataset.info,
-                                        classes=classes,
-                                        mask_targets=mask_targets)
+    info["num_samples"] = dataset.count_values("tags")
 
     if label_field is None:
         label_field = "detections"
@@ -220,12 +219,15 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
 
     splits = dataset.distinct("tags")
 
-    if "all" not in splits:
+    if not splits:
+        splits = ["all"]
         dataset.tag_samples("all")
 
     for split in splits:
+        print(f"\n[{split}]\n")
         view = dataset.match_tags(split)
         curr_dir = Path(export_dir) / split
+        count_label = view.count_values(f"{label_field}.detections.label")
 
         view.export(
             export_dir=str(curr_dir),
@@ -241,10 +243,18 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
                 mask_targets=mask_targets,
             )
 
+        tail = info["tail"]
+        tail["count_label"] = count_label
+        info["tail"] = tail
+
+        info_py = tmpl_info.safe_substitute(info,
+                                            classes=classes,
+                                            mask_targets=mask_targets)
+
         with open(curr_dir / "info.py", "w") as f:
             f.write(info_py)
 
-    return dataset.count_values("tags")
+    return export_dir
 
 
 def load_dataset(dataset_dir, det_labels="labels.json", seg_labels="labels/"):
