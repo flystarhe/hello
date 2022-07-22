@@ -108,7 +108,7 @@ def filter_labels(dataset, classes, field_name="ground_truth"):
     return view
 
 
-def count_labels(dataset, field_name="ground_truth", ordered=True):
+def count_values_label(dataset, field_name="ground_truth", ordered=True):
     count_label = dataset.count_values(f"{field_name}.detections.label")
     count_label = [(k, v) for k, v in count_label.items()]
 
@@ -195,18 +195,22 @@ def segmentations_to(dataset, in_field, out_field, function="detections", mask_t
     return dataset
 
 
-def prune_dataset(dataset, field_name="ground_truth", per_class=1000, max_objects=5):
+def prune_dataset(dataset, classes=None, field_name="ground_truth", per_class=1000, max_objects=5):
     expr = F(f"{field_name}.detections").length()
     dataset = add_sample_field(dataset, "num_objects", fo.IntField, expr)
 
-    ids = []
     subset = dataset.match(F("num_objects") <= max_objects)
-    for label in subset.distinct(f"{field_name}.detections.label"):
+
+    if classes is None:
+        classes = subset.distinct(f"{field_name}.detections.label")
+
+    ids = set()
+    for label in classes:
         match = (F("label") == label)
         label_field = F(f"{field_name}.detections")
         view = subset.match(label_field.filter(match).length() > 0)
-        ids.extend(view.sort_by("num_objects")[:per_class].values("id"))
-    results = subset.select(set(ids))
+        ids.update(view.sort_by("num_objects")[:per_class].values("id"))
+    results = subset.select(ids)
     return results
 
 
@@ -270,7 +274,7 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
         print(f"\n[{split}]\n")
         view = dataset.match_tags(split)
         curr_dir = Path(export_dir) / split
-        count_label = view.count_values(f"{label_field}.detections.label")
+        counts = count_values_label(view, label_field)
 
         view.export(
             export_dir=str(curr_dir),
@@ -287,7 +291,7 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
             )
 
         tail = info["tail"]
-        tail["count_label"] = count_label
+        tail["count_label"] = counts
         info["tail"] = tail
 
         info_py = tmpl_info.safe_substitute(info,
