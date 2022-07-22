@@ -72,6 +72,18 @@ def rename_sample_field(dataset, field_name, new_field_name):
     return dataset
 
 
+def add_sample_field(dataset, field_name, field_type, expression):
+    # field_name = "num_objects"; field_type = fo.IntField
+    # expression = F("detections.detections").length()
+    if dataset.has_sample_field(field_name):
+        print(f"overwrite [{field_name=}], already exists")
+    else:
+        dataset.add_sample_field(field_name, field_type)
+
+    view = dataset.set_field(field_name, expression)
+    return view
+
+
 def map_labels(dataset, mapping, field_name="ground_truth"):
     classes = dataset.distinct(f"{field_name}.detections.label")
 
@@ -96,6 +108,16 @@ def filter_labels(dataset, classes, field_name="ground_truth"):
     return view
 
 
+def count_labels(dataset, field_name="ground_truth", ordered=True):
+    count_label = dataset.count_values(f"{field_name}.detections.label")
+    count_label = [(k, v) for k, v in count_label.items()]
+
+    if ordered:
+        count_label = sorted(count_label, key=lambda x: x[1])
+
+    return count_label
+
+
 def filter_samples(dataset, classes, field_name="ground_truth"):
     # tagged_view = dataset.match_tags("requires_annotation")
     match = F("label").is_in(classes)
@@ -104,14 +126,20 @@ def filter_samples(dataset, classes, field_name="ground_truth"):
     return view
 
 
-def merge_samples(A, B, **kwargs):
+def merge_samples(datasets, **kwargs):
+    A = datasets[0]
+
     A.save()
     A = A.clone()
 
     def key_fcn(sample):
         return Path(sample.filepath).name
 
-    A.merge_samples(B.clone(), key_fcn=key_fcn, **kwargs)
+    for B in datasets[1:]:
+        B.save()
+        B = B.clone()
+
+        A.merge_samples(B, key_fcn=key_fcn, **kwargs)
 
     return A
 
@@ -165,6 +193,21 @@ def segmentations_to(dataset, in_field, out_field, function="detections", mask_t
         raise NotImplementedError
 
     return dataset
+
+
+def prune_dataset(dataset, field_name="ground_truth", per_class=1000, max_objects=5):
+    expr = F(f"{field_name}.detections").length()
+    dataset = add_sample_field(dataset, "num_objects", fo.IntField, expr)
+
+    ids = []
+    subset = dataset.match(F("num_objects") <= max_objects)
+    for label in subset.distinct(f"{field_name}.detections.label"):
+        match = (F("label") == label)
+        label_field = F(f"{field_name}.detections")
+        view = subset.match(label_field.filter(match).length() > 0)
+        ids.extend(view.sort_by("num_objects")[:per_class].values("id"))
+    results = subset.select(set(ids))
+    return results
 
 
 def split_dataset(dataset, splits, limit=500, field_name="ground_truth"):
@@ -282,7 +325,7 @@ def load_dataset(dataset_dir, det_labels="labels.json", seg_labels="labels/"):
         label_field="segmentations",
     )
 
-    dataset = merge_samples(A, B)
+    dataset = merge_samples([A, B])
 
     filepath = (dataset_dir / "info.py")
     if not filepath.is_file():
