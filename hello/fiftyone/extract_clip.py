@@ -5,6 +5,18 @@ import cv2 as cv
 suffix_set = set(".avi,.mp4".split(","))
 
 
+def video_info(fpath):
+    cap = cv.VideoCapture(fpath)
+
+    fps = int(cap.get(cv.CAP_PROP_FPS))
+    width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+    count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
+
+    cap.release()
+    return fps, width, height, count
+
+
 def find_videos(input_path, end_tag="_tof"):
     video_paths = []
     for fpath in sorted(Path(input_path).glob("**/*")):
@@ -22,13 +34,17 @@ def find_videos(input_path, end_tag="_tof"):
         else:
             main_files.append((fstem, fpath))
 
-    res = []
+    video_pairs = []
     for fstem, fpath in main_files:
-        res.append((fpath, links.get(fstem)))
-    return res
+        video_pairs.append((fpath, links.get(fstem)))
+    return video_pairs
 
 
-def viz_video(frame1, frame2=None, height=800):
+def align_pairs(video_pairs, output_dir):
+    return video_pairs
+
+
+def display_pairs(frame1, frame2=None, height=800):
     return None
 
 
