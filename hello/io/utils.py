@@ -1,10 +1,18 @@
+import os.path as osp
 import shutil
+import time
 from pathlib import Path
 
 try:
     import simplejson as json
 except ImportError:
     import json
+
+
+def get_ctime(filename, format=r"%Y%m%d_%H%M%S"):
+    ctime = osp.getctime(filename)
+    ctime = time.localtime(ctime)
+    return time.strftime(format, ctime)
 
 
 def make_dir(path):
