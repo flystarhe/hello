@@ -7,7 +7,6 @@ import numpy as np
 
 suffix_set = set(".avi,.mp4".split(","))
 
-
 help_doc_str = """
 Press the left mouse button to start marking area.
 - press `esc` to exit
@@ -15,8 +14,8 @@ Press the left mouse button to start marking area.
 - press `u` speed up
 - press `d` slow down
 - press `n` go further
-- press `r` take a step back
-- press `k` freeze or not
+- press `b` take a step back
+- press `f` freeze or not
 """
 
 
@@ -67,59 +66,60 @@ def tag_video(video_path):
     cap = cv.VideoCapture(video_path)
 
     fps = int(cap.get(cv.CAP_PROP_FPS))
-    width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
     count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
+    width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
 
-    keep, step_size, curr_pos, next_pos, freeze = 0, 5, -1, 0, 0
+    tag_frames = np.zeros((30, count, 3), dtype="uint8")
+    curr_pos, step_size, freeze, keep = 0, 5, False, False
 
-    tags = []
-    tags_bar = np.zeros((35, count, 3), dtype="uint8")
-    while True:
-        if next_pos >= count:
-            break
+    while curr_pos < count:
+        this_pos = int(cap.get(cv.CAP_PROP_POS_FRAMES))
 
-        if not freeze:
-            tags_bar[curr_pos:next_pos] = keep
+        if this_pos != curr_pos:
+            cap.set(cv.CAP_PROP_POS_FRAMES, curr_pos)
+            this_pos = curr_pos
 
-        if curr_pos != next_pos:
-            cap.set(cv.CAP_PROP_POS_FRAMES, next_pos)
-            _, frame = cap.read()
-            curr_pos = next_pos
+        _, frame = cap.read()
 
-        txt = f"{keep=}, {step_size=}, {curr_pos=}, {next_pos=}, {freeze=}"
-        cv.rectangle(frame, (5, 5), (width, 35), (0, 0, 255), -1)
-        cv.putText(frame, txt, (15, 30),
+        banner = np.full((30, width, 3), (0, 0, 255), dtype="uint8")
+        txt = f"{curr_pos=}, {step_size=}, {freeze=}, {keep=}"
+        cv.putText(banner, txt, (15, 25),
                    cv.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255))
 
-        view_bar = cv.resize(tags_bar, (width, 30),
+        tag_view = cv.resize(tag_frames, (width, 30),
                              interpolation=cv.INTER_NEAREST)
-        cv.circle(view_bar, (50, 15), 5, (0, 0, 255), -1)
-        frame[height - 30:, :] = view_bar
-        cv.imshow(video_path, frame)
+        center = (int(curr_pos / count * width), 15)
+        cv.circle(tag_view, center, 5, (255, 255, 255), -1)
+
+        cv.imshow(video_path, np.concatenate((banner, frame, tag_view)))
 
         key = cv.waitKey(0)
-
         if key == 27:  # esc
             break
         elif key == 32:  # space
-            keep = int(not keep)
+            keep = not keep
         elif key == ord("u"):
-            step_size += step_size // 2
+            step_size = step_size * 2
         elif key == ord("d"):
-            step_size -= step_size // 2
+            step_size = step_size // 2
+            step_size = max(1, step_size)
         elif key == ord("n"):
-            next_pos += step_size * fps
-        elif key == ord("r"):
-            next_pos -= step_size * fps
-        elif key == ord("k"):
-            freeze = int(not freeze)
-
-        step_size = max(1, step_size)
+            curr_pos = this_pos + step_size * fps
+            if not freeze:
+                if keep:
+                    tag_frames[:, this_pos:curr_pos] = (0, 255, 0)
+                else:
+                    tag_frames[:, this_pos:curr_pos] = (0, 0, 255)
+        elif key == ord("b"):
+            curr_pos = this_pos - step_size * fps
+            curr_pos = max(0, curr_pos)
+        elif key == ord("f"):
+            freeze = not freeze
 
     cv.destroyAllWindows()
     cap.release()
-    return tags
+
+    return tag_frames[0, :, 1]
 
 
 def clip_video(tags, video_path, output_dir):
