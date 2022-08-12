@@ -71,7 +71,7 @@ def _align_pairs(infile1, infile2, outdir):
 
 
 def _clip_video_opencv(outdir, infile, t_start, t_end):
-    outfile = (Path(outdir) / Path(infile).name).with_suffix(".mp4")
+    outfile = Path(outdir) / f"{Path(infile).stem}.mp4"
     print(f"\n[CLIP]\n in: {infile}\nout: {outfile}")
     fourcc = cv.VideoWriter_fourcc(*"mp4v")
 
@@ -111,7 +111,7 @@ def parse_args(args=None):
 
     parser.add_argument("input_dir", type=str,
                         help="input dir")
-    parser.add_argument("output_dir", type=str,
+    parser.add_argument("-o", "--output_dir", type=str,
                         help="output dir")
     parser.add_argument("--end-tag", type=str, default="_tof",
                         help="the pair video file")

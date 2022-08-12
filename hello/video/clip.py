@@ -1,9 +1,12 @@
+import re
 import shutil
 import sys
 from pathlib import Path
 
 import cv2 as cv
 import numpy as np
+
+pattern_decimal = re.compile(r"\d+(\.\d+)?")
 
 suffix_set = set(".avi,.mp4".split(","))
 
@@ -91,8 +94,11 @@ def tag_video(video_path):
     return tag_frames[0, :, 1]
 
 
-def clip_video(tag_frames, video_path, output_dir):
-    outfile = (Path(output_dir) / Path(video_path).name).with_suffix(".mp4")
+def clip_video(video_path, tag_frames, output_dir):
+    txt_file = Path(video_path).with_suffix(".txt")
+    clip_text_file(txt_file, tag_frames, output_dir)
+
+    outfile = Path(output_dir) / f"{Path(video_path).stem}.mp4"
     fourcc = cv.VideoWriter_fourcc(*"mp4v")
 
     cap = cv.VideoCapture(video_path)
@@ -103,6 +109,7 @@ def clip_video(tag_frames, video_path, output_dir):
 
     out = cv.VideoWriter(str(outfile), fourcc, fps, (width, height))
 
+    print(f"[{outfile}] Saving ...")
     curr_pos = 0
     while curr_pos < count:
         ret, frame = cap.read()
@@ -113,8 +120,38 @@ def clip_video(tag_frames, video_path, output_dir):
             out.write(frame)
         curr_pos += 1
 
-    out.release()
     cap.release()
+    out.release()
+
+
+def clip_text_file(infile, tag_frames, output_dir):
+    if not Path(infile).is_file():
+        return None
+
+    count = tag_frames.size
+
+    curr_pos = 0
+    head, data = [], []
+    with open(infile, "r") as f:
+        lines = [l.strip() for l in f.readlines()]
+        lines = [l for l in lines if l]
+        for line in lines:
+            if curr_pos >= count:
+                break
+
+            if pattern_decimal.match(line):
+                if tag_frames[curr_pos] > 0:
+                    data.append(line)
+                curr_pos += 1
+            else:
+                head.append(line)
+
+    outfile = Path(output_dir) / Path(infile).name
+    with open(outfile, "w") as f:
+        f.write("\n".join(head))
+        f.write("\n")
+        f.write("\n".join(data))
+    return outfile
 
 
 def func(input_dir, output_dir):
@@ -133,7 +170,7 @@ def func(input_dir, output_dir):
     video_paths = find_videos(input_dir)
     for video_path in video_paths:
         tag_frames = tag_video(video_path)
-        clip_video(tag_frames, video_path, output_dir)
+        clip_video(video_path, tag_frames, output_dir)
 
     return output_dir.as_posix()
 
