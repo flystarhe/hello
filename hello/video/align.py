@@ -43,10 +43,9 @@ def find_videos(input_dir, end_tag="_tof"):
 
 
 def align_pairs(video_pairs, output_dir):
-    shutil.rmtree(output_dir, ignore_errors=True)
-
     output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=False)
+    shutil.rmtree(output_dir, ignore_errors=True)
+    (output_dir / "data").mkdir(parents=True, exist_ok=False)
 
     for file1, file2 in video_pairs:
         _align_pairs(file1, file2, output_dir)
@@ -71,7 +70,7 @@ def _align_pairs(infile1, infile2, outdir):
 
 
 def _clip_video_opencv(outdir, infile, t_start, t_end):
-    outfile = Path(outdir) / f"{Path(infile).stem}.mp4"
+    outfile = Path(outdir) / f"data/{Path(infile).stem}.mp4"
     print(f"\n[CLIP]\n in: {infile}\nout: {outfile}")
     fourcc = cv.VideoWriter_fourcc(*"mp4v")
 
@@ -110,7 +109,7 @@ def parse_args(args=None):
     parser = ArgumentParser(description="Align Video pairs")
 
     parser.add_argument("input_dir", type=str,
-                        help="input dir")
+                        help="videos dir")
     parser.add_argument("-o", "--output_dir", type=str,
                         help="output dir")
     parser.add_argument("--end-tag", type=str, default="_tof",

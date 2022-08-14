@@ -32,7 +32,7 @@ def to_images(video_path, output_dir, format):
             print("Can't receive frame (stream end?). Exiting ...")
             break
         a, b = divmod(index, fps)
-        filename = f"{prefix}_frame_{a:06d}_{b:03d}{format}"
+        filename = f"data/{prefix}_time_{a:06d}_{b:03d}{format}"
         cv.imwrite(str(output_dir / filename), frame)
         index += 1
 
@@ -46,7 +46,7 @@ def func(input_dir, output_dir, format):
         new_name = f"{input_dir.name}_images"
         output_dir = input_dir.with_name(new_name)
     shutil.rmtree(output_dir, ignore_errors=True)
-    output_dir.mkdir(parents=True)
+    (output_dir / "data").mkdir(parents=True)
 
     video_paths = find_videos(input_dir)
     for video_path in video_paths:

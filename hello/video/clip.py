@@ -39,8 +39,8 @@ def tag_video(video_path):
     width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
 
     tag_frames = np.full((30, count, 3), (255, 0, 0), dtype="uint8")
-    curr_pos, step_size, freeze, keep = 0, 5, 0, 0
 
+    curr_pos, step_size, freeze, keep = 0, 1, 0, 1
     while curr_pos < count:
         this_pos = int(cap.get(cv.CAP_PROP_POS_FRAMES))
 
@@ -54,7 +54,7 @@ def tag_video(video_path):
             break
 
         banner = np.full((30, width, 3), (0, 0, 255), dtype="uint8")
-        txt = f"{curr_pos=}, {step_size=}, {freeze=}, {keep=}"
+        txt = f"{curr_pos=}/{count}, {step_size=}*{fps}, {freeze=}, {keep=}"
         cv.putText(banner, txt, (15, 25),
                    cv.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255))
 
@@ -98,19 +98,19 @@ def clip_video(video_path, tag_frames, output_dir):
     txt_file = Path(video_path).with_suffix(".txt")
     clip_text_file(txt_file, tag_frames, output_dir)
 
-    outfile = Path(output_dir) / f"{Path(video_path).stem}.mp4"
+    outfile = Path(output_dir) / f"data/{Path(video_path).stem}.mp4"
     fourcc = cv.VideoWriter_fourcc(*"mp4v")
 
     cap = cv.VideoCapture(video_path)
     fps = int(cap.get(cv.CAP_PROP_FPS))
-    count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
     width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
 
     out = cv.VideoWriter(str(outfile), fourcc, fps, (width, height))
 
-    print(f"[{outfile}] Saving ...")
     curr_pos = 0
+    count = tag_frames.size
+    print(f"[{outfile}] Saving ...")
     while curr_pos < count:
         ret, frame = cap.read()
         if not ret:
@@ -146,7 +146,7 @@ def clip_text_file(infile, tag_frames, output_dir):
             else:
                 head.append(line)
 
-    outfile = Path(output_dir) / Path(infile).name
+    outfile = Path(output_dir) / f"data/{Path(infile).name}"
     with open(outfile, "w") as f:
         f.write("\n".join(head))
         f.write("\n")
@@ -157,17 +157,22 @@ def clip_text_file(infile, tag_frames, output_dir):
 def func(input_dir, output_dir):
     input_dir = Path(input_dir)
 
+    if input_dir.is_file():
+        video_paths = [input_dir.as_posix()]
+        input_dir = input_dir.parent
+    else:
+        video_paths = find_videos(input_dir)
+
     if output_dir is not None:
         output_dir = Path(output_dir)
     else:
         new_name = f"{input_dir.name}_clip"
         output_dir = input_dir.with_name(new_name)
     shutil.rmtree(output_dir, ignore_errors=True)
-    output_dir.mkdir(parents=True)
+    (output_dir / "data").mkdir(parents=True)
 
     print(help_doc_str)
 
-    video_paths = find_videos(input_dir)
     for video_path in video_paths:
         tag_frames = tag_video(video_path)
         clip_video(video_path, tag_frames, output_dir)
@@ -180,7 +185,7 @@ def parse_args(args=None):
     parser = ArgumentParser(description="Clip Videos")
 
     parser.add_argument("input_dir", type=str,
-                        help="input dir")
+                        help="videos dir or file path")
     parser.add_argument("-o", "--output_dir", type=str, default=None,
                         help="output dir")
 
