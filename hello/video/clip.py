@@ -180,9 +180,10 @@ def func(input_dir, output_dir):
 
     for video_path in video_paths:
         tag_frames = tag_video(video_path)
-        clip_video(video_path, tag_frames, output_dir)
+        if tag_frames.max() > 0:
+            clip_video(video_path, tag_frames, output_dir)
 
-    return output_dir.as_posix()
+    return f"\n[OUTDIR]\n{output_dir}"
 
 
 def parse_args(args=None):

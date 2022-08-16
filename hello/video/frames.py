@@ -1,6 +1,9 @@
 # pip install opencv-python
 # pip install pyomniunwarp>=0.2.3
 # -i https://pypi.tuna.tsinghua.edu.cn/simple
+# imwrite()
+# - cv.IMWRITE_PNG_COMPRESSION: default 3
+# - cv.IMWRITE_JPEG_QUALITY: default 95
 import shutil
 import sys
 from pathlib import Path
@@ -85,11 +88,10 @@ def func(input_dir, output_dir, fps, cal_file, rois, format):
         if not Path(cal_file).is_file():
             cal_file = None
 
-    video_paths = find_videos(input_dir)
-    for video_path in video_paths:
+    for video_path in find_videos(input_dir):
         to_frames(video_path, output_dir, fps, cal_file, rois, format)
 
-    return output_dir.as_posix()
+    return f"\n[OUTDIR]\n{output_dir}"
 
 
 def parse_args(args=None):

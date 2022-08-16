@@ -49,9 +49,12 @@ def align_pairs(infile1, infile2, outdir):
     if infile2 is not None:
         info_2 = video_info(infile2)
 
-    s1 = int(info_1[1] / info_1[0])
-    s2 = int(info_2[1] / info_2[0])
+    s1 = info_1[1] // info_1[0]
+    s2 = info_2[1] // info_2[0]
     s = min(s1, s2)
+
+    if s < 1:
+        return None
 
     clip_video_opencv(outdir, infile1, 0, s)
     if infile2 is not None:
@@ -99,7 +102,7 @@ def func(input_dir, output_dir, end_tag):
     for file1, file2 in video_pairs:
         align_pairs(file1, file2, output_dir)
 
-    return output_dir.as_posix()
+    return f"\n[OUTDIR]\n{output_dir}"
 
 
 def parse_args(args=None):
