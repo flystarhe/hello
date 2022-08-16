@@ -42,18 +42,7 @@ def find_videos(input_dir, end_tag="_tof"):
     return video_pairs
 
 
-def align_pairs(video_pairs, output_dir):
-    output_dir = Path(output_dir)
-    shutil.rmtree(output_dir, ignore_errors=True)
-    (output_dir / "data").mkdir(parents=True, exist_ok=False)
-
-    for file1, file2 in video_pairs:
-        _align_pairs(file1, file2, output_dir)
-
-    return output_dir
-
-
-def _align_pairs(infile1, infile2, outdir):
+def align_pairs(infile1, infile2, outdir):
     info_1 = video_info(infile1)
 
     info_2 = info_1
@@ -64,12 +53,12 @@ def _align_pairs(infile1, infile2, outdir):
     s2 = int(info_2[1] / info_2[0])
     s = min(s1, s2)
 
-    _clip_video_opencv(outdir, infile1, 0, s)
+    clip_video_opencv(outdir, infile1, 0, s)
     if infile2 is not None:
-        _clip_video_opencv(outdir, infile2, 0, s)
+        clip_video_opencv(outdir, infile2, 0, s)
 
 
-def _clip_video_opencv(outdir, infile, t_start, t_end):
+def clip_video_opencv(outdir, infile, t_start, t_end):
     outfile = Path(outdir) / f"data/{Path(infile).stem}.mp4"
     print(f"\n[CLIP]\n in: {infile}\nout: {outfile}")
     fourcc = cv.VideoWriter_fourcc(*"mp4v")
@@ -90,8 +79,10 @@ def _clip_video_opencv(outdir, infile, t_start, t_end):
         if not ret:
             print("Can't receive frame (stream end?). Exiting ...")
             break
+
         if a <= curr_pos < b:
             out.write(frame)
+
         curr_pos += 1
 
     cap.release()
@@ -99,9 +90,16 @@ def _clip_video_opencv(outdir, infile, t_start, t_end):
 
 
 def func(input_dir, output_dir, end_tag):
+    output_dir = Path(output_dir)
+    shutil.rmtree(output_dir, ignore_errors=True)
+    (output_dir / "data").mkdir(parents=True, exist_ok=False)
+
     video_pairs = find_videos(input_dir, end_tag=end_tag)
-    res = align_pairs(video_pairs, output_dir)
-    return res
+
+    for file1, file2 in video_pairs:
+        align_pairs(file1, file2, output_dir)
+
+    return output_dir.as_posix()
 
 
 def parse_args(args=None):
@@ -112,7 +110,7 @@ def parse_args(args=None):
                         help="videos dir")
     parser.add_argument("-o", "--output_dir", type=str,
                         help="output dir")
-    parser.add_argument("--end-tag", type=str, default="_tof",
+    parser.add_argument("-e", "--end-tag", type=str, default="_tof",
                         help="the pair video file")
 
     args = parser.parse_args(args=args)

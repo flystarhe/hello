@@ -34,14 +34,14 @@ def find_videos(input_dir):
 def tag_video(video_path):
     cap = cv.VideoCapture(video_path)
 
-    fps = int(cap.get(cv.CAP_PROP_FPS))
-    count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
-    width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
+    cap_fps = int(cap.get(cv.CAP_PROP_FPS))
+    frame_count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
+    frame_width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
 
-    tag_frames = np.full((30, count, 3), (255, 0, 0), dtype="uint8")
+    tag_frames = np.full((30, frame_count, 3), (255, 0, 0), dtype="uint8")
 
     curr_pos, step_size, freeze, keep = 0, 1, 0, 1
-    while curr_pos < count:
+    while curr_pos < frame_count:
         this_pos = int(cap.get(cv.CAP_PROP_POS_FRAMES))
 
         if this_pos != curr_pos:
@@ -53,14 +53,14 @@ def tag_video(video_path):
             print("Can't receive frame (stream end?). Exiting ...")
             break
 
-        banner = np.full((30, width, 3), (0, 0, 255), dtype="uint8")
-        txt = f"{curr_pos=}/{count}, {step_size=}*{fps}, {freeze=}, {keep=}"
+        banner = np.full((30, frame_width, 3), (0, 0, 255), dtype="uint8")
+        txt = f"{curr_pos=}/{frame_count}, {step_size=}*{cap_fps}, {freeze=}, {keep=}"
         cv.putText(banner, txt, (15, 25),
                    cv.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255))
 
-        tag_bar = cv.resize(tag_frames, (width, 30),
+        tag_bar = cv.resize(tag_frames, (frame_width, 30),
                             interpolation=cv.INTER_NEAREST)
-        center = (int(curr_pos / count * width), 15)
+        center = (int(curr_pos / frame_count * frame_width), 15)
         cv.circle(tag_bar, center, 5, (255, 255, 255), -1)
 
         cv.imshow(video_path, np.concatenate((banner, frame, tag_bar)))
@@ -76,14 +76,14 @@ def tag_video(video_path):
             step_size = step_size // 2
             step_size = max(1, step_size)
         elif key == ord("n"):
-            curr_pos = this_pos + step_size * fps
+            curr_pos = this_pos + step_size * cap_fps
             if freeze == 0:
                 if keep == 1:
                     tag_frames[:, this_pos:curr_pos] = (0, 255, 0)
                 else:
                     tag_frames[:, this_pos:curr_pos] = (0, 0, 255)
         elif key == ord("b"):
-            curr_pos = this_pos - step_size * fps
+            curr_pos = this_pos - step_size * cap_fps
             curr_pos = max(0, curr_pos)
         elif key == ord("f"):
             freeze = int(not freeze)
@@ -102,22 +102,26 @@ def clip_video(video_path, tag_frames, output_dir):
     fourcc = cv.VideoWriter_fourcc(*"mp4v")
 
     cap = cv.VideoCapture(video_path)
+
     fps = int(cap.get(cv.CAP_PROP_FPS))
     width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
 
     out = cv.VideoWriter(str(outfile), fourcc, fps, (width, height))
 
-    curr_pos = 0
-    count = tag_frames.size
+    frame_count = tag_frames.size
     print(f"[{outfile}] Saving ...")
-    while curr_pos < count:
+
+    curr_pos = 0
+    while curr_pos < frame_count:
         ret, frame = cap.read()
         if not ret:
             print("Can't receive frame (stream end?). Exiting ...")
             break
+
         if tag_frames[curr_pos] > 0:
             out.write(frame)
+
         curr_pos += 1
 
     cap.release()
@@ -128,7 +132,7 @@ def clip_text_file(infile, tag_frames, output_dir):
     if not Path(infile).is_file():
         return None
 
-    count = tag_frames.size
+    frame_count = tag_frames.size
 
     curr_pos = 0
     head, data = [], []
@@ -136,7 +140,7 @@ def clip_text_file(infile, tag_frames, output_dir):
         lines = [l.strip() for l in f.readlines()]
         lines = [l for l in lines if l]
         for line in lines:
-            if curr_pos >= count:
+            if curr_pos >= frame_count:
                 break
 
             if pattern_decimal.match(line):
@@ -168,8 +172,9 @@ def func(input_dir, output_dir):
     else:
         new_name = f"{input_dir.name}_clip"
         output_dir = input_dir.with_name(new_name)
+
     shutil.rmtree(output_dir, ignore_errors=True)
-    (output_dir / "data").mkdir(parents=True)
+    (output_dir / "data").mkdir(parents=True, exist_ok=False)
 
     print(help_doc_str)
 
