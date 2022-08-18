@@ -1,3 +1,4 @@
+import code
 import sys
 
 import fiftyone as fo
@@ -51,6 +52,9 @@ def main(args=None):
     print(f"{__file__}: {kwargs}")
 
     print(func(**kwargs))
+
+    banner = "Use quit() or Ctrl-Z plus Return to exit"
+    code.interact(banner=banner, local=locals(), exitmsg="End...")
 
     return 0
 

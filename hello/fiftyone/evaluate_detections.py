@@ -1,5 +1,7 @@
+import json
 import shutil
 import sys
+from collections import defaultdict
 from pathlib import Path
 
 import fiftyone as fo
@@ -21,6 +23,34 @@ dataset_doc_str = """
         - *.txt: An inference result saves a row
             filepath,height,width,x1,y1,x2,y2,confidence,label,x1,y1,x2,y2,confidence,label
 """
+
+
+def parse_from_dict(preds):
+    """
+    preds = {
+        "filepath": filepath,
+        "height": height,
+        "width": width,
+        "data": [(x1, y1, x2, y2, confidence, label)]
+    }
+    """
+    filepath = preds["filepath"]
+    height = preds["height"]
+    width = preds["width"]
+
+    detections = []
+    for x1, y1, x2, y2, confidence, label in preds["data"]:
+        bounding_box = [x1 / width, y1 / height,
+                        (x2 - x1) / width, (y2 - y1) / height]
+        detections.append(
+            fo.Detection(
+                label=label,
+                bounding_box=bounding_box,
+                confidence=confidence,
+            )
+        )
+
+    return filepath, fo.Detections(detections=detections)
 
 
 def parse_from_text(text):
@@ -57,34 +87,73 @@ def parse_from_text(text):
     return parse_from_dict(preds)
 
 
-def parse_from_dict(preds):
-    """
-    preds = {
-        "filepath": "filepath",
-        "height": height,
-        "width": width,
-        "data": [(x1, y1, x2, y2, confidence, "label")]
-    }
-    """
-    f = preds["filepath"]
+def detections_from_text(text_file):
+    if text_file is None:
+        return None
 
-    detections = []
-    h, w = preds["height"], preds["width"]
-    for x1, y1, x2, y2, confidence, label in preds["data"]:
-        rel_box = [x1 / w, y1 / h, (x2 - x1) / w, (y2 - y1) / h]
-        detections.append(
+    if not Path(text_file).is_file():
+        return None
+
+    with open(text_file, "r") as f:
+        lines = [l.strip() for l in f.readlines()]
+
+    lines = [l for l in lines if not l.startswith("#")]
+
+    data = {}
+    for text in lines:
+        filepath, detections = parse_from_text(text)
+        data[Path(filepath).name] = (filepath, detections)
+
+    return data
+
+
+def detections_from_coco(json_file):
+    if json_file is None:
+        return None
+
+    if not Path(json_file).is_file():
+        return None
+
+    with open(json_file, "r") as f:
+        coco = json.load(f)
+
+    imgs = {x["id"]: x for x in coco["images"]}
+    cats = {x["id"]: x for x in coco["categories"]}
+
+    group_anns = defaultdict(list)
+    for ann in coco["annotations"]:
+        _img = imgs[ann["image_id"]]
+
+        filepath = _img["file_name"]
+        height = _img["height"]
+        width = _img["width"]
+
+        _cat = cats[ann["category_id"]]
+        label = _cat["name"]
+
+        x, y, w, h = ann["bbox"]
+        bounding_box = [x / width, y / height, w / width, h / height]
+
+        confidence = 1.0
+
+        group_anns[filepath].append(
             fo.Detection(
                 label=label,
-                bounding_box=rel_box,
+                bounding_box=bounding_box,
                 confidence=confidence,
             )
         )
 
-    return f, fo.Detections(detections=detections)
+    data = {}
+    for filepath, detections in group_anns.items():
+        detections = fo.Detections(detections=detections)
+        data[Path(filepath).name] = (filepath, detections)
+
+    return data
 
 
-def make_dataset(info_py="info.py", data_path="data", labels_path="labels.json", predictions="predictions.txt"):
-    assert labels_path is not None and predictions is not None
+def make_dataset(info_py="info.py", data_path="data", labels_path="labels.json", detections_dt="predictions.txt"):
+    assert labels_path is not None and detections_dt is not None
 
     dataset = fo.Dataset()
 
@@ -103,6 +172,20 @@ def make_dataset(info_py="info.py", data_path="data", labels_path="labels.json",
     dataset.default_classes = info.pop("classes", [])
     dataset.info = info
     dataset.save()
+
+    detections_gt = detections_from_coco(labels_path)
+    detections_dt = detections_from_text(detections_dt)
+
+    for filepath, detections in detections_dt.values():
+        sample = fo.Sample(
+            filepath=filepath,
+            predictions=detections,
+            ground_truth=detections_gt[Path(filepath)][1],
+        )
+        dataset.add_sample(sample)
+
+    # Populate the `metadata` field
+    dataset.compute_metadata()
 
     return dataset
 
