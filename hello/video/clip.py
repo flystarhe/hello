@@ -176,8 +176,6 @@ def func(input_dir, output_dir):
     shutil.rmtree(output_dir, ignore_errors=True)
     (output_dir / "data").mkdir(parents=True, exist_ok=False)
 
-    print(help_doc_str)
-
     for video_path in video_paths:
         tag_frames = tag_video(video_path)
         if tag_frames.max() > 0:
@@ -200,6 +198,7 @@ def parse_args(args=None):
 
 
 def main(args=None):
+    print(help_doc_str)
     kwargs = parse_args(args)
     print(f"{__file__}: {kwargs}")
 
