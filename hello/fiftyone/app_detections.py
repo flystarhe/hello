@@ -24,7 +24,7 @@ dataset_doc_str = """
 def func(**kwargs):
     dataset = None
     session = fo.launch_app(dataset)
-    session.wait()
+    return session
 
 
 def parse_args(args=None):
@@ -39,7 +39,7 @@ def parse_args(args=None):
                         help="which the images")
     parser.add_argument("--labels", dest="labels_path", type=str, default="labels.json",
                         help="which the labels file")
-    parser.add_argument("--preds", dest="predictions", type=str, default="predictions.txt",
+    parser.add_argument("--preds", dest="preds_path", type=str, default="predictions.txt",
                         help="which the predictions file")
 
     args = parser.parse_args(args=args)
@@ -51,7 +51,7 @@ def main(args=None):
     kwargs = parse_args(args)
     print(f"{__file__}: {kwargs}")
 
-    print(func(**kwargs))
+    session = func(**kwargs)
 
     banner = "Use quit() or Ctrl-Z plus Return to exit"
     code.interact(banner=banner, local=locals(), exitmsg="End...")

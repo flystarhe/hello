@@ -25,40 +25,12 @@ dataset_doc_str = """
 """
 
 
-def parse_from_dict(preds):
-    """
-    preds = {
-        "filepath": filepath,
-        "height": height,
-        "width": width,
-        "data": [(x1, y1, x2, y2, confidence, label)]
-    }
-    """
-    filepath = preds["filepath"]
-    height = preds["height"]
-    width = preds["width"]
-
-    detections = []
-    for x1, y1, x2, y2, confidence, label in preds["data"]:
-        bounding_box = [x1 / width, y1 / height,
-                        (x2 - x1) / width, (y2 - y1) / height]
-        detections.append(
-            fo.Detection(
-                label=label,
-                bounding_box=bounding_box,
-                confidence=confidence,
-            )
-        )
-
-    return filepath, fo.Detections(detections=detections)
-
-
-def parse_from_text(text):
+def parse_text_line(line):
     """
     text format:
         filepath,height,width,x1,y1,x2,y2,confidence,label,x1,y1,x2,y2,confidence,label
     """
-    vals = text.split(",")
+    vals = line.split(",")
 
     assert len(vals) >= 3, "filepath,height,width,..."
 
@@ -71,54 +43,51 @@ def parse_from_text(text):
     total_size = len(data)
     assert total_size % group_size == 0
 
-    def _func(args):
+    def _parse(args):
         x1, y1, x2, y2 = [int(v) for v in args[:4]]
         confidence = float(args[4])
         label = args[5].strip()
         return x1, y1, x2, y2, confidence, label
 
-    preds = {
-        "filepath": filepath,
-        "height": height,
-        "width": width,
-        "data": [_func(data[i:(i + group_size)]) for i in range(0, total_size, group_size)]
-    }
+    detections = []
+    for i in range(0, total_size, group_size):
+        x1, y1, x2, y2, confidence, label = _parse(data[i:(i + group_size)])
 
-    return parse_from_dict(preds)
+        x, y, w, h = x1, y1, x2 - x1, y2 - y1
+        bounding_box = [x / width, y / height, w / width, h / height]
+
+        detections.append(
+            fo.Detection(
+                label=label,
+                bounding_box=bounding_box,
+                confidence=confidence,
+            )
+        )
+
+    return filepath, detections
 
 
 def detections_from_text(text_file):
-    if text_file is None:
-        return None
-
-    if not Path(text_file).is_file():
-        return None
-
     with open(text_file, "r") as f:
         lines = [l.strip() for l in f.readlines()]
 
-    lines = [l for l in lines if not l.startswith("#")]
+    lines = [l for l in lines if l and not l.startswith("#")]
 
     data = {}
     for text in lines:
-        filepath, detections = parse_from_text(text)
+        filepath, detections = parse_text_line(text)
+        detections = fo.Detections(detections=detections)
         data[Path(filepath).name] = (filepath, detections)
 
     return data
 
 
 def detections_from_coco(json_file):
-    if json_file is None:
-        return None
-
-    if not Path(json_file).is_file():
-        return None
-
     with open(json_file, "r") as f:
         coco = json.load(f)
 
-    imgs = {x["id"]: x for x in coco["images"]}
-    cats = {x["id"]: x for x in coco["categories"]}
+    imgs = {img["id"]: img for img in coco["images"]}
+    cats = {cat["id"]: cat for cat in coco["categories"]}
 
     group_anns = defaultdict(list)
     for ann in coco["annotations"]:
@@ -129,6 +98,7 @@ def detections_from_coco(json_file):
         width = _img["width"]
 
         _cat = cats[ann["category_id"]]
+
         label = _cat["name"]
 
         x, y, w, h = ann["bbox"]
@@ -145,15 +115,18 @@ def detections_from_coco(json_file):
         )
 
     data = {}
-    for filepath, detections in group_anns.items():
+    for _img in coco["images"]:
+        filepath = _img["file_name"]
+        detections = group_anns[filepath]
         detections = fo.Detections(detections=detections)
         data[Path(filepath).name] = (filepath, detections)
 
     return data
 
 
-def make_dataset(info_py="info.py", data_path="data", labels_path="labels.json", detections_dt="predictions.txt"):
-    assert labels_path is not None and detections_dt is not None
+def make_dataset(info_py="info.py", data_path="data", labels_path="labels.json", preds_path="predictions.txt"):
+    assert labels_path is not None and preds_path is not None
+    assert Path(labels_path).is_file() and Path(preds_path).is_file()
 
     dataset = fo.Dataset()
 
@@ -164,7 +137,7 @@ def make_dataset(info_py="info.py", data_path="data", labels_path="labels.json",
             "dataset_name": "evaluate_detections",
             "dataset_type": "detection",
             "version": "0.01",
-            "classes": ["person", "animal"],
+            "classes": [],
             "num_samples": {},
             "tail": {},
         }
@@ -173,14 +146,28 @@ def make_dataset(info_py="info.py", data_path="data", labels_path="labels.json",
     dataset.info = info
     dataset.save()
 
-    detections_gt = detections_from_coco(labels_path)
-    detections_dt = detections_from_text(detections_dt)
+    flag = False
+    if data_path is not None:
+        data_path = Path(data_path)
+        if data_path.is_dir():
+            flag = True
 
-    for filepath, detections in detections_dt.values():
+    detections_gt = detections_from_coco(labels_path)
+    detections_dt = detections_from_text(preds_path)
+
+    gt_imgs, dt_imgs = set(detections_gt.keys()), set(detections_dt.keys())
+    print(f"{len(gt_imgs)=},{len(dt_imgs)=},{(gt_imgs - dt_imgs)=}")
+
+    for filepath, predictions in detections_dt.values():
+        filepath, ground_truth = detections_gt[Path(filepath).name]
+
+        if flag:
+            filepath = str(data_path / filepath)
+
         sample = fo.Sample(
             filepath=filepath,
-            predictions=detections,
-            ground_truth=detections_gt[Path(filepath)][1],
+            predictions=predictions,
+            ground_truth=ground_truth,
         )
         dataset.add_sample(sample)
 
@@ -190,7 +177,7 @@ def make_dataset(info_py="info.py", data_path="data", labels_path="labels.json",
     return dataset
 
 
-def func(dataset_dir, info_py="info.py", data_path="data", labels_path="labels.json", predictions=None, output_dir=None, launch=False):
+def func(dataset_dir, info_py="info.py", data_path="data", labels_path="labels.json", preds_path="predictions.txt", output_dir=None, **kwargs):
     if dataset_dir is not None:
         dataset_dir = Path(dataset_dir)
 
@@ -203,19 +190,36 @@ def func(dataset_dir, info_py="info.py", data_path="data", labels_path="labels.j
         if labels_path is not None:
             labels_path = dataset_dir / labels_path
 
-        if predictions is not None:
-            predictions = dataset_dir / predictions
+        if preds_path is not None:
+            preds_path = dataset_dir / preds_path
 
-    dataset = make_dataset(info_py, data_path, labels_path, predictions)
+    dataset = make_dataset(info_py, data_path, labels_path, preds_path)
+
+    params = dict(
+        gt_field="ground_truth",
+        eval_key="eval",
+        classes=None,
+        missing=None,
+        method="coco",
+        iou=0.5,
+        classwise=True,
+        compute_mAP=False,
+    )
+    params.update(**kwargs)
+
+    results = dataset.evaluate_detections("predictions", **params)
+    results.print_report()
 
     if output_dir is not None:
         output_dir = Path(output_dir)
         shutil.rmtree(output_dir, ignore_errors=True)
-        (output_dir / "data").mkdir(parents=True, exist_ok=False)
-        if data_path is not None:
-            print("save: images, ground_truth, predictions")
-        else:
-            print("save: ground_truth, predictions")
+        (output_dir).mkdir(parents=True, exist_ok=False)
+
+        with open(output_dir / "evaluation_results.txt", "w") as f:
+            f.write(results.to_str(pretty_print=True))
+
+        json_file = str(output_dir / "evaluation_results.json")
+        results.write_json(json_file, pretty_print=True)
 
 
 def parse_args(args=None):
@@ -230,12 +234,16 @@ def parse_args(args=None):
                         help="which the images")
     parser.add_argument("--labels", dest="labels_path", type=str, default=None,
                         help="which the labels file")
-    parser.add_argument("--preds", dest="predictions", type=str, default=None,
+    parser.add_argument("--preds", dest="preds_path", type=str, default=None,
                         help="which the predictions file")
-    parser.add_argument("-o", dest="output_dir", type=str, default=None,
-                        help="output dir")
-    parser.add_argument("--launch", action="store_true",
-                        help="launch the FiftyOne App")
+    parser.add_argument("--out", dest="output_dir", type=str, default=None,
+                        help="save evaluation results to output dir")
+    parser.add_argument("--iou", dest="iou", type=float, default=0.5,
+                        help="the IoU threshold")
+    parser.add_argument("--classwise", dest="classwise", action="store_false",
+                        help="allow matches between classes")
+    parser.add_argument("--mAP", dest="compute_mAP", action="store_true",
+                        help="mAP and PR curves")
 
     args = parser.parse_args(args=args)
     return vars(args)
