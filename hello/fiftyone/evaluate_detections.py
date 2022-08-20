@@ -6,8 +6,9 @@ from collections import defaultdict
 from pathlib import Path
 from string import Template
 
+from hello.utils import importer
+
 import fiftyone as fo
-from utils.importer import load_from_file
 
 dataset_doc_str = """
     <dataset_name>/
@@ -148,17 +149,17 @@ def make_dataset(info_py="info.py", data_path="data", labels_path="labels.json",
 
     dataset = fo.Dataset()
 
+    info = {
+        "dataset_name": "dataset-name",
+        "dataset_type": "detection",
+        "version": "0.01",
+        "classes": [],
+        "num_samples": {},
+        "tail": {},
+    }
+
     if info_py is not None and Path(info_py).is_file():
-        info = load_from_file("info_py", info_py)
-    else:
-        info = {
-            "dataset_name": "evaluate_detections",
-            "dataset_type": "detection",
-            "version": "0.01",
-            "classes": [],
-            "num_samples": {},
-            "tail": {},
-        }
+        info.update(importer.load_from_file("info_py", info_py).info)
 
     dataset.default_classes = info.pop("classes", [])
     dataset.info = info
@@ -188,9 +189,6 @@ def make_dataset(info_py="info.py", data_path="data", labels_path="labels.json",
             ground_truth=ground_truth,
         )
         dataset.add_sample(sample)
-
-    # Populate the `metadata` field
-    dataset.compute_metadata()
 
     return dataset
 

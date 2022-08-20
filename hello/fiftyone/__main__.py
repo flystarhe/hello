@@ -12,8 +12,13 @@ Usage:
     python -m hello.fiftyone <command> [options]
 
 Commands:
-    det
-    seg
+    det.data
+    det.eval
+    det.test
+    seg.data
+    seg.eval
+    seg.test
+    depth.data
 """
 
 
@@ -28,10 +33,13 @@ def main(args=None):
 
     args = ["--help"] if len(args) == 0 else args
 
-    if command == "det":
+    if command == "det.data":
+        from hello.fiftyone.dataset_detections import main as _main
+        _main(args)
+    elif command == "det.eval":
         from hello.fiftyone.evaluate_detections import main as _main
         _main(args)
-    elif command == "seg":
+    elif command == "seg.eval":
         from hello.fiftyone.evaluate_segmentations import main as _main
         _main(args)
     else:
