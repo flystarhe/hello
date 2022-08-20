@@ -1,8 +1,10 @@
 import json
 import shutil
 import sys
+import time
 from collections import defaultdict
 from pathlib import Path
+from string import Template
 
 import fiftyone as fo
 from utils.importer import load_from_file
@@ -24,6 +26,22 @@ dataset_doc_str = """
             filepath,height,width,x1,y1,x2,y2,confidence,label,x1,y1,x2,y2,confidence,label
 """
 
+tmpl_readme = """# README
+- `$date`
+
+---
+
+[TOC]
+
+## Metrics
+- `$mAP`
+
+```json
+$report
+```
+"""
+tmpl_readme = Template(tmpl_readme)
+
 
 def parse_text_line(line):
     """
@@ -44,7 +62,7 @@ def parse_text_line(line):
     assert total_size % group_size == 0
 
     def _parse(args):
-        x1, y1, x2, y2 = [int(v) for v in args[:4]]
+        x1, y1, x2, y2 = [float(v) for v in args[:4]]
         confidence = float(args[4])
         label = args[5].strip()
         return x1, y1, x2, y2, confidence, label
@@ -177,6 +195,16 @@ def make_dataset(info_py="info.py", data_path="data", labels_path="labels.json",
     return dataset
 
 
+def save_plot(plot, html_file):
+    if hasattr(plot, "_widget"):
+        plot = plot._widget
+
+    if hasattr(plot, "write_html"):
+        plot.write_html(html_file)
+    elif hasattr(plot, "save"):
+        plot.save(html_file)
+
+
 def func(dataset_dir, info_py="info.py", data_path="data", labels_path="labels.json", preds_path="predictions.txt", output_dir=None, **kwargs):
     if dataset_dir is not None:
         dataset_dir = Path(dataset_dir)
@@ -210,16 +238,34 @@ def func(dataset_dir, info_py="info.py", data_path="data", labels_path="labels.j
     results = dataset.evaluate_detections("predictions", **params)
     results.print_report()
 
+    compute_mAP = kwargs.get("compute_mAP", False)
+
+    mAP = -1
+    if compute_mAP:
+        mAP = results.mAP()
+        print(f"*** {mAP=:.5f}")
+
     if output_dir is not None:
         output_dir = Path(output_dir)
         shutil.rmtree(output_dir, ignore_errors=True)
         (output_dir).mkdir(parents=True, exist_ok=False)
 
-        with open(output_dir / "evaluation_results.txt", "w") as f:
-            f.write(results.to_str(pretty_print=True))
+        tmpl_mapping = {
+            "date": time.strftime("%Y-%m-%d %H:%M"),
+            "mAP": f"{mAP=:.5f}",
+            "report": json.dumps(results.report(), indent=4),
+        }
+        readme_str = tmpl_readme.safe_substitute(tmpl_mapping)
+        with open(output_dir / "README.md", "w") as f:
+            f.write(readme_str)
 
-        json_file = str(output_dir / "evaluation_results.json")
-        results.write_json(json_file, pretty_print=True)
+        if compute_mAP:
+            html_file = str(output_dir / "plot_confusion_matrix.html")
+            plot = results.plot_confusion_matrix()
+            save_plot(plot, html_file)
+            html_file = str(output_dir / "plot_pr_curves.html")
+            plot = results.plot_pr_curves()
+            save_plot(plot, html_file)
 
 
 def parse_args(args=None):
