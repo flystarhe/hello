@@ -12,10 +12,14 @@ pip install -U 'git+https://github.com/flystarhe/hello'
     - COCO format to YOLOv5
 
 ## hello.fiftyone
-- For examples: [hello/fiftyone/examples.py](https://github.com/flystarhe/hello/blob/main/hello/fiftyone/examples.py).
+- For examples: [hello/fiftyone/examples/](https://github.com/flystarhe/hello/blob/main/hello/fiftyone/examples)
 
 ## hello.onnx
 - For examples: [hello/onnx/examples/](https://github.com/flystarhe/hello/tree/main/hello/onnx/examples)
+
+## hello.video
+- `python -m hello.video.clip -h`
+- `python -m hello.video.frames -h`
 
 ## hello.x3m
 - `python -m hello.x3m preprocess -h`
