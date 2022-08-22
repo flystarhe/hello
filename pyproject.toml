@@ -8,6 +8,19 @@ authors = [{name = "Hejian", email = "flystarhe@qq.com"}]
 readme = "hello/README.md"
 dynamic = ["version", "description"]
 requires-python = ">=3.6"
+dependencies = [
+    "opencv-python",
+    "Pillow",
+    "scikit-image",
+    "scikit-learn",
+    "pycocotools",
+    "simplejson",
+    "onnx",
+    "onnx-simplifier",
+    "onnxruntime-gpu",
+    "fiftyone >=0.16.5",
+    "pyomniunwarp >=0.2.4",
+]
 
 [project.urls]
 Home = "https://github.com/flystarhe/hello"

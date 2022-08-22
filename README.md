@@ -4,13 +4,14 @@
 Package is at https://pypi.org/project/hello2/
 
 ```sh
+# https://github.com/pypa/flit
 flit publish
 ```
 
 ## requirements.txt
 ```sh
 # requirements.txt
-pip install opencv-python pycocotools onnx onnx-simplifier onnxruntime-gpu
+pip install opencv-python Pillow scikit-image scikit-learn pycocotools simplejson onnx onnx-simplifier onnxruntime-gpu
 
 pip install -U hello2
 pip install -U fiftyone>=0.16.5
