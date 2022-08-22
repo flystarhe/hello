@@ -25,8 +25,8 @@ tmpl_readme = Template(tmpl_readme)
 
 
 def make_dataset(dataset_dir=None, preds_path="predictions.txt", labels_path="labels.json"):
-    A = hod.load_dataset(dataset_dir or ".", data_path=".", labels_path=preds_path, field_name="predictions")
-    B = hod.load_dataset(dataset_dir or ".", data_path=".", labels_path=labels_path, field_name="ground_truth")
+    A = hod.load_dataset(dataset_dir, data_path=".", labels_path=preds_path, field_name="predictions")
+    B = hod.load_dataset(dataset_dir, data_path=".", labels_path=labels_path, field_name="ground_truth")
 
     dataset = hod.merge_samples([A, B])
     return dataset

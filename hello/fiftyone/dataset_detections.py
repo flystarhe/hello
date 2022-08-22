@@ -24,6 +24,13 @@ dataset_doc_str = """
         - *.json: COCO format
         - *.txt: An inference result saves a row
             filepath,height,width,x1,y1,x2,y2,confidence,label,x1,y1,x2,y2,confidence,label
+
+    **Basic Usage**
+    - To open a dataset in the App, simply set the `session.dataset` property.
+    - To load a specific view into your dataset, simply set the `session.view` property.
+    - Use `session.refresh()` to refresh the App if you update a dataset outside of the App.
+    - Use `session.selected` to retrieve the IDs of the currently selected samples in the App.
+    - Use `session.selected_labels` to retrieve the IDs of the currently selected labels in the App.
 """
 
 
@@ -151,7 +158,7 @@ def _parse_text_line(line):
 
 
 def load_dataset(dataset_dir, info_py="info.py", data_path="data", labels_path="labels.json", field_name="ground_truth"):
-    dataset_dir = Path(dataset_dir)
+    dataset_dir = Path(dataset_dir or ".")
 
     if dataset_dir.is_dir():
         info_py = dataset_dir / info_py
