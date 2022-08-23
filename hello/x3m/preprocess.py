@@ -61,8 +61,8 @@ def todo(src, dst, mode, imgsz, layout, ext):
 
 
 def parse_args(args=None):
-    from argparse import ArgumentParser
-    parser = ArgumentParser(description="X3M preprocess")
+    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("src", type=str,
                         help="images src dir")

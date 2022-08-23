@@ -95,8 +95,8 @@ def func(input_dir, output_dir, fps, cal_file, rois, format):
 
 
 def parse_args(args=None):
-    from argparse import ArgumentParser
-    parser = ArgumentParser(description="Clip Videos")
+    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("input_dir", type=str,
                         help="input dir")

@@ -52,8 +52,8 @@ def todo(mode, **kwargs):
 
 
 def parse_args(args=None):
-    from argparse import ArgumentParser
-    parser = ArgumentParser(description="X3M config")
+    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("mode", type=str,
                         choices=["f32", "qat"])

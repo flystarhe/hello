@@ -208,8 +208,8 @@ def func(dataset_dir, info_py="info.py", data_path="data", labels_path="labels.j
 
 
 def parse_args(args=None):
-    from argparse import ArgumentParser
-    parser = ArgumentParser(description="Dataset")
+    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("dataset_dir", type=str,
                         help="base dir")

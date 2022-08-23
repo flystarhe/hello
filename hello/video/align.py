@@ -106,8 +106,8 @@ def func(input_dir, output_dir, end_tag):
 
 
 def parse_args(args=None):
-    from argparse import ArgumentParser
-    parser = ArgumentParser(description="Align Video pairs")
+    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("input_dir", type=str,
                         help="videos dir")

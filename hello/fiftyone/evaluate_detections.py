@@ -88,11 +88,12 @@ def func(dataset_dir=None, preds_path="predictions.txt", labels_path="labels.jso
             html_file = str(output_dir / "plot_pr_curves.html")
             plot = results.plot_pr_curves()
             save_plot(plot, html_file)
+    return "\n[END]"
 
 
 def parse_args(args=None):
-    from argparse import ArgumentParser
-    parser = ArgumentParser(description="Evaluating Predictions")
+    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("--root", dest="dataset_dir", type=str, default=None,
                         help="base dir")
