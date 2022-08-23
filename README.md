@@ -11,6 +11,12 @@ flit publish
 ## requirements.txt
 ```sh
 # requirements.txt
+
+# https://ffmpeg.org/ffmpeg.html
+#     1. apt install -y ffmpeg
+#     2. conda install -c pytorch ffmpeg
+#     3. conda install -c conda-forge ffmpeg
+
 pip install opencv-python Pillow scikit-image scikit-learn pycocotools simplejson onnx onnx-simplifier onnxruntime-gpu
 
 pip install -U hello2
