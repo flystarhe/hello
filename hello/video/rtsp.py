@@ -19,7 +19,7 @@ import numpy as np
 # 3. pull: `ffmpeg -i rtsp://localhost:8554/mystream -c copy output.mp4`
 
 
-def rtsp_push(rtsp_url="rtsp://localhost:8554/video", height=600, width=800, fps=20, **kwargs):
+def rtsp_push(rtsp_url="rtsp://localhost:8554/video", height=1080, width=1920, fps=20, **kwargs):
     command = ["ffmpeg",
                "-y",
                "-f", "rawvideo",
@@ -38,15 +38,16 @@ def rtsp_push(rtsp_url="rtsp://localhost:8554/video", height=600, width=800, fps
 
     while True:
         frame = np.zeros((height, width, 3), dtype=np.uint8)
-        cv.putText(frame, f"{time.time():.3f}", (5, 35),
-                   cv.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
+        cv.putText(frame, f"{time.time():.3f}", (15, 35), cv.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
 
         pipe.stdin.write(frame.tobytes())
+        cv.imshow("rtsp push", frame)
 
         key = cv.waitKey(30)
         if key == ord("q"):
             break
 
+    cv.destroyAllWindows()
     return 0
 
 
@@ -77,7 +78,7 @@ def rtsp_pull(rtsp_url, frames=900, save=False, **kwargs):
 
                 cv.imshow("rtsp stream", frame)
             except Exception as e:
-                print(f"[ERROR] {traceback.format_exc()}")
+                print(f"\n[ERROR]\n{traceback.format_exc()}")
                 cap = cv.VideoCapture(rtsp_url)
                 time.sleep(1)
         else:
@@ -119,9 +120,9 @@ def parse_args(args=None):
                         choices=["pull", "push"])
     parser.add_argument("-i", dest="rtsp_url", type=str,
                         help="pull/push rtsp stream url")
-    parser.add_argument("-height", dest="height", type=int, default=600,
+    parser.add_argument("-height", dest="height", type=int, default=1080,
                         help="set video properties: height")
-    parser.add_argument("-width", dest="width", type=int, default=800,
+    parser.add_argument("-width", dest="width", type=int, default=1920,
                         help="set video properties: width")
     parser.add_argument("-fps", dest="fps", type=int, default=30,
                         help="set video properties: fps")

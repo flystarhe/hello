@@ -9,7 +9,7 @@ def make_mp4(outfile, frames, fps=None, size=None, fourcc=None):
         fps = 30
 
     if size is None:
-        size = (600, 800)
+        size = (1080, 1920)
 
     if fourcc is None:
         suffix = Path(outfile).suffix
@@ -26,8 +26,7 @@ def make_mp4(outfile, frames, fps=None, size=None, fourcc=None):
         frame = np.full((height, width, 3), (127, 127, 127), dtype="uint8")
         cv.rectangle(frame, (5, 5), (225, 35), (0, 0, 255), -1)
         a, b = divmod(index, fps)
-        cv.putText(frame, f"{a:06d}_{b:03d}", (15, 30),
-                   cv.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255))
+        cv.putText(frame, f"{a:06d}_{b:03d}", (15, 30), cv.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
         out.write(frame)
     out.release()
 

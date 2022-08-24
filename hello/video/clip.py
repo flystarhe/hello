@@ -55,11 +55,9 @@ def tag_video(video_path):
 
         banner = np.full((30, frame_width, 3), (0, 0, 255), dtype="uint8")
         txt = f"{curr_pos=}/{frame_count}, {step_size=}*{cap_fps}, {freeze=}, {keep=}"
-        cv.putText(banner, txt, (15, 25),
-                   cv.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255))
+        cv.putText(banner, txt, (15, 25), cv.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
 
-        tag_bar = cv.resize(tag_frames, (frame_width, 30),
-                            interpolation=cv.INTER_NEAREST)
+        tag_bar = cv.resize(tag_frames, (frame_width, 30), interpolation=cv.INTER_NEAREST)
         center = (int(curr_pos / frame_count * frame_width), 15)
         cv.circle(tag_bar, center, 5, (255, 255, 255), -1)
 
