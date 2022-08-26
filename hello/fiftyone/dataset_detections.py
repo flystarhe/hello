@@ -31,6 +31,7 @@ dataset_doc_str = """
     - Use `session.refresh()` to refresh the App if you update a dataset outside of the App.
     - Use `session.selected` to retrieve the IDs of the currently selected samples in the App.
     - Use `session.selected_labels` to retrieve the IDs of the currently selected labels in the App.
+    - Use `export_dataset()` to exports the dataset to disk, or `help(export_dataset)`.
 """
 
 
@@ -233,6 +234,8 @@ def main(args=None):
 
     dataset = func(**kwargs)
     session = fo.launch_app(dataset)
+
+    from .core import export_dataset
 
     banner = "Use quit() or Ctrl-Z plus Return to exit"
     code.interact(banner=banner, local=locals(), exitmsg="End...")
