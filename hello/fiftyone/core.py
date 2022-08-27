@@ -2,8 +2,7 @@ from pathlib import Path
 from string import Template
 
 import fiftyone as fo
-from fiftyone.utils.labels import (objects_to_segmentations,
-                                   segmentations_to_detections)
+from fiftyone.utils.labels import segmentations_to_detections
 
 tmpl_info = """
 info = {
@@ -37,7 +36,7 @@ def merge_samples(datasets, **kwargs):
     return A
 
 
-def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None, mask_types="thing", thickness=1):
+def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None, mask_types="thing"):
     assert label_field is not None or mask_label_field is not None
 
     dataset.save()
@@ -51,12 +50,6 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
         print("todo: segmentations_to_detections()")
         dataset = dataset.select_fields(mask_label_field).clone()
         segmentations_to_detections(dataset, mask_label_field, label_field, mask_targets=dataset.default_mask_targets, mask_types=mask_types)
-
-    if mask_label_field is None:
-        mask_label_field = "segmentations"
-        print("todo: objects_to_segmentations()")
-        dataset = dataset.select_fields(label_field).clone()
-        objects_to_segmentations(dataset, label_field, mask_label_field, mask_targets=dataset.default_mask_targets, thickness=thickness)
 
     splits = dataset.distinct("tags")
 
