@@ -2,8 +2,8 @@ from pathlib import Path
 from string import Template
 
 import fiftyone as fo
-from fiftyone.utils.labels import (segmentations_to_detections,
-                                   segmentations_to_polylines)
+from fiftyone.utils.labels import (objects_to_segmentations,
+                                   segmentations_to_detections)
 
 tmpl_info = """
 info = {
@@ -37,7 +37,7 @@ def merge_samples(datasets, **kwargs):
     return A
 
 
-def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None, mask_types="thing"):
+def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None, mask_types="thing", thickness=1):
     assert label_field is not None or mask_label_field is not None
 
     dataset.save()
@@ -50,7 +50,13 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
         label_field = "detections"
         print("todo: segmentations_to_detections()")
         dataset = dataset.select_fields(mask_label_field).clone()
-        dataset = segmentations_to(dataset, mask_label_field, label_field, mask_types=mask_types)
+        segmentations_to_detections(dataset, mask_label_field, label_field, mask_targets=dataset.default_mask_targets, mask_types=mask_types)
+
+    if mask_label_field is None:
+        mask_label_field = "segmentations"
+        print("todo: objects_to_segmentations()")
+        dataset = dataset.select_fields(label_field).clone()
+        objects_to_segmentations(dataset, label_field, mask_label_field, mask_targets=dataset.default_mask_targets, thickness=thickness)
 
     splits = dataset.distinct("tags")
 
@@ -62,7 +68,6 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
         print(f"\n[{split}]\n")
         view = dataset.match_tags(split)
         curr_dir = Path(export_dir) / split
-        counts = count_values_label(view, label_field)
 
         view.export(
             export_dir=str(curr_dir),
@@ -78,9 +83,7 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
                 mask_targets=mask_targets,
             )
 
-        tail = info["tail"]
-        tail["count_label"] = counts
-        info["tail"] = tail
+        info["tail"].update(count_label=count_values(view, f"{label_field}.detections.label"))
 
         info_py = tmpl_info.safe_substitute(info,
                                             classes=classes,
@@ -92,26 +95,11 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
     return export_dir
 
 
-def count_values_label(dataset, field_name="ground_truth", ordered=True):
-    count_label = dataset.count_values(f"{field_name}.detections.label")
+def count_values(dataset, field_or_expr, ordered=True):
+    count_label = dataset.count_values(field_or_expr)
     count_label = [(k, v) for k, v in count_label.items()]
 
     if ordered:
         count_label = sorted(count_label, key=lambda x: x[1])
 
     return count_label
-
-
-def segmentations_to(dataset, in_field, out_field, label_type="detections", mask_targets=None, mask_types="thing", tolerance=2):
-    # mask_types: "stuff"(amorphous regions of pixels), "thing"(connected regions, each representing an instance)
-    if mask_targets is None:
-        mask_targets = dataset.default_mask_targets
-
-    if label_type == "polylines":
-        segmentations_to_polylines(dataset, in_field, out_field, mask_targets=mask_targets, mask_types=mask_types, tolerance=tolerance)
-    elif label_type == "detections":
-        segmentations_to_detections(dataset, in_field, out_field, mask_targets=mask_targets, mask_types=mask_types)
-    else:
-        raise NotImplementedError
-
-    return dataset

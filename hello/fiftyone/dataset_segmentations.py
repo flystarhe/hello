@@ -6,6 +6,8 @@ from hello.fiftyone.core import merge_samples
 from hello.utils import importer
 
 import fiftyone as fo
+from fiftyone.utils.labels import (objects_to_segmentations,
+                                   segmentations_to_detections)
 
 dataset_doc_str = """
     <dataset_name>/
@@ -34,7 +36,8 @@ dataset_doc_str = """
     - Use `session.refresh()` to refresh the App if you update a dataset outside of the App.
     - Use `session.selected` to retrieve the IDs of the currently selected samples in the App.
     - Use `session.selected_labels` to retrieve the IDs of the currently selected labels in the App.
-    - Use `export_dataset()` to exports the dataset to disk, or `help(export_dataset)`.
+    - Use `export_dataset()` to exports the dataset or view to disk, or `help(export_dataset)`.
+    - Use `dataset.select()/dataset.exclude()` selects the samples with `session.selected`.
 """
 
 
@@ -44,13 +47,15 @@ def load_coco_dataset(info, data_path, labels_path, field_name):
         label_types=["segmentations"],
         data_path=data_path,
         labels_path=labels_path,
-        label_field=field_name,
+        label_field=f"{field_name}_coco",
     )
 
     dataset.default_classes = info.pop("classes", [])
     dataset.default_mask_targets = info.pop("mask_targets", {})
     dataset.info = info
     dataset.save()
+
+    objects_to_segmentations(dataset, f"{field_name}_coco", field_name, mask_targets=dataset.default_mask_targets, thickness=1)
 
     return dataset
 
@@ -67,6 +72,8 @@ def load_png_dataset(info, data_path, labels_path, field_name):
     dataset.default_mask_targets = info.pop("mask_targets", {})
     dataset.info = info
     dataset.save()
+
+    segmentations_to_detections(dataset, field_name, f"{field_name}_coco", mask_targets=dataset.default_mask_targets, mask_types="thing")
 
     return dataset
 

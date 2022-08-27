@@ -15,7 +15,7 @@ tmpl_readme = """# README
 [TOC]
 
 ## Metrics
-- `$mAP`
+$aggregate_metrics
 
 ```json
 $report
@@ -24,9 +24,16 @@ $report
 tmpl_readme = Template(tmpl_readme)
 
 
-def make_dataset(dataset_dir=None, preds_path="predictions.txt", labels_path="labels.json"):
-    A = hod.load_dataset(dataset_dir, data_path=".", labels_path=preds_path, field_name="predictions")
-    B = hod.load_dataset(dataset_dir, data_path=".", labels_path=labels_path, field_name="ground_truth")
+def format_kv(k, v):
+    if isinstance(v, float):
+        v = f"{v:.5f}"
+
+    return f"- `{k}: {v}`"
+
+
+def make_dataset(dataset_dir, info_py="info.py", data_path="data", preds_path="predictions.txt", labels_path="labels.json"):
+    A = hod.load_dataset(dataset_dir, info_py=info_py, data_path=data_path, labels_path=preds_path, field_name="predictions")
+    B = hod.load_dataset(dataset_dir, info_py=info_py, data_path=data_path, labels_path=labels_path, field_name="ground_truth")
 
     dataset = hod.merge_samples([A, B])
     return dataset
@@ -42,8 +49,8 @@ def save_plot(plot, html_file):
         plot.save(html_file)
 
 
-def func(dataset_dir=None, preds_path="predictions.txt", labels_path="labels.json", output_dir=None, **kwargs):
-    dataset = make_dataset(dataset_dir, preds_path, labels_path)
+def func(dataset_dir, info_py="info.py", data_path="data", preds_path="predictions.txt", labels_path="labels.json", output_dir=None, **kwargs):
+    dataset = make_dataset(dataset_dir, info_py, data_path, preds_path, labels_path)
 
     params = dict(
         gt_field="ground_truth",
@@ -74,7 +81,7 @@ def func(dataset_dir=None, preds_path="predictions.txt", labels_path="labels.jso
 
         tmpl_mapping = {
             "date": time.strftime("%Y-%m-%d %H:%M"),
-            "mAP": f"{mAP=:.5f}",
+            "aggregate_metrics": format_kv("mAP", mAP),
             "report": json.dumps(results.report(), indent=4),
         }
         readme_str = tmpl_readme.safe_substitute(tmpl_mapping)
@@ -95,11 +102,15 @@ def parse_args(args=None):
     from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument("--root", dest="dataset_dir", type=str, default=None,
+    parser.add_argument("dataset_dir", type=str,
                         help="base dir")
-    parser.add_argument("--preds", dest="preds_path", type=str,
+    parser.add_argument("--info", dest="info_py", type=str, default="info.py",
+                        help="which the info.py")
+    parser.add_argument("--data", dest="data_path", type=str, default="data",
+                        help="which the images")
+    parser.add_argument("--preds", dest="preds_path", type=str, default="predictions.txt",
                         help="which the predictions file")
-    parser.add_argument("--labels", dest="labels_path", type=str,
+    parser.add_argument("--labels", dest="labels_path", type=str, default="labels.json",
                         help="which the ground_truth file")
     parser.add_argument("--out", dest="output_dir", type=str, default=None,
                         help="save results to output dir")
