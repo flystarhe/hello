@@ -56,7 +56,10 @@ def resize_video(video_path, output_dir, factor, fps, nosave):
             continue
 
         if factor is not None:
-            frame = cv.resize(frame, (new_width, new_height), interpolation=cv.INTER_LINEAR)
+            if factor < 0.5:  # shrinking
+                frame = cv.resize(frame, (new_width, new_height), interpolation=cv.INTER_AREA)
+            else:  # zooming
+                frame = cv.resize(frame, (new_width, new_height), interpolation=cv.INTER_LINEAR)
         out.write(frame)
 
     cap.release()
