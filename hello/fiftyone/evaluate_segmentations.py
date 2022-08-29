@@ -86,7 +86,7 @@ def func(dataset_dir, info_py="info.py", data_path="data", preds_path="predictio
 
 
 def parse_args(args=None):
-    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("dataset_dir", type=str,

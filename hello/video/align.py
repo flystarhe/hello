@@ -106,7 +106,7 @@ def func(input_dir, output_dir, end_tag):
 
 
 def parse_args(args=None):
-    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("input_dir", type=str,

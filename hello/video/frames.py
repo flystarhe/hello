@@ -51,11 +51,10 @@ def to_frames(video_path, output_dir, fps, cal_file, rois, format):
             print("Can't receive frame (stream end?). Exiting ...")
             break
 
-        skip_frame = (index % step_size) != 0
         a, b = divmod(index, cap_fps)
         index += 1
 
-        if skip_frame:
+        if (b % step_size) != 0:
             continue
 
         if unwarper is None:
@@ -95,7 +94,7 @@ def func(input_dir, output_dir, fps, cal_file, rois, format):
 
 
 def parse_args(args=None):
-    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("input_dir", type=str,

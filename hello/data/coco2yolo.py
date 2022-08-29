@@ -76,7 +76,7 @@ def coco_to_yolo(coco_dir, json_dir=None, classes=None):
 
 
 def parse_args(args=None):
-    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("coco_dir", type=str,

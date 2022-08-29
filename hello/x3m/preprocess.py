@@ -61,7 +61,7 @@ def todo(src, dst, mode, imgsz, layout, ext):
 
 
 def parse_args(args=None):
-    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("src", type=str,
