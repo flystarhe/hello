@@ -31,7 +31,7 @@ def find_videos(input_dir):
     return video_paths
 
 
-def tag_video(video_path):
+def tag_video(video_path, resize):
     cap = cv.VideoCapture(video_path)
 
     cap_fps = int(cap.get(cv.CAP_PROP_FPS))
@@ -61,7 +61,10 @@ def tag_video(video_path):
         center = (int(curr_pos / frame_count * frame_width), 15)
         cv.circle(tag_bar, center, 5, (255, 255, 255), -1)
 
-        cv.imshow(video_path, np.concatenate((banner, frame, tag_bar)))
+        image = np.concatenate((banner, frame, tag_bar))
+        if resize is not None:
+            image = cv.resize(image, None, fx=resize, fy=resize, interpolation=cv.INTER_NEAREST)
+        cv.imshow(video_path, image)
 
         key = cv.waitKey(0)
         if key == 27:  # esc
@@ -156,7 +159,7 @@ def clip_text_file(infile, tag_frames, output_dir):
     return outfile
 
 
-def func(input_dir, output_dir):
+def func(input_dir, output_dir, resize):
     input_dir = Path(input_dir)
 
     if input_dir.is_file():
@@ -175,7 +178,7 @@ def func(input_dir, output_dir):
     (output_dir / "data").mkdir(parents=True, exist_ok=False)
 
     for video_path in video_paths:
-        tag_frames = tag_video(video_path)
+        tag_frames = tag_video(video_path, resize)
         if tag_frames.max() > 0:
             clip_video(video_path, tag_frames, output_dir)
 
@@ -190,6 +193,8 @@ def parse_args(args=None):
                         help="videos dir or file path")
     parser.add_argument("-o", "--output_dir", type=str, default=None,
                         help="output dir")
+    parser.add_argument("--resize", type=float, default=None,
+                        help="resize factor")
 
     args = parser.parse_args(args=args)
     return vars(args)
