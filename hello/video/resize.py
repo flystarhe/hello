@@ -56,7 +56,7 @@ def resize_video(video_path, output_dir, factor, fps, nosave):
             continue
 
         if factor is not None:
-            frame = cv.resize(frame, (new_width, new_height), interpolation=cv.INTER_NEAREST)
+            frame = cv.resize(frame, (new_width, new_height), interpolation=cv.INTER_LINEAR)
         out.write(frame)
 
     cap.release()
