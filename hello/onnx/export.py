@@ -14,22 +14,18 @@ class Net(nn.Module):
         super().__init__()
         self.relu = nn.ReLU(inplace=True)
         self.conv1 = nn.Conv2d(3, 64, (5, 5), (1, 1), (2, 2), bias=False)
+        self.conv2 = nn.Conv2d(64, 8, (5, 5), (1, 1), (2, 2), bias=False)
 
         init.ones_(self.conv1.weight)
+        init.ones_(self.conv2.weight)
 
     def forward(self, x):
-        x = self.relu(self.conv1(x))
+        y = self.relu(self.conv1(x))
 
-        xy = x[:, 0:2]
-        xy = (xy * 0.08333333 + 0.5).clamp(0., 1.)
-
-        wh = x[:, 2:4]
-        wh = (wh * wh) * 4
-
-        y = torch.cat((xy, wh, x[:, 4:]), 1)
-
-        bs, nc, _, _ = y.shape
-        y = y.view(bs, nc, -1).permute(0, 2, 1).contiguous()
+        y = self.conv2(y)
+        # set data layout: channel last
+        y = y.permute(0, 2, 3, 1).contiguous()
+        # Currently observed, it must be the end of convolution + permute
 
         return y
 
