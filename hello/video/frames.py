@@ -11,7 +11,7 @@ from pathlib import Path
 import cv2 as cv
 from pyomniunwarp import OmniUnwarp
 
-suffix_set = set(".avi,.mp4".split(","))
+suffix_set = set(".avi,.mp4,.MOV".split(","))
 
 
 def find_videos(input_dir):
