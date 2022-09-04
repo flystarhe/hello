@@ -11,21 +11,23 @@ flit publish
 ## requirements.txt
 ```sh
 # requirements.txt
-
-# https://ffmpeg.org/ffmpeg.html
-#     1. apt install -y ffmpeg
-#     2. conda install -c pytorch ffmpeg
-#     3. conda install -c conda-forge ffmpeg
-
-# pip install -i https://pypi.tuna.tsinghua.edu.cn/simple some-package
-pip install opencv-python --ignore-installed
-pip install opencv-contrib-python --ignore-installed
-pip install opencv-python-headless
-pip install opencv-contrib-python-headless
-
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 pip install opencv-python Pillow scikit-image scikit-learn simplejson onnx
 
+# hello
 pip install -U hello2
+pip install -U hello2 -i https://pypi.org/simple
+pip install -U hello2 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install -U 'git+https://github.com/flystarhe/hello'
+
+# FFmpeg
+apt install -y ffmpeg
+conda install -c pytorch ffmpeg
+conda install -c conda-forge ffmpeg
+
+# OpenCV
+pip uninstall -y opencv-python-headless
+pip install opencv-python
 
 # fiftyone
 pip install fiftyone==0.16.5
