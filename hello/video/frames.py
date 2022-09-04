@@ -1,5 +1,5 @@
 # pip install opencv-python
-# pip install pyomniunwarp>=0.2.3
+# pip install pyomniunwarp>=0.2.4
 # -i https://pypi.tuna.tsinghua.edu.cn/simple
 # imwrite()
 # - cv.IMWRITE_PNG_COMPRESSION: default 3

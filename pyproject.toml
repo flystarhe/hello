@@ -13,13 +13,8 @@ dependencies = [
     "Pillow",
     "scikit-image",
     "scikit-learn",
-    "pycocotools",
     "simplejson",
     "onnx",
-    "onnx-simplifier",
-    "onnxruntime-gpu",
-    "fiftyone ==0.16.5",
-    "pyomniunwarp >=0.2.4",
 ]
 
 [project.urls]
