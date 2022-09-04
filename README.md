@@ -17,10 +17,15 @@ flit publish
 #     2. conda install -c pytorch ffmpeg
 #     3. conda install -c conda-forge ffmpeg
 
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple opencv-python
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple opencv-contrib-python
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple opencv-python-headless
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple opencv-contrib-python-headless
+
 pip install opencv-python Pillow scikit-image scikit-learn pycocotools simplejson onnx onnx-simplifier onnxruntime-gpu
 
 pip install -U hello2
-pip install -U fiftyone>=0.16.5
+pip install -U fiftyone==0.16.5
 pip install -U pyomniunwarp>=0.2.4
 
 # PyTorch 1.10.2

@@ -4,6 +4,7 @@ A collection of useful tools!
 ```sh
 pip install -U hello2
 pip install -U hello2 -i https://pypi.org/simple
+pip install -U hello2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 pip install -U 'git+https://github.com/flystarhe/hello'
 ```
 

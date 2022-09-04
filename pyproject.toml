@@ -18,7 +18,7 @@ dependencies = [
     "onnx",
     "onnx-simplifier",
     "onnxruntime-gpu",
-    "fiftyone >=0.16.5",
+    "fiftyone ==0.16.5",
     "pyomniunwarp >=0.2.4",
 ]
 
