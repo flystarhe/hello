@@ -1,17 +1,23 @@
 """A collection of useful tools!"""
 import sys
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
-help_doc_str = """
-Usage:
-    hello <command> [options]
+help_doc_str = """usage: hello [--version] [--help]
 
-Commands:
-    data
-    fiftyone
-    video
-    x3m
+shell command:
+    hello -h
+    hello-data -h
+    hello-fiftyone -h
+    hello-video -h
+    hello-x3m -h
+
+command-line interface:
+    python -m hello -h
+    python -m hello.data -h
+    python -m hello.fiftyone -h
+    python -m hello.video -h
+    python -m hello.x3m -h
 """
 
 
@@ -24,21 +30,10 @@ def main(args=None):
     else:
         command, *args = ["--help"]
 
-    command, *remainder = command.split(".", maxsplit=1)
     args = ["--help"] if len(args) == 0 else args
 
-    if command == "data":
-        from hello.data.__main__ import main as _main
-        _main(remainder + args)
-    elif command == "fiftyone":
-        from hello.fiftyone.__main__ import main as _main
-        _main(remainder + args)
-    elif command == "video":
-        from hello.video.__main__ import main as _main
-        _main(remainder + args)
-    elif command == "x3m":
-        from hello.x3m.__main__ import main as _main
-        _main(remainder + args)
+    if command == "--version":
+        print(f"hello version {__version__}")
     else:
         print(help_doc_str)
 
