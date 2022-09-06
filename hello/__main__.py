@@ -13,6 +13,8 @@ Usage:
 
 Commands:
     data
+    fiftyone
+    video
     x3m
 """
 
@@ -31,6 +33,12 @@ def main(args=None):
 
     if command == "data":
         from hello.data.__main__ import main as _main
+        _main(remainder + args)
+    elif command == "fiftyone":
+        from hello.fiftyone.__main__ import main as _main
+        _main(remainder + args)
+    elif command == "video":
+        from hello.video.__main__ import main as _main
         _main(remainder + args)
     elif command == "x3m":
         from hello.x3m.__main__ import main as _main

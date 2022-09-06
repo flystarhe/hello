@@ -1,3 +1,3 @@
 """A collection of useful tools!"""
 
-__version__ = "0.1.34"
+__version__ = "0.2.1"
