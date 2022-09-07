@@ -152,7 +152,7 @@ def main(args=None):
     print(f"{__file__}: {kwargs}")
 
     dataset = func(**kwargs)
-    session = fo.launch_app(dataset)
+    session = fo.launch_app(dataset, port=5151, address="0.0.0.0", remote=True)
 
     from .core import export_dataset
 
