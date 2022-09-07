@@ -1,7 +1,7 @@
 # Hello
 A collection of useful tools!
 
-## Publish Package
+## Publish
 [hello2 · PyPI](https://pypi.org/project/hello2/)
 ```sh
 # https://github.com/pypa/flit
@@ -47,7 +47,7 @@ pip install -U hello2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 pip install -U 'git+https://github.com/flystarhe/hello'
 ```
 
-## Get Started
+## Usage
 
 ### hello-data
 - `hello-data coco2yolo -h`
