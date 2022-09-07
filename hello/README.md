@@ -26,6 +26,12 @@ pip install opencv-python --ignore-installed
 # fiftyone
 pip install fiftyone==0.16.5
 pip install fiftyone[desktop]==0.16.5
+## $ conda list | grep voxel
+## voxel51-eta               0.7.1                    pypi_0    pypi
+## $ conda list | grep fiftyone
+## fiftyone                  0.16.5                   pypi_0    pypi
+## fiftyone-brain            0.8.2                    pypi_0    pypi
+## fiftyone-db               0.3.0                    pypi_0    pypi
 
 # pyomniunwarp
 pip install -U pyomniunwarp>=0.2.4
