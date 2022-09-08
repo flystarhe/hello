@@ -5,6 +5,7 @@ Usage:
     hello-fiftyone <command> [options]
 
 Commands:
+    unique
     det-view
     det-eval
     seg-view
@@ -23,7 +24,10 @@ def main(args=None):
 
     args = ["--help"] if len(args) == 0 else args
 
-    if command == "det-view":
+    if command == "unique":
+        from hello.fiftyone.unique import main as _main
+        _main(args)
+    elif command == "det-view":
         from hello.fiftyone.dataset_detections import main as _main
         _main(args)
     elif command == "det-eval":
