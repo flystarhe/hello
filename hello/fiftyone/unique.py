@@ -7,6 +7,9 @@ import fiftyone.brain as fob
 
 
 def find_unique(export_dir, dataset_dir, count=1, model=None):
+    # model: 'mobilenet-v2-imagenet-torch'
+    # model: 'resnet50-imagenet-torch', 'resnet101-imagenet-torch', 'resnet152-imagenet-torch'
+    # model: 'resnext50-32x4d-imagenet-torch', 'resnext101-32x8d-imagenet-torch'
     dataset = fo.Dataset.from_dir(
         dataset_dir=dataset_dir,
         dataset_type=fo.types.ImageDirectory,
@@ -24,11 +27,18 @@ def find_unique(export_dir, dataset_dir, count=1, model=None):
         dataset_type=fo.types.ImageDirectory,
     )
 
-    return len(unique_view)
+    return len(unique_view), len(dataset)
 
 
-def func(export_dir, dataset_dir, count, model):
-    return find_unique(export_dir, dataset_dir, count, model)
+def func(export_dir, dataset_dir, function, count, model):
+    if function == "unique":
+        n_unique, n_total = find_unique(export_dir, dataset_dir, count, model)
+        print(f"kept: {n_unique}, total: {n_total}")
+    elif function == "duplicate":
+        raise NotImplementedError
+    else:
+        raise NotImplementedError
+    return "\n[END]"
 
 
 def parse_args(args=None):
@@ -39,6 +49,8 @@ def parse_args(args=None):
                         help="a directory")
     parser.add_argument("dataset_dir", type=str,
                         help="the dataset directory")
+    parser.add_argument("-f", dest="function", type=str, default="unique",
+                        choices=["unique", "duplicate"])
     parser.add_argument("-n", dest="count", type=int, default=1,
                         help="the desired number of unique examples")
     parser.add_argument("-m", dest="model", type=str, default=None,

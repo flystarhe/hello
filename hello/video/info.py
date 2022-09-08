@@ -42,7 +42,7 @@ def func(input_dir):
     for video_path in video_paths:
         print_info(video_path)
 
-    return "[END]"
+    return "\n[END]"
 
 
 def parse_args(args=None):

@@ -92,7 +92,7 @@ def func(in_dir, out_dir):
     for image_path in sorted(in_dir.glob("*.jpg")):
         mark_points(str(image_path), out_dir)
 
-    return 0
+    return "\n[END]"
 
 
 def parse_args(args=None):
