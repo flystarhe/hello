@@ -7,6 +7,9 @@ import fiftyone.brain as fob
 
 
 def best_group_size(n_total, group_size):
+    if n_total <= group_size:
+        return n_total
+
     a, b = divmod(n_total, group_size)
     c, d = divmod(b, a)
 
@@ -43,17 +46,48 @@ def find_unique(export_dir, dataset_dir, count=1, model=None):
     return len(unique_view), len(dataset)
 
 
+def find_unique2(export_dir, dataset_dir, count=1, model=None, group_size=1000):
+    dataset = fo.Dataset.from_images_dir(dataset_dir)
+    sorted_view = dataset.sort_by("filepath")
+    n_total = len(sorted_view)
+
+    group_size = best_group_size(n_total, group_size)
+    print(f"[INFO] total: {n_total}, group size: {group_size}")
+
+    unique_ids = set()
+    for skip in range(0, n_total, group_size):
+        sliced_sorted_view = sorted_view.skip(skip).limit(group_size)
+
+        results = fob.compute_similarity(sliced_sorted_view, brain_key="img_sim", model=model)
+        results.find_unique(count)
+
+        unique_ids.update(results.unique_ids)
+
+    unique_view = dataset.select(unique_ids)
+
+    shutil.rmtree(export_dir, ignore_errors=True)
+
+    unique_view.export(
+        export_dir=(Path(export_dir) / "data").as_posix(),
+        dataset_type=fo.types.ImageDirectory,
+    )
+
+    return len(unique_view), len(dataset)
+
+
 def func(export_dir, dataset_dir, function, count, model, group_size):
     if function == "unique":
         if group_size is None:
             n_unique, n_total = find_unique(export_dir, dataset_dir, count, model)
             print(f"kept: {n_unique}, total: {n_total}")
         else:
-            raise NotImplementedError
+            n_unique, n_total = find_unique2(export_dir, dataset_dir, count, model, group_size)
+            print(f"kept: {n_unique}, total: {n_total}")
     elif function == "duplicate":
         raise NotImplementedError
     else:
         raise NotImplementedError
+
     return "\n[END]"
 
 
