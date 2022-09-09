@@ -6,6 +6,18 @@ import fiftyone as fo
 import fiftyone.brain as fob
 
 
+def best_group_size(n_total, group_size):
+    a, b = divmod(n_total, group_size)
+    c, d = divmod(b, a)
+
+    group_size = group_size + c
+
+    if d > 0:
+        group_size = group_size + 1
+
+    return group_size
+
+
 def find_unique(export_dir, dataset_dir, count=1, model=None):
     # model: 'mobilenet-v2-imagenet-torch'
     # model: 'resnet50-imagenet-torch', 'resnet101-imagenet-torch', 'resnet152-imagenet-torch'
@@ -18,7 +30,8 @@ def find_unique(export_dir, dataset_dir, count=1, model=None):
     results = fob.compute_similarity(dataset, brain_key="img_sim", model=model)
     results.find_unique(count)
 
-    unique_view = dataset.select(results.unique_ids)
+    unique_ids = results.unique_ids
+    unique_view = dataset.select(unique_ids)
 
     shutil.rmtree(export_dir, ignore_errors=True)
 
@@ -30,10 +43,13 @@ def find_unique(export_dir, dataset_dir, count=1, model=None):
     return len(unique_view), len(dataset)
 
 
-def func(export_dir, dataset_dir, function, count, model):
+def func(export_dir, dataset_dir, function, count, model, group_size):
     if function == "unique":
-        n_unique, n_total = find_unique(export_dir, dataset_dir, count, model)
-        print(f"kept: {n_unique}, total: {n_total}")
+        if group_size is None:
+            n_unique, n_total = find_unique(export_dir, dataset_dir, count, model)
+            print(f"kept: {n_unique}, total: {n_total}")
+        else:
+            raise NotImplementedError
     elif function == "duplicate":
         raise NotImplementedError
     else:
@@ -55,6 +71,8 @@ def parse_args(args=None):
                         help="the desired number of unique examples")
     parser.add_argument("-m", dest="model", type=str, default=None,
                         help="a fiftyone.core.models.Model or the name")
+    parser.add_argument("-g", dest="group_size", type=int, default=None,
+                        help="compute similarity by group")
 
     args = parser.parse_args(args=args)
     return vars(args)
