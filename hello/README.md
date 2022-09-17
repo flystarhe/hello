@@ -8,6 +8,20 @@ A collection of useful tools!
 flit publish
 ```
 
+## Environment
+```sh
+conda info -e
+conda create -y -n myenv python=3.9
+conda activate myenv
+
+# pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+pip install notebook
+
+conda deactivate
+conda remove -y -n myenv --all
+conda info -e
+```
+
 ## Installation
 ```sh
 # requirements.txt
