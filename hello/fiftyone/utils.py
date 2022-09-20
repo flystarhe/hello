@@ -267,8 +267,8 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
     splits = dataset.distinct("tags")
 
     if not splits:
-        splits = ["all"]
-        dataset.tag_samples("all")
+        splits = ["train"]
+        dataset.tag_samples("train")
 
     for split in splits:
         print(f"\n[{split}]\n")
