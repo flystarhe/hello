@@ -236,8 +236,6 @@ def main(args=None):
     dataset = func(**kwargs)
     session = fo.launch_app(dataset, port=5151, address="0.0.0.0", remote=True)
 
-    from .core import export_dataset
-
     banner = "Use quit() or Ctrl-Z plus Return to exit"
     code.interact(banner=banner, local=locals(), exitmsg="End...")
 

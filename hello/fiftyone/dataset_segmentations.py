@@ -73,7 +73,7 @@ def load_png_dataset(info, data_path, labels_path, field_name):
     dataset.info = info
     dataset.save()
 
-    segmentations_to_detections(dataset, field_name, f"{field_name}_coco", mask_targets=dataset.default_mask_targets, mask_types="thing")
+    segmentations_to_detections(dataset, field_name, f"{field_name}_coco", mask_targets=dataset.default_mask_targets, mask_types="stuff")
 
     return dataset
 
@@ -153,8 +153,6 @@ def main(args=None):
 
     dataset = func(**kwargs)
     session = fo.launch_app(dataset, port=5151, address="0.0.0.0", remote=True)
-
-    from .core import export_dataset
 
     banner = "Use quit() or Ctrl-Z plus Return to exit"
     code.interact(banner=banner, local=locals(), exitmsg="End...")
