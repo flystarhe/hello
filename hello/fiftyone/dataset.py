@@ -61,6 +61,7 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
             export_dir=str(curr_dir),
             dataset_type=fo.types.COCODetectionDataset,
             label_field=label_field,
+            classes=classes,
         )
 
         if mask_label_field is not None:
