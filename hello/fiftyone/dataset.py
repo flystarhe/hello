@@ -5,8 +5,8 @@ import fiftyone as fo
 from fiftyone.utils.labels import segmentations_to_detections
 
 from .core import count_values
-from .dataset_detections import load_dataset as load_detection_dataset
-from .dataset_segmentations import load_dataset as load_segmentation_dataset
+from .dataset_detections import load_dataset as _load_detection_dataset
+from .dataset_segmentations import load_dataset as _load_segmentation_dataset
 
 tmpl_info = """
 info = {
@@ -20,6 +20,30 @@ info = {
 }
 """
 tmpl_info = Template(tmpl_info)
+
+
+def load_images_dir(dataset_dir):
+    dataset = fo.Dataset.from_images_dir(dataset_dir)
+
+    info = {
+        "dataset_name": "dataset-name",
+        "dataset_type": "detection",
+        "version": "0.01",
+        "classes": [],
+        "num_samples": {},
+        "tail": {},
+    }
+
+    dataset.info = info
+    dataset.save()
+
+    return dataset
+
+
+load_detection_dataset = _load_detection_dataset
+
+
+load_segmentation_dataset = _load_segmentation_dataset
 
 
 def export_detection_dataset(export_dir, dataset, label_field):

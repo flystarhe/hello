@@ -6,32 +6,26 @@
 # - cv.IMWRITE_JPEG_QUALITY: default 95
 import shutil
 import sys
+import time
 from pathlib import Path
 
 import cv2 as cv
 from pyomniunwarp import OmniUnwarp
 
-suffix_set = set(".avi,.mp4,.MOV".split(","))
+suffix_set = set(".jpg,.png".split(","))
 
 
-def find_videos(input_dir):
-    video_paths = []
+def find_images(input_dir):
+    image_paths = []
 
     for f in sorted(Path(input_dir).glob("**/*")):
         if f.suffix in suffix_set:
-            video_paths.append(f.as_posix())
+            image_paths.append(f.as_posix())
 
-    return video_paths
+    return image_paths
 
 
-def to_frames(video_path, output_dir, fps, cal_file, rois, format):
-    cap = cv.VideoCapture(video_path)
-
-    cap_fps = int(cap.get(cv.CAP_PROP_FPS))
-    frame_count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
-
-    step_size = max(1, cap_fps // fps)
-
+def to_unwarp(image_paths, output_dir, cal_file, rois, format, prefix):
     if cal_file is not None:
         kwargs = {
             "mode": "cuboid",
@@ -42,37 +36,28 @@ def to_frames(video_path, output_dir, fps, cal_file, rois, format):
     else:
         unwarper = None
 
-    prefix = Path(video_path).stem
+    for i, image_path in enumerate(image_paths):
+        frame = cv.imread(image_path)
 
-    index = 0
-    while index < frame_count:
-        ret, frame = cap.read()
-        if not ret:
-            print("Can't receive frame (stream end?). Exiting ...")
-            break
-
-        a, b = divmod(index, cap_fps)
-        index += 1
-
-        if (b % step_size) != 0:
-            continue
+        if prefix is not None:
+            name = f"{prefix}_{i:06d}"
+        else:
+            name = Path(image_path).stem
 
         if unwarper is None:
-            filename = f"data/{prefix}_time_{a:06d}_{b:03d}{format}"
+            filename = f"data/{name}{format}"
             cv.imwrite(str(output_dir / filename), frame)
         else:
             imgs, masks, labels = unwarper.rectify(frame)
             for img, mask, label in zip(imgs, masks, labels):
                 if label in rois:
-                    filename = f"data/{prefix}_time_{a:06d}_{b:03d}_roi_{label}{format}"
+                    filename = f"data/{name}_roi_{label}{format}"
                     cv.imwrite(str(output_dir / filename), img)
-                    filename = f"mask/{prefix}_time_{a:06d}_{b:03d}_roi_{label}.png"
+                    filename = f"mask/{name}_roi_{label}.png"
                     cv.imwrite(str(output_dir / filename), mask)
 
-    cap.release()
 
-
-def func(input_dir, output_dir, fps, cal_file, rois, format):
+def func(input_dir, output_dir, cal_file, rois, format, prefix):
     input_dir = Path(input_dir)
 
     output_dir = Path(output_dir)
@@ -87,8 +72,13 @@ def func(input_dir, output_dir, fps, cal_file, rois, format):
         if not Path(cal_file).is_file():
             cal_file = None
 
-    for video_path in find_videos(input_dir):
-        to_frames(video_path, output_dir, fps, cal_file, rois, format)
+    if prefix is not None:
+        if prefix == "date":
+            prefix = time.strftime("%Y%m%d_%H%M%S")
+
+    image_paths = find_images(input_dir)
+    print(f"[INFO] find images: {len(image_paths)}")
+    to_unwarp(image_paths, output_dir, cal_file, rois, format, prefix)
 
     return f"\n[OUTDIR]\n{output_dir}"
 
@@ -101,8 +91,6 @@ def parse_args(args=None):
                         help="input dir")
     parser.add_argument("output_dir", type=str,
                         help="output dir")
-    parser.add_argument("--fps", type=int, default=5,
-                        help="sample the frames")
     parser.add_argument("--cal_file", type=str, default=None,
                         help="calibrated model file path")
     parser.add_argument("--rois", type=str, nargs="+",
@@ -110,6 +98,8 @@ def parse_args(args=None):
                         choices=["front", "left", "back", "right", "front-left", "front-right"])
     parser.add_argument("--format", type=str, default=".jpg",
                         choices=[".png", ".jpg"])
+    parser.add_argument("--prefix", type=str, default=None,
+                        help="'date' or variable name")
 
     args = parser.parse_args(args=args)
     return vars(args)
