@@ -1,8 +1,6 @@
 import sys
 
-help_doc_str = """
-Usage:
-    hello-x3m <command> [options]
+help_doc_str = """usage: hello-x3m <command> [options]
 
 Commands:
     preprocess

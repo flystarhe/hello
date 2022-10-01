@@ -8,7 +8,7 @@ _bgr_image = None
 _data_points = None
 
 help_doc_str = """
-Press the left mouse button to mark points
+- press the left mouse button to mark points
 - press `q` to quit
 - press `b` to undo
 - press `r` to clear

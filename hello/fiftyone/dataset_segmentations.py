@@ -9,7 +9,8 @@ import fiftyone as fo
 from fiftyone.utils.labels import (objects_to_segmentations,
                                    segmentations_to_detections)
 
-dataset_doc_str = """
+dataset_doc_str = """tips:
+
     <dataset_name>/
     ├── README.md  # 按照Markdown标准扩展信息
     ├── data

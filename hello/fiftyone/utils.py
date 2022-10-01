@@ -10,8 +10,7 @@ from fiftyone import ViewField as F
 from fiftyone.utils.labels import (segmentations_to_detections,
                                    segmentations_to_polylines)
 
-tmpl_info = """
-info = {
+tmpl_info = """info = {
     'dataset_name': '$dataset_name',
     'dataset_type': '$dataset_type',
     'version': '$version',

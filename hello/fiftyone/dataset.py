@@ -8,8 +8,7 @@ from .core import count_values
 from .dataset_detections import load_dataset as _load_detection_dataset
 from .dataset_segmentations import load_dataset as _load_segmentation_dataset
 
-tmpl_info = """
-info = {
+tmpl_info = """info = {
     'dataset_name': '$dataset_name',
     'dataset_type': '$dataset_type',
     'version': '$version',
@@ -22,18 +21,25 @@ info = {
 tmpl_info = Template(tmpl_info)
 
 
-def load_images_dir(dataset_dir):
+def load_images_dir(dataset_dir, dataset_name=None, dataset_type=None, classes=[], mask_targets={}):
     dataset = fo.Dataset.from_images_dir(dataset_dir)
 
+    if dataset_name:
+        dataset.name = dataset_name
+        dataset.persistent = True
+
     info = {
-        "dataset_name": "dataset-name",
-        "dataset_type": "detection",
+        "dataset_name": dataset_name if dataset_name else "dataset-name",
+        "dataset_type": dataset_type if dataset_type else "unknown",
         "version": "0.01",
-        "classes": [],
+        "classes": classes,
+        "mask_targets": mask_targets,
         "num_samples": {},
         "tail": {},
     }
 
+    dataset.default_classes = info.pop("classes", [])
+    dataset.default_mask_targets = info.pop("mask_targets", {})
     dataset.info = info
     dataset.save()
 

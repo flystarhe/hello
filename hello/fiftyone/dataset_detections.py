@@ -9,7 +9,8 @@ from hello.utils import importer
 
 import fiftyone as fo
 
-dataset_doc_str = """
+dataset_doc_str = """tips:
+
     <dataset_name>/
     ├── README.md  # 按照Markdown标准扩展信息
     ├── data
