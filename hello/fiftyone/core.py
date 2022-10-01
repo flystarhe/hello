@@ -56,8 +56,9 @@ def map_default_classes(dataset, mapping, background="background"):
             label = mapping["*"]
         new_classes.append(label)
 
+    sorted_key = classes + list(mapping.values())
     distinct_labels = set(new_classes) - set([background])
-    new_classes = sorted(distinct_labels, key=lambda x: new_classes.index(x))
+    new_classes = sorted(distinct_labels, key=lambda x: sorted_key.index(x))
 
     new_classes.append(background)
     dataset.default_classes = new_classes
