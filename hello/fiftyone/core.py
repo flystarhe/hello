@@ -72,6 +72,10 @@ def map_default_mask_targets(dataset, mapping, background=255):
     for _old, _new in mapping.items():
         new_mask_targets[_new] = mask_targets[_old]
 
+    for key in new_mask_targets.keys():
+        if key not in mapping and key in mask_targets:
+            new_mask_targets[key] = mask_targets[key]
+
     for key in (set(mapping.keys()) - set(mapping.values())):
         del new_mask_targets[key]
 
