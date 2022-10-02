@@ -3,6 +3,7 @@ from pathlib import Path
 
 import fiftyone as fo
 from fiftyone import ViewField as F
+from fiftyone.utils.labels import segmentations_to_detections
 
 
 def _map_detections(field_data, mapping):
@@ -84,18 +85,20 @@ def map_default_mask_targets(dataset, mapping, background=255):
     return dataset
 
 
-def filter_detections_dataset(dataset, mapping, field_name="ground_truth", background="background"):
+def filter_detections_dataset(dataset, mapping=None, field_name="ground_truth", background="background"):
     dataset.save()
     dataset = dataset.clone()
 
-    dataset = map_labels(dataset, mapping, field_name=field_name)
-    dataset = map_default_classes(dataset, mapping, background=background)
+    if mapping is not None:
+        dataset = map_labels(dataset, mapping, field_name=field_name)
+        dataset = map_default_classes(dataset, mapping, background=background)
+
     dataset = dataset.filter_labels(field_name, F("label") != background).clone()
 
     return dataset
 
 
-def filter_segmentation_dataset(dataset, mapping, field_name="ground_truth", background=255):
+def filter_segmentation_dataset(dataset, mapping=None, field_name="ground_truth", background=255):
     dataset.save()
     dataset = dataset.clone()
 
@@ -104,8 +107,10 @@ def filter_segmentation_dataset(dataset, mapping, field_name="ground_truth", bac
             return (field_data.mask != background).sum() > 0
         return False
 
-    dataset = map_labels(dataset, mapping, field_name=field_name)
-    dataset = map_default_mask_targets(dataset, mapping, background=background)
+    if mapping is not None:
+        dataset = map_labels(dataset, mapping, field_name=field_name)
+        dataset = map_default_mask_targets(dataset, mapping, background=background)
+
     dataset = dataset.select([s.id for s in dataset if _check_sample(s[field_name])]).clone()
 
     return dataset
@@ -140,18 +145,22 @@ def count_values(dataset, field_or_expr, ordered=True):
     return count_label
 
 
-def split_dataset(dataset, splits, limit=500, field_name="ground_truth"):
+def split_dataset(dataset, splits=None, limit=3000, field_name="ground_truth", from_field=None):
     dataset.untag_samples(dataset.distinct("tags"))
     dataset = dataset.shuffle()
+
+    if from_field is not None:
+        print("todo: segmentations_to_detections()")
+        segmentations_to_detections(dataset, from_field, field_name, mask_targets=dataset.default_mask_targets, mask_types="stuff")
 
     if splits is None:
         splits = {"val": 0.1, "train": 0.9}
 
     val_ids, train_ids = [], []
-    for label in dataset.default_classes:
-        match = (F("label") == label)
-        label_field = F(f"{field_name}.detections")
-        view = dataset.match(label_field.filter(match).length() > 0)
+    for label, _ in count_values(dataset, f"{field_name}.detections.label", ordered=True):
+        _detections = F(f"{field_name}.detections").filter(F("label") == label)
+        view = dataset.exclude(val_ids + train_ids).match(_detections.length() > 0)
+
         ids = view.take(limit).values("id")
 
         pos_val = splits.get("val", 0.1)
@@ -165,10 +174,8 @@ def split_dataset(dataset, splits, limit=500, field_name="ground_truth"):
         val_ids.extend(ids[:pos_val])
         train_ids.extend(ids[pos_val:])
 
-    val_ids = set(val_ids)
-    train_ids = set(train_ids) - val_ids
     dataset.select(val_ids).tag_samples("val")
     dataset.select(train_ids).tag_samples("train")
-    dataset.exclude(train_ids | val_ids).tag_samples("test")
-    print(dataset.count_values("tags"))
+    dataset.exclude(val_ids + train_ids).tag_samples("test")
+    print(count_values(dataset, "tags", ordered=True))
     return dataset
