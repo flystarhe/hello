@@ -4,7 +4,7 @@ from string import Template
 import fiftyone as fo
 from fiftyone.utils.labels import segmentations_to_detections
 
-from .core import count_values
+from .core import count_values, merge_samples
 from .dataset_detections import load_dataset as _load_detection_dataset
 from .dataset_segmentations import load_dataset as _load_segmentation_dataset
 
@@ -46,10 +46,38 @@ def load_images_dir(dataset_dir, dataset_name=None, dataset_type=None, classes=[
     return dataset
 
 
-load_detection_dataset = _load_detection_dataset
+def load_detection_dataset(dataset_dir, info_py="info.py", data_path="data", labels_path="labels.json", field_name="ground_truth", splits=None):
+    dataset_dir = Path(dataset_dir)
+
+    if splits is None:
+        dataset = _load_detection_dataset(str(dataset_dir), info_py=info_py, data_path=data_path, labels_path=labels_path, field_name=field_name)
+        dataset.tag_samples("train")
+    else:
+        _datasets = []
+        for s in splits:
+            _dataset = _load_detection_dataset(str(dataset_dir / s), info_py=info_py, data_path=data_path, labels_path=labels_path, field_name=field_name)
+            _dataset.tag_samples(s)
+            _datasets.append(_dataset)
+        dataset = merge_samples(_datasets)
+
+    return dataset
 
 
-load_segmentation_dataset = _load_segmentation_dataset
+def load_segmentation_dataset(dataset_dir, info_py="info.py", data_path="data", labels_path="labels/", field_name="ground_truth", splits=None):
+    dataset_dir = Path(dataset_dir)
+
+    if splits is None:
+        dataset = _load_segmentation_dataset(str(dataset_dir), info_py=info_py, data_path=data_path, labels_path=labels_path, field_name=field_name)
+        dataset.tag_samples("train")
+    else:
+        _datasets = []
+        for s in splits:
+            _dataset = _load_segmentation_dataset(str(dataset_dir / s), info_py=info_py, data_path=data_path, labels_path=labels_path, field_name=field_name)
+            _dataset.tag_samples(s)
+            _datasets.append(_dataset)
+        dataset = merge_samples(_datasets)
+
+    return dataset
 
 
 def export_detection_dataset(export_dir, dataset, label_field):
