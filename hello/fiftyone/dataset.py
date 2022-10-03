@@ -2,6 +2,7 @@ from pathlib import Path
 from string import Template
 
 import fiftyone as fo
+import fiftyone.utils.yolo as fouy
 from fiftyone.utils.labels import segmentations_to_detections
 
 from .core import count_values, merge_samples
@@ -19,6 +20,25 @@ tmpl_info = """info = {
 }
 """
 tmpl_info = Template(tmpl_info)
+
+
+def add_mmdet_labels(dataset, label_field, labels_path, classes=None):
+    classes = classes or dataset.default_classes
+
+    return dataset
+
+
+def add_yolov5_labels(dataset, label_field, labels_path, classes=None):
+    classes = classes or dataset.default_classes
+
+    fouy.add_yolo_labels(
+        dataset,
+        label_field,
+        labels_path,
+        classes,
+    )
+
+    return dataset
 
 
 def load_images_dir(dataset_dir, dataset_name=None, dataset_type=None, classes=[], mask_targets={}):
