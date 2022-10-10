@@ -22,13 +22,13 @@ tmpl_info = """info = {
 tmpl_info = Template(tmpl_info)
 
 
-def add_mmdet_labels(dataset, label_field, labels_path, classes=None):
+def add_mmdet_labels(dataset, label_field, labels_path, classes=None, include_missing=False):
     classes = classes or dataset.default_classes
 
     return dataset
 
 
-def add_yolov5_labels(dataset, label_field, labels_path, classes=None):
+def add_yolov5_labels(dataset, label_field, labels_path, classes=None, include_missing=False):
     classes = classes or dataset.default_classes
 
     fouy.add_yolo_labels(
@@ -36,6 +36,7 @@ def add_yolov5_labels(dataset, label_field, labels_path, classes=None):
         label_field,
         labels_path,
         classes,
+        include_missing,
     )
 
     return dataset
