@@ -19,7 +19,17 @@ def matmul(size=1024, device="cuda:0", times=500):
         torch.matmul(x, x)
 
 
-def timeit(size=1024, device="cuda:0", times=500):
+def timeit_copy(size=1024, device="cuda:0", times=500):
+    x = torch.zeros(size, size, size, dtype=torch.int8, device="cpu")
+    t = benchmark.Timer(
+        stmt=f"x.to('{device}')",
+        setup="import torch",
+        globals={"x": x},
+    )
+    return t.timeit(times)
+
+
+def timeit_matmul(size=1024, device="cuda:0", times=500):
     x = torch.randn(size, size, device=device)
     t = benchmark.Timer(
         stmt="torch.matmul(x, x)",
