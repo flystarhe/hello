@@ -1,5 +1,6 @@
+import timeit
+
 import torch
-import torch.utils.benchmark as benchmark
 
 
 def empty_cache():
@@ -21,19 +22,19 @@ def matmul(size=1024, device="cuda:0", times=500):
 
 def timeit_copy(size=1024, device="cuda:0", times=500):
     x = torch.zeros(size, size, size, dtype=torch.int8, device="cpu")
-    t = benchmark.Timer(
+    t = timeit.Timer(
         stmt=f"x.to('{device}')",
         setup="import torch",
         globals={"x": x},
     )
-    return t.timeit(times)
+    print(f"{t.timeit(times) / times * 1e3:>5.3f} ms")
 
 
 def timeit_matmul(size=1024, device="cuda:0", times=500):
     x = torch.randn(size, size, device=device)
-    t = benchmark.Timer(
+    t = timeit.Timer(
         stmt="torch.matmul(x, x)",
         setup="import torch",
         globals={"x": x},
     )
-    return t.timeit(times)
+    print(f"{t.timeit(times) / times * 1e3:>5.3f} ms")
