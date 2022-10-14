@@ -43,6 +43,7 @@ def add_yolov5_labels(dataset, label_field, labels_path, classes=None, include_m
 
 
 def load_images_dir(dataset_dir, dataset_name=None, dataset_type=None, classes=[], mask_targets={}):
+    # `dataset_type` (None) - a string. The possible values are: `detection`, `segmentation`.
     dataset = fo.Dataset.from_images_dir(dataset_dir)
 
     if dataset_name:

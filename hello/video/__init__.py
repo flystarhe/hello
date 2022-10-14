@@ -10,6 +10,7 @@ Commands:
     frames
     info
     resize
+    unwarp
 """
 
 
@@ -35,6 +36,9 @@ def main(args=None):
         _main(args)
     elif command == "resize":
         from hello.video.resize import main as _main
+        _main(args)
+    elif command == "unwarp":
+        from hello.video.unwarp import main as _main
         _main(args)
     else:
         print(help_doc_str)
