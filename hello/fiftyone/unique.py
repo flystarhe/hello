@@ -103,7 +103,7 @@ def parse_args(args=None):
                         choices=["unique", "duplicate"])
     parser.add_argument("-n", dest="count", type=int, default=1,
                         help="the desired number of unique examples")
-    parser.add_argument("-m", dest="model", type=str, default=None,
+    parser.add_argument("-m", dest="model", type=str, default="resnet50-imagenet-torch",
                         help="a fiftyone.core.models.Model or the name")
     parser.add_argument("-g", dest="group_size", type=int, default=None,
                         help="compute similarity by group")

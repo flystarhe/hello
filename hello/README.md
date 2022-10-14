@@ -78,6 +78,9 @@ pip install -U 'git+https://github.com/flystarhe/hello'
 ### hello-video
 - `hello-video clip -h`
 - `hello-video frames -h`
+- `hello-video info -h`
+- `hello-video resize -h`
+- `hello-video unwarp -h`
 
 ### hello-x3m
 - `hello-x3m preprocess -h`
