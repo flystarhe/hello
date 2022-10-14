@@ -8,11 +8,23 @@ def annotate(dataset_or_view, label_field="ground_truth", label_type="instances"
     # `mask_targets` (None) – a dict mapping pixel values to semantic label strings. Only applicable when annotating semantic segmentations.
     anno_key = f"{dataset_or_view.name}_{label_field}_{label_type}"
 
+    # The new attributes that we want to populate
+    attributes = True
+    if label_type == "detections":
+        attributes = {
+            "iscrowd": {
+                "type": "radio",
+                "values": [1, 0],
+                "default": 0,
+            }
+        }
+
     dataset_or_view.annotate(
         anno_key,
         label_field=label_field,
         label_type=label_type,
         classes=dataset_or_view.default_classes or None,
+        attributes=attributes,
         mask_targets=dataset_or_view.default_mask_targets or None,
         launch_editor=False,
         url=url,
