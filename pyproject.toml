@@ -24,6 +24,7 @@ Home = "https://github.com/flystarhe/hello"
 hello = "hello:main"
 hello-data = "hello.data:main"
 hello-fiftyone = "hello.fiftyone:main"
+hello-mmdet = "hello.mmdet:main"
 hello-video = "hello.video:main"
 hello-x3m = "hello.x3m:main"
 
