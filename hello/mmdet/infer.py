@@ -126,8 +126,8 @@ def parse_args(args=None):
                         help="minimum score of bboxes to be shown")
     parser.add_argument("-o", dest="out_dir", type=str, default=None,
                         help="draw boxes on the image")
-    parser.add_argument("-f", dest="txt_file", type=str, default=None,
-                        help="results to file")
+    parser.add_argument("-f", dest="txt_file", type=str, default="predictions.txt",
+                        help="format and save results to a txt file")
 
     args = parser.parse_args(args=args)
     return vars(args)
