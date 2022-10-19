@@ -9,6 +9,9 @@ def func(json_logs, out_dir, metrics=["loss", "loss_cls", "loss_bbox"], mmdet_ho
     shutil.rmtree(out_dir, ignore_errors=True)
     (out_dir / "images").mkdir(parents=True, exist_ok=False)
 
+    if Path(json_logs[0]).is_dir():
+        json_logs = [f for f in Path(json_logs[0]).glob("*/*.log.json")]
+
     py_script = str(Path(mmdet_home) / "tools/analysis_tools/analyze_logs.py")
 
     for f in json_logs:
@@ -50,7 +53,7 @@ def parse_args(args=None):
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("json_logs", type=str, nargs='+',
-                        help="path of train log in json format")
+                        help="path of train log in json format or runs dir")
     parser.add_argument("-o", dest="out_dir", type=str,
                         help="save plotting curves to the dir")
     parser.add_argument("-m", dest="metrics", type=str, nargs='+',
