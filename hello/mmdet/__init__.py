@@ -3,8 +3,9 @@ import sys
 help_doc_str = """usage: hello-mmdet <command> [options]
 
 Commands:
-    infer
     export
+    infer
+    log
 """
 
 
@@ -19,11 +20,14 @@ def main(args=None):
 
     args = ["--help"] if len(args) == 0 else args
 
-    if command == "infer":
+    if command == "export":
+        from hello.mmdet.export import main as _main
+        _main(args)
+    elif command == "infer":
         from hello.mmdet.infer import main as _main
         _main(args)
-    elif command == "export":
-        from hello.mmdet.export import main as _main
+    elif command == "log":
+        from hello.mmdet.log import main as _main
         _main(args)
     else:
         print(help_doc_str)
