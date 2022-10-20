@@ -4,6 +4,7 @@ help_doc_str = """usage: hello-mmdet <command> [options]
 
 Commands:
     export
+    flop
     infer
     log
 """
@@ -22,6 +23,9 @@ def main(args=None):
 
     if command == "export":
         from hello.mmdet.export import main as _main
+        _main(args)
+    elif command == "flop":
+        from hello.mmdet.flop import main as _main
         _main(args)
     elif command == "infer":
         from hello.mmdet.infer import main as _main
