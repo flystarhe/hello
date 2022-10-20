@@ -10,7 +10,7 @@ def func(json_logs, out_dir, metrics=["loss", "loss_cls", "loss_bbox"], mmdet_ho
     (out_dir / "images").mkdir(parents=True, exist_ok=False)
 
     if Path(json_logs[0]).is_dir():
-        json_logs = [f for f in Path(json_logs[0]).glob("*/*.log.json")]
+        json_logs = [str(f) for f in Path(json_logs[0]).glob("*/*.log.json")]
 
     py_script = str(Path(mmdet_home) / "tools/analysis_tools/analyze_logs.py")
 
