@@ -1,5 +1,9 @@
+import shutil
 from copy import deepcopy
 from pathlib import Path
+
+import cv2 as cv
+from tqdm import tqdm
 
 import fiftyone as fo
 from fiftyone import ViewField as F
@@ -179,3 +183,64 @@ def split_dataset(dataset, splits=None, limit=3000, field_name="ground_truth", f
     dataset.exclude(val_ids + train_ids).tag_samples("test")
     print(count_values(dataset, "tags", ordered=True))
     return dataset
+
+
+def filter_segmentation_samples(out_dir, data_root, classes, mask_targets, threshold=0.05, splits=["train", "val"],
+                                img_dir="data", ann_dir="labels", img_suffix=".jpg", seg_map_suffix=".png"):
+    """Filter samples, based on area of interest ratio.
+
+    <data_root>/
+    ├── objectInfo150.txt
+    ├── sceneCategories.txt
+    ├── train
+    │   ├── data
+    │   └── labels
+    └── val
+        ├── data
+        └── labels
+
+    Args:
+        out_dir (str): _description_
+        data_root (str): _description_
+        classes (list[str]): _description_
+        mask_targets (dict[int, str]): _description_
+        threshold (float, optional): _description_. Defaults to 0.05.
+        splits (list, optional): _description_. Defaults to ["train", "val"].
+        img_dir (str, optional): _description_. Defaults to "data".
+        ann_dir (str, optional): _description_. Defaults to "labels".
+        img_suffix (str, optional): _description_. Defaults to ".jpg".
+        seg_map_suffix (str, optional): _description_. Defaults to ".png".
+    """
+    _mapping = {name: index for index, name in mask_targets.items()}
+    _labels = [_mapping[name] for name in classes]
+
+    out_dir = Path(out_dir)
+    shutil.rmtree(out_dir, ignore_errors=True)
+    for split in splits:
+        (out_dir / f"{split}/data").mkdir(parents=True, exist_ok=False)
+        (out_dir / f"{split}/labels").mkdir(parents=True, exist_ok=False)
+
+    data_root = Path(data_root)
+    img_files, seg_map_files = [], []
+    for split in splits:
+        img_files.extend(data_root.glob(f"{split}/{img_dir}/*{img_suffix}"))
+        seg_map_files.extend(data_root.glob(f"{split}/{ann_dir}/*{seg_map_suffix}"))
+        print(f"[INFO] add [{split}]: img={len(img_files)}, ann={len(seg_map_files)}")
+
+    img_files = {f.stem: f for f in sorted(img_files)}
+    seg_map_files = {f.stem: f for f in sorted(seg_map_files)}
+    print(f"[INFO] unique: img={len(img_files)}, ann={len(seg_map_files)}")
+
+    data = []
+    for stem, f in seg_map_files.items():
+        if stem in img_files:
+            mask = cv.imread(str(f), flags=0)
+            p = sum([(mask == l).mean() for l in _labels])
+            if p >= threshold:
+                data.extend((img_files[stem], f))
+    print(f"[INFO] samples: {len(data)//2}")
+
+    for f in tqdm(data):
+        tempfile = f.relative_to(data_root)
+        shutil.copyfile(f, out_dir / tempfile)
+    return out_dir
