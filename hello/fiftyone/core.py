@@ -90,6 +90,17 @@ def map_default_mask_targets(dataset, mapping, background=255):
 
 
 def filter_detections_dataset(dataset, mapping=None, field_name="ground_truth", background="background"):
+    """Steps: map labels -> check dataset.classes -> filter valid samples
+
+    Args:
+        dataset (fo.Dataset): _description_
+        mapping (dict[str, str], optional): _description_. Defaults to None.
+        field_name (str, optional): _description_. Defaults to "ground_truth".
+        background (str, optional): _description_. Defaults to "background".
+
+    Returns:
+        fo.Dataset: _description_
+    """
     dataset.save()
     dataset = dataset.clone()
 
@@ -103,6 +114,17 @@ def filter_detections_dataset(dataset, mapping=None, field_name="ground_truth", 
 
 
 def filter_segmentation_dataset(dataset, mapping=None, field_name="ground_truth", background=255):
+    """Steps: map labels -> check dataset.mask_targets -> filter valid samples
+
+    Args:
+        dataset (fo.Dataset): _description_
+        mapping (dict[int, int], optional): _description_. Defaults to None.
+        field_name (str, optional): _description_. Defaults to "ground_truth".
+        background (int, optional): _description_. Defaults to 255.
+
+    Returns:
+        fo.Dataset: _description_
+    """
     dataset.save()
     dataset = dataset.clone()
 
@@ -223,6 +245,9 @@ def filter_segmentation_samples(out_dir, data_root, classes, mask_targets, thres
     data_root = Path(data_root)
     img_files, seg_map_files = [], []
     for split in splits:
+        info_py = data_root / f"{split}/info.py"
+        if info_py.is_file():
+            shutil.copyfile(info_py, out_dir / f"{split}/info.py")
         img_files.extend(data_root.glob(f"{split}/{img_dir}/*{img_suffix}"))
         seg_map_files.extend(data_root.glob(f"{split}/{ann_dir}/*{seg_map_suffix}"))
         print(f"[INFO] add [{split}]: img={len(img_files)}, ann={len(seg_map_files)}")
