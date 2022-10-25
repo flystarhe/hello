@@ -56,11 +56,11 @@ class ConfusionMatrix:
         table_data.add_column("iou", [f"{i:.2f}" for i in iou.tolist()])
         table_data.add_column("support", [int(i) for i in support.tolist()])
 
-        table_data.add_row(["macro avg"] + [f"{i.mean().item():.2f}" for i in [precision, recall, iou]] + ["-"])
+        table_data.add_row(["macro avg"] + [f"{i.nanmean().item():.2f}" for i in [precision, recall, iou]] + ["-"])
 
         w = support / support.sum()
         precision, recall, iou = precision * w, recall * w, iou * w
-        table_data.add_row(["weighted avg"] + [f"{i.sum().item():.2f}" for i in [precision, recall, iou]] + ["-"])
+        table_data.add_row(["weighted avg"] + [f"{i.nansum().item():.2f}" for i in [precision, recall, iou]] + ["-"])
         return table_data.get_string()
 
 
