@@ -3,6 +3,7 @@ import sys
 help_doc_str = """usage: hello-fiftyone <command> [options]
 
 Commands:
+    miou
     unique
     det-view
     det-eval
@@ -22,7 +23,10 @@ def main(args=None):
 
     args = ["--help"] if len(args) == 0 else args
 
-    if command == "unique":
+    if command == "miou":
+        from hello.fiftyone.miou import main as _main
+        _main(args)
+    elif command == "unique":
         from hello.fiftyone.unique import main as _main
         _main(args)
     elif command == "det-view":
