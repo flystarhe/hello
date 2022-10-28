@@ -20,10 +20,10 @@ def main(args=None):
     args = ["--help"] if len(args) == 0 else args
 
     if command == "preprocess":
-        from hello.x3m.preprocess import main as _main
+        from .preprocess import main as _main
         _main(args)
     elif command == "config":
-        from hello.x3m.config import main as _main
+        from .config import main as _main
         _main(args)
     else:
         print(help_doc_str)

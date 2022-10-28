@@ -22,16 +22,16 @@ def main(args=None):
     args = ["--help"] if len(args) == 0 else args
 
     if command == "export":
-        from hello.mmdet.export import main as _main
+        from .export import main as _main
         _main(args)
     elif command == "flop":
-        from hello.mmdet.flop import main as _main
+        from .flop import main as _main
         _main(args)
     elif command == "infer":
-        from hello.mmdet.infer import main as _main
+        from .infer import main as _main
         _main(args)
     elif command == "log":
-        from hello.mmdet.log import main as _main
+        from .log import main as _main
         _main(args)
     else:
         print(help_doc_str)

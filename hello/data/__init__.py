@@ -19,7 +19,7 @@ def main(args=None):
     args = ["--help"] if len(args) == 0 else args
 
     if command == "coco2yolo":
-        from hello.data.coco2yolo import main as _main
+        from .coco2yolo import main as _main
         _main(args)
     else:
         print(help_doc_str)

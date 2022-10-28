@@ -24,22 +24,22 @@ def main(args=None):
     args = ["--help"] if len(args) == 0 else args
 
     if command == "miou":
-        from hello.fiftyone.miou import main as _main
+        from .miou import main as _main
         _main(args)
     elif command == "unique":
-        from hello.fiftyone.unique import main as _main
+        from .unique import main as _main
         _main(args)
     elif command == "det-view":
-        from hello.fiftyone.dataset_detections import main as _main
+        from .dataset_detections import main as _main
         _main(args)
     elif command == "det-eval":
-        from hello.fiftyone.evaluate_detections import main as _main
+        from .evaluate_detections import main as _main
         _main(args)
     elif command == "seg-view":
-        from hello.fiftyone.dataset_segmentations import main as _main
+        from .dataset_segmentations import main as _main
         _main(args)
     elif command == "seg-eval":
-        from hello.fiftyone.evaluate_segmentations import main as _main
+        from .evaluate_segmentations import main as _main
         _main(args)
     else:
         print(help_doc_str)

@@ -5,9 +5,9 @@ import fiftyone as fo
 import fiftyone.utils.yolo as fouy
 from fiftyone.utils.labels import segmentations_to_detections
 
-from .core import count_values, merge_samples
-from .dataset_detections import load_dataset as _load_detection_dataset
-from .dataset_segmentations import load_dataset as _load_segmentation_dataset
+from hello.fiftyone.core import count_values, merge_samples
+from hello.fiftyone.dataset_detections import load_dataset as _load_detection_dataset
+from hello.fiftyone.dataset_segmentations import load_dataset as _load_segmentation_dataset
 
 tmpl_info = """info = {
     'dataset_name': '$dataset_name',

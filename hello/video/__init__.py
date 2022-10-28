@@ -26,19 +26,19 @@ def main(args=None):
     args = ["--help"] if len(args) == 0 else args
 
     if command == "clip":
-        from hello.video.clip import main as _main
+        from .clip import main as _main
         _main(args)
     elif command == "frames":
-        from hello.video.frames import main as _main
+        from .frames import main as _main
         _main(args)
     elif command == "info":
-        from hello.video.info import main as _main
+        from .info import main as _main
         _main(args)
     elif command == "resize":
-        from hello.video.resize import main as _main
+        from .resize import main as _main
         _main(args)
     elif command == "unwarp":
-        from hello.video.unwarp import main as _main
+        from .unwarp import main as _main
         _main(args)
     else:
         print(help_doc_str)
