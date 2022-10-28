@@ -1,4 +1,4 @@
-from hello.fiftyone.utils import *
+from hello.fiftyone.examples.utils import *
 
 import fiftyone as fo
 import fiftyone.core.dataset as fod
