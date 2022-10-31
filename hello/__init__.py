@@ -1,7 +1,7 @@
 """A collection of useful tools!"""
 import sys
 
-__version__ = "0.3.15"
+__version__ = "0.3.16"
 
 help_doc_str = """usage: hello [--version] [--help]
 
@@ -9,6 +9,8 @@ shell command:
     hello -h
     hello-data -h
     hello-fiftyone -h
+    hello-mmdet -h
+    hello-mmseg -h
     hello-video -h
     hello-x3m -h
 
