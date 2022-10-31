@@ -116,12 +116,12 @@ def plot_lr_loss(log_dict, lr_field="lr", loss_field="loss", reduction="mean"):
     fig.add_trace(
         go.Table(
             header=dict(
-                values=[lr_field, loss_field],
+                values=["iter", label", lr_field, loss_field],
                 font=dict(size=10),
                 align="left"
             ),
             cells=dict(
-                values=[data[k].tolist() for k in [lr_field, loss_field]],
+                values=[data[k].tolist() for k in ["iter", "label", lr_field, loss_field]],
                 align="left"
             )
         ),
