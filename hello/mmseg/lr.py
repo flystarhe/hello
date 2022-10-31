@@ -53,23 +53,65 @@ def load_text_log(text_log):
 def plot_lr_loss(log_dict, lr_field="lr", loss_field="loss", reduction="mean"):
     df = pd.DataFrame({
         "iter": log_dict["iter"],
-        "lr_str": log_dict[lr_field],
+        "label": log_dict[lr_field],
         lr_field: [float(i) for i in log_dict[lr_field]],
-        loss_field: [float(i) for i in log_dict[loss_field]],
+        loss_field: [float(i) for i in log_dict[loss_field]]
     })
 
-    data = df.groupby(by=["lr_str"], as_index=False, sort=False).mean()
+    data = df.groupby(by=["label"], as_index=False, sort=False).mean()
 
     if reduction == "mean":
-        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, specs=[[{"type": "table"}],
-                                                                      [{"type": "scatter"}]])
-        fig.add_trace(go.Scatter(x=data[lr_field], y=data[loss_field], mode="lines", name=lr_field), row=2, col=1)
+        fig = make_subplots(
+            rows=2, cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.01,
+            specs=[[{"type": "table"}],
+                   [{"type": "scatter"}]]
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=data[lr_field],
+                y=data[loss_field],
+                mode="lines",
+                name=lr_field
+            ),
+            row=2, col=1
+        )
+        fig.update_xaxes(title_text=lr_field, row=2, col=1)
+        fig.update_yaxes(title_text=loss_field, row=2, col=1)
     else:
-        fig = make_subplots(rows=3, cols=1, shared_xaxes=True, specs=[[{"type": "table"}],
-                                                                      [{"type": "scatter"}],
-                                                                      [{"type": "scatter"}]])
-        fig.add_trace(go.Scatter(x=df["iter"], y=df[lr_field], mode="lines", name=lr_field), row=3, col=1)
-        fig.add_trace(go.Scatter(x=df["iter"], y=df[loss_field], mode="lines", name=loss_field), row=2, col=1)
+        fig = make_subplots(
+            rows=3, cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.01,
+            specs=[[{"type": "table"}],
+                   [{"type": "scatter"}],
+                   [{"type": "scatter"}]]
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=df["iter"],
+                y=df[lr_field],
+                mode="lines",
+                name=lr_field
+            ),
+            row=3, col=1
+        )
+        fig.update_xaxes(title_text="iter", row=3, col=1)
+        fig.update_yaxes(title_text=lr_field, row=3, col=1)
+
+        fig.add_trace(
+            go.Scatter(
+                x=df["iter"],
+                y=df[loss_field],
+                mode="lines",
+                name=loss_field
+            ),
+            row=2, col=1
+        )
+        fig.update_yaxes(title_text=loss_field, row=2, col=1)  # share xaxes
 
     fig.add_trace(
         go.Table(
@@ -80,21 +122,18 @@ def plot_lr_loss(log_dict, lr_field="lr", loss_field="loss", reduction="mean"):
             ),
             cells=dict(
                 values=[data[k].tolist() for k in [lr_field, loss_field]],
-                align="left")
+                align="left"
+            )
         ),
         row=1, col=1
     )
 
-    fig.update_layout(
-        height=800,
-        showlegend=True,
-        title_text="Training with exponentially growing learning rate",
-    )
+    fig.update_layout(height=800, showlegend=False, title_text=None)
 
     return fig
 
 
-def func(text_logs, out_dir, lr_field="lr", loss_field="loss", reduction="mean"):
+def func(text_logs, out_dir, lr_field="lr", loss_field="loss", reduction="mean", format=".png"):
     out_dir = Path(out_dir)
     shutil.rmtree(out_dir, ignore_errors=True)
     (out_dir / "images").mkdir(parents=True, exist_ok=False)
@@ -105,8 +144,11 @@ def func(text_logs, out_dir, lr_field="lr", loss_field="loss", reduction="mean")
     for text_log in text_logs:
         log_dict = load_text_log(text_log)
         fig = plot_lr_loss(log_dict, lr_field=lr_field, loss_field=loss_field, reduction=reduction)
-        out_file = str(out_dir / f"lr_loss_{Path(text_log).stem}.html")
-        fig.write_html(out_file)
+        out_file = str(out_dir / f"images/lr_loss_{Path(text_log).stem}{format}")
+        if format == ".html":
+            fig.write_html(out_file)
+        else:
+            fig.write_image(out_file)
     return "\n[END]"
 
 
@@ -123,7 +165,11 @@ def parse_args(args=None):
     parser.add_argument("-b", dest="loss_field", type=str, default="loss",
                         help="loss field name")
     parser.add_argument("-r", dest="reduction", type=str, default=None,
+                        choices=["none", "mean"],
                         help="the method used to reduce the loss")
+    parser.add_argument("-f", dest="format", type=str, default=".png",
+                        choices=[".png", ".svg", ".pdf", ".html"],
+                        help="image save format")
 
     args = parser.parse_args(args=args)
     return vars(args)
