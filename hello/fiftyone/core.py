@@ -1,5 +1,4 @@
 import shutil
-from copy import deepcopy
 from pathlib import Path
 
 import cv2 as cv
@@ -30,7 +29,8 @@ def _map_segmentation(field_data, mapping):
 
     new_mask = mask.copy()
     for _old, _new in mapping.items():
-        new_mask[mask == _old] = _new
+        if _old != _new:
+            new_mask[mask == _old] = _new
 
     return fo.Segmentation(mask=new_mask)
 
@@ -70,23 +70,42 @@ def map_default_classes(dataset, mapping, background="background"):
     return dataset
 
 
-def map_default_mask_targets(dataset, mapping, background=255):
-    mask_targets = dataset.default_mask_targets
+def map_default_mask_targets(dataset, classes, ignore_index=255):
+    new_classes = [c[0] if isinstance(c, list) else c for c in classes]
+    new_mask_targets = {i: c for i, c in enumerate(new_classes[:-1])}
+    new_mask_targets[ignore_index] = new_classes[-1]
 
-    new_mask_targets = deepcopy(mask_targets)
-    for _old, _new in mapping.items():
-        new_mask_targets[_new] = mask_targets[_old]
-
-    for key in new_mask_targets.keys():
-        if key not in mapping and key in mask_targets:
-            new_mask_targets[key] = mask_targets[key]
-
-    for key in (set(mapping.keys()) - set(mapping.values())):
-        del new_mask_targets[key]
-
-    new_mask_targets[background] = "background"
     dataset.default_mask_targets = new_mask_targets
+    dataset.default_classes = new_classes
     return dataset
+
+
+def gen_mapping(old_classes, new_classes):
+    """generate segmentation mapping
+
+    Args:
+        old_classes (list): `['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'be ignored']`
+        new_classes (list): `['c0', 'c1', 'c2', ['c3', 'c4', 'c5'], 'be ignored']`
+
+    Returns:
+        _type_: _description_
+    """
+    old_classes, new_classes = old_classes[:-1], new_classes[:-1]
+
+    remap = {}
+    for i, names in enumerate(new_classes):
+        names = [names] if isinstance(names, str) else names
+        assert isinstance(names, list)
+        for name in names:
+            assert name not in remap
+            remap[name] = i
+
+    mapping = {}
+    for i, name in enumerate(old_classes):
+        assert isinstance(name, str)
+        mapping[i] = remap[name]
+
+    return mapping
 
 
 def filter_detections_dataset(dataset, mapping=None, field_name="ground_truth", background="background"):
@@ -113,14 +132,14 @@ def filter_detections_dataset(dataset, mapping=None, field_name="ground_truth", 
     return dataset
 
 
-def filter_segmentation_dataset(dataset, mapping=None, field_name="ground_truth", background=255):
+def filter_segmentation_dataset(dataset, new_classes=None, field_name="ground_truth", ignore_index=255):
     """Steps: map labels -> check dataset.mask_targets -> filter valid samples
 
     Args:
         dataset (fo.Dataset): _description_
-        mapping (dict[int, int], optional): _description_. Defaults to None.
+        new_classes (list, optional): refer to `gen_mapping()`. Defaults to None.
         field_name (str, optional): _description_. Defaults to "ground_truth".
-        background (int, optional): _description_. Defaults to 255.
+        ignore_index (int, optional): _description_. Defaults to 255.
 
     Returns:
         fo.Dataset: _description_
@@ -130,12 +149,15 @@ def filter_segmentation_dataset(dataset, mapping=None, field_name="ground_truth"
 
     def _check_sample(field_data):
         if field_data:
-            return (field_data.mask != background).sum() > 0
+            mask = field_data.mask
+            return mask[mask < ignore_index].sum() > 0
         return False
 
-    if mapping is not None:
+    if new_classes is not None:
+        old_classes = dataset.default_classes
+        mapping = gen_mapping(old_classes, new_classes)
         dataset = map_labels(dataset, mapping, field_name=field_name)
-        dataset = map_default_mask_targets(dataset, mapping, background=background)
+        dataset = map_default_mask_targets(dataset, new_classes, ignore_index)
 
     dataset = dataset.select([s.id for s in dataset if _check_sample(s[field_name])]).clone()
 
