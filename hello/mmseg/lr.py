@@ -94,7 +94,7 @@ def plot_lr_loss(log_dict, lr_field="lr", loss_field="loss", reduction="mean"):
     data = df.groupby(by=["label"], as_index=False, sort=False).mean()
 
     idx = data[loss_field].argmin()
-    minimum_suggestion, minimum_loss = data[lr_field][idx] / 10, data[loss_field][idx]
+    minimum_suggestion, minimum_loss = data[lr_field][idx] / 10 / 0.75, data[loss_field][idx]
 
     if reduction == "mean":
         fig = make_subplots(
