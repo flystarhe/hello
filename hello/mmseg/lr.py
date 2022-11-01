@@ -24,7 +24,38 @@ $$
 _pattern = re.compile(r"Iter \[(\d+)/(\d+)\]")
 
 
-def _to_dict(text):
+def valley(lrs: list, losses: list):
+    """Suggests a learning rate from the longest valley and returns its index
+
+    https://github.com/fastai/fastai/blob/master/fastai/callback/schedule.py
+
+    Args:
+        lrs (list): _description_
+        losses (list): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    n = len(losses)
+    max_start, max_end = 0, 0
+
+    # find the longest valley
+    lds = [1] * n
+    for i in range(1, n):
+        for j in range(0, i):
+            if (losses[i] < losses[j]) and (lds[i] < lds[j] + 1):
+                lds[i] = lds[j] + 1
+            if lds[max_end] < lds[i]:
+                max_end = i
+                max_start = max_end - lds[max_end]
+
+    sections = (max_end - max_start) / 3
+    idx = max_start + int(sections) + int(sections/2)
+
+    return lrs[idx], losses[idx]
+
+
+def to_dict(text):
     data = {}
     for sub_text in text.strip().split(","):
         k, v = sub_text.strip().split(":", maxsplit=1)
@@ -43,7 +74,7 @@ def load_text_log(text_log):
                 str_iter = match.group(1)
                 log_dict["iter"].append(int(str_iter))
 
-                data = _to_dict(log[match.end():])
+                data = to_dict(log[match.end():])
                 for k, v in data.items():
                     log_dict[k].append(v)
 
@@ -58,7 +89,12 @@ def plot_lr_loss(log_dict, lr_field="lr", loss_field="loss", reduction="mean"):
         loss_field: [float(i) for i in log_dict[loss_field]]
     })
 
+    valley_suggestion, valley_loss = valley(df[lr_field].tolist(), df[loss_field].tolist())
+
     data = df.groupby(by=["label"], as_index=False, sort=False).mean()
+
+    idx = data[loss_field].argmin()
+    minimum_suggestion, minimum_loss = data[lr_field][idx] / 10, data[loss_field][idx]
 
     if reduction == "mean":
         fig = make_subplots(
@@ -113,22 +149,30 @@ def plot_lr_loss(log_dict, lr_field="lr", loss_field="loss", reduction="mean"):
         )
         fig.update_yaxes(title_text=loss_field, row=2, col=1)  # share xaxes
 
+    data[lr_field] = data[lr_field].apply(lambda x: f"{x:.3e}")
+    data[loss_field] = data[loss_field].apply(lambda x: f"{x:.4f}")
+
     fig.add_trace(
         go.Table(
             header=dict(
-                values=["iter", "label", lr_field, loss_field],
+                values=["iter", lr_field, loss_field],
                 font=dict(size=10),
-                align="left"
+                align="center"
             ),
             cells=dict(
-                values=[data[k].tolist() for k in ["iter", "label", lr_field, loss_field]],
-                align="left"
+                values=[data[k].tolist() for k in ["iter", lr_field, loss_field]],
+                align="right"
             )
         ),
         row=1, col=1
     )
 
-    fig.update_layout(height=800, showlegend=False, title_text=None)
+    title_text = "<br>".join([
+        "Training with exponentially growing learning rate",
+        f"valley suggestion: lr={valley_suggestion:.3e}, loss={valley_loss:.4f}",
+        f"minimum suggestion: lr={minimum_suggestion:.3e}, loss={minimum_loss:.4f}"
+    ])
+    fig.update_layout(height=800, showlegend=False, title_text=title_text)
 
     return fig
 
@@ -149,7 +193,7 @@ def func(text_logs, out_dir, lr_field="lr", loss_field="loss", reduction="mean",
             fig.write_html(out_file)
         else:
             fig.write_image(out_file)
-    return "\n[END]"
+    return str(out_dir)
 
 
 def parse_args(args=None):
@@ -164,7 +208,7 @@ def parse_args(args=None):
                         help="lr field name")
     parser.add_argument("-b", dest="loss_field", type=str, default="loss",
                         help="loss field name")
-    parser.add_argument("-r", dest="reduction", type=str, default=None,
+    parser.add_argument("-r", dest="reduction", type=str, default="none",
                         choices=["none", "mean"],
                         help="the method used to reduce the loss")
     parser.add_argument("-f", dest="format", type=str, default=".png",

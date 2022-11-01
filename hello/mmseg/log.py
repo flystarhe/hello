@@ -27,6 +27,7 @@ def func(json_logs, out_dir, metrics, mmdet_home="/workspace", format=".png"):
         result = subprocess.run(command_line, shell=True, stdout=subprocess.PIPE)
         if result.returncode != 0:
             print(f"[ERR]\n  {command_line}")
+    return str(out_dir)
 
 
 def parse_args(args=None):
