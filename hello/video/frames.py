@@ -11,7 +11,7 @@ from pathlib import Path
 import cv2 as cv
 from pyomniunwarp import OmniUnwarp
 
-suffix_set = set(".avi,.mp4,.MOV".split(","))
+suffix_set = set(".avi,.mp4,.MOV,.mkv".split(","))
 
 
 def find_videos(input_dir):
@@ -24,7 +24,7 @@ def find_videos(input_dir):
     return video_paths
 
 
-def to_frames(video_path, output_dir, fps, cal_file, rois, format):
+def to_frames(video_path, output_dir, fps, cal_file, version, mode, fov, rois, format):
     cap = cv.VideoCapture(video_path)
 
     cap_fps = int(cap.get(cv.CAP_PROP_FPS))
@@ -34,9 +34,10 @@ def to_frames(video_path, output_dir, fps, cal_file, rois, format):
 
     if cal_file is not None:
         kwargs = {
-            "mode": "cuboid",
-            "version": "0.2.2",
             "calib_results_path": cal_file,
+            "version": version,
+            "mode": mode,
+            "FOV": fov,
         }
         unwarper = OmniUnwarp(**kwargs)
     else:
@@ -72,7 +73,7 @@ def to_frames(video_path, output_dir, fps, cal_file, rois, format):
     cap.release()
 
 
-def func(input_dir, output_dir, fps, cal_file, rois, format):
+def func(input_dir, output_dir, fps, cal_file, version, mode, fov, rois, format):
     input_dir = Path(input_dir)
 
     output_dir = Path(output_dir)
@@ -88,7 +89,7 @@ def func(input_dir, output_dir, fps, cal_file, rois, format):
             cal_file = None
 
     for video_path in find_videos(input_dir):
-        to_frames(video_path, output_dir, fps, cal_file, rois, format)
+        to_frames(video_path, output_dir, fps, cal_file, version, mode, fov, rois, format)
 
     return f"\n[OUTDIR]\n{output_dir}"
 
@@ -105,6 +106,12 @@ def parse_args(args=None):
                         help="sample the frames")
     parser.add_argument("--cal_file", type=str, default=None,
                         help="calibrated model file path")
+    parser.add_argument("--version", type=str, default="0.2.2",
+                        help="set the kernel version")
+    parser.add_argument("--mode", type=str, default="cuboid",
+                        help="set the unwarp mode")
+    parser.add_argument("--fov", type=int, default=90,
+                        help="set the fov")
     parser.add_argument("--rois", type=str, nargs="+",
                         default=["front", "left", "right", "front-left", "front-right"],
                         choices=["front", "left", "back", "right", "front-left", "front-right"])

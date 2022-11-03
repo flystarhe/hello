@@ -2,6 +2,7 @@ import shutil
 from pathlib import Path
 
 import cv2 as cv
+from prettytable import PrettyTable
 from tqdm import tqdm
 
 import fiftyone as fo
@@ -189,6 +190,11 @@ def count_values(dataset, field_or_expr, ordered=True):
 
     if ordered:
         count_label = sorted(count_label, key=lambda x: x[1])
+
+    table_data = PrettyTable()
+    table_data.field_names = ["label", "count"]
+    table_data.add_rows(count_label)
+    print(table_data)
 
     return count_label
 

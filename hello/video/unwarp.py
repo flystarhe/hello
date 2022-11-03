@@ -25,12 +25,13 @@ def find_images(input_dir):
     return image_paths
 
 
-def to_unwarp(image_paths, output_dir, cal_file, rois, format, prefix):
+def to_unwarp(image_paths, output_dir, cal_file, version, mode, fov, rois, format, prefix):
     if cal_file is not None:
         kwargs = {
-            "mode": "cuboid",
-            "version": "0.2.2",
             "calib_results_path": cal_file,
+            "version": version,
+            "mode": mode,
+            "FOV": fov,
         }
         unwarper = OmniUnwarp(**kwargs)
     else:
@@ -57,7 +58,7 @@ def to_unwarp(image_paths, output_dir, cal_file, rois, format, prefix):
                     cv.imwrite(str(output_dir / filename), mask)
 
 
-def func(input_dir, output_dir, cal_file, rois, format, prefix):
+def func(input_dir, output_dir, cal_file, version, mode, fov, rois, format, prefix):
     input_dir = Path(input_dir)
 
     output_dir = Path(output_dir)
@@ -78,7 +79,7 @@ def func(input_dir, output_dir, cal_file, rois, format, prefix):
 
     image_paths = find_images(input_dir)
     print(f"[INFO] find images: {len(image_paths)}")
-    to_unwarp(image_paths, output_dir, cal_file, rois, format, prefix)
+    to_unwarp(image_paths, output_dir, cal_file, version, mode, fov, rois, format, prefix)
 
     return f"\n[OUTDIR]\n{output_dir}"
 
@@ -93,6 +94,12 @@ def parse_args(args=None):
                         help="output dir")
     parser.add_argument("--cal_file", type=str, default=None,
                         help="calibrated model file path")
+    parser.add_argument("--version", type=str, default="0.2.2",
+                        help="set the kernel version")
+    parser.add_argument("--mode", type=str, default="cuboid",
+                        help="set the unwarp mode")
+    parser.add_argument("--fov", type=int, default=90,
+                        help="set the fov")
     parser.add_argument("--rois", type=str, nargs="+",
                         default=["front", "left", "right", "front-left", "front-right"],
                         choices=["front", "left", "back", "right", "front-left", "front-right"])
