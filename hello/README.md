@@ -73,8 +73,8 @@ PDF文档依赖：`apt-get install texlive-xetex texlive-fonts-recommended texli
 - `cd docs`进入文档目录
 - `sphinx-quickstart`初始化
 - `docs/source/conf.py`完善配置
-- `sphinx-apidoc -o source ../`生成API文档
-- `make html/make help`生成文档
+- `sphinx-apidoc -o source ..`生成API文档
+- `make htmlhelp/make help`生成文档
 - `make clean`清空文档目录
 
 目录结构如下：

@@ -8,7 +8,10 @@ Welcome to hello2's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Python API
+
+   modules
+   hello
 
 
 

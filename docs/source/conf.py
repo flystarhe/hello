@@ -7,13 +7,15 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../../'))
 
+import hello
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'hello2'
 copyright = '2022, Jian He'
 author = 'Jian He'
-release = 'v0.3.22'
+release = hello.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -21,8 +23,10 @@ release = 'v0.3.22'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
     'sphinx.ext.todo',
+    'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
 ]
 
