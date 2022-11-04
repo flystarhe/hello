@@ -9,6 +9,7 @@ Subpackages
 
    hello.data
    hello.fiftyone
+   hello.fvcore
    hello.io
    hello.mmdet
    hello.mmseg
