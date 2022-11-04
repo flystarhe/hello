@@ -10,6 +10,7 @@ Commands:
     frames
     info
     resize
+    split
     unwarp
 """
 
@@ -36,6 +37,9 @@ def main(args=None):
         _main(args)
     elif command == "resize":
         from .resize import main as _main
+        _main(args)
+    elif command == "split":
+        from .split import main as _main
         _main(args)
     elif command == "unwarp":
         from .unwarp import main as _main
