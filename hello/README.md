@@ -64,7 +64,7 @@ pip install -U 'git+https://github.com/flystarhe/hello'
 ```
 
 ## Docs
-首先安装Python文档生成工具[Sphinx](https://www.sphinx-doc.org/en/master/)，安装指令为`pip install -U Sphinx`。
+首先安装Python文档生成工具[Sphinx](https://www.sphinx-doc.org/en/master/)，安装指令为`pip install -U sphinx`。
 
 PDF文档依赖：`apt-get update && apt-get install texlive-full`。
 PDF文档依赖：`apt-get install texlive-latex-recommended texlive-fonts-recommended texlive-latex-extra`。
