@@ -239,15 +239,15 @@ def filter_segmentation_samples(out_dir, data_root, classes, mask_targets, thres
                                 img_dir="data", ann_dir="labels", img_suffix=".jpg", seg_map_suffix=".png"):
     """Filter samples, based on area of interest ratio.
 
-    <data_root>/
-    ├── objectInfo150.txt
-    ├── sceneCategories.txt
-    ├── train
-    │   ├── data
-    │   └── labels
-    └── val
-        ├── data
-        └── labels
+    # <data_root>/
+    # ├── objectInfo150.txt
+    # ├── sceneCategories.txt
+    # ├── train
+    # │   ├── data
+    # │   └── labels
+    # └── val
+    #     ├── data
+    #     └── labels
 
     Args:
         out_dir (str): _description_

@@ -11,6 +11,14 @@ Welcome to hello2's documentation!
    :caption: Python API
 
    modules
+   hello.fiftyone
+   hello.mmdet
+   hello.mmseg
+   hello.onnx
+   hello.transforms
+   hello.utils
+   hello.video
+   hello.x3m
 
 
 

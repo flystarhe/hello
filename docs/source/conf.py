@@ -30,6 +30,10 @@ extensions = [
     'sphinx.ext.viewcode',
 ]
 
+autodoc_mock_imports = [
+    'torch', 'torchvision', 'fiftyone', 'mmdet', 'pycocotools', 'pyomniunwarp'
+]
+
 templates_path = ['_templates']
 exclude_patterns = []
 
