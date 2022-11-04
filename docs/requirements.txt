@@ -1,0 +1,9 @@
+opencv-python
+Pillow
+scikit-image
+scikit-learn
+simplejson
+prettytable
+onnx
+onnx-simplifier
+onnxruntime
