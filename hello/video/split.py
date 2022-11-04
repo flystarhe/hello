@@ -20,7 +20,14 @@ def find_videos(input_dir):
 
 
 def split_video(video_path, duration, out_dir):
-    cap = cv.VideoCapture(video_path)
+    video_copy = str(out_dir / Path(video_path).name)
+    command_line = f"ffmpeg -i {video_path} -c copy {video_copy}"
+    result = subprocess.run(command_line, shell=True, stdout=subprocess.PIPE)
+    if result.returncode != 0:
+        print(f"[ERR]\n  {command_line}")
+        return 0
+
+    cap = cv.VideoCapture(video_copy)
     cap_fps = int(cap.get(cv.CAP_PROP_FPS))
     frame_count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
     cap.release()
@@ -28,17 +35,17 @@ def split_video(video_path, duration, out_dir):
     duration_s = duration * 60
     total_s = frame_count // cap_fps
 
-    suffix = Path(video_path).suffix
-    for i, progress_s in enumerate(range(0, total_s, duration_s), 1):
+    suffix = Path(video_copy).suffix
+    for i, progress_s in enumerate(range(0, total_s, duration_s)):
         i_s = progress_s
         i_m, i_s = divmod(i_s, 60)
         i_h, i_m = divmod(i_m, 60)
         curr_start = f"{i_h:02d}:{i_m:02d}:{i_s:02d}"
 
-        curr_input = video_path
+        curr_input = video_copy
 
         remaining_s = total_s - progress_s
-        if remaining_s < 60:
+        if remaining_s < 5:
             continue
 
         i_s = min(remaining_s, duration_s)
@@ -47,12 +54,16 @@ def split_video(video_path, duration, out_dir):
         curr_duration = f"{i_h:02d}:{i_m:02d}:{i_s:02d}"
 
         prefix = time.strftime("%Y%m%d_%H%M%S")
-        curr_output = str(Path(out_dir) / f"{prefix}_{i:02d}{suffix}")
+        if i == 0:
+            curr_output = str(out_dir / f"split/{prefix}{suffix}")
+        else:
+            curr_output = str(out_dir / f"split/{prefix}_{i}{suffix}")
 
         command_line = f"ffmpeg -ss {curr_start} -i {curr_input} -t {curr_duration} -c copy {curr_output}"
         result = subprocess.run(command_line, shell=True, stdout=subprocess.PIPE)
         if result.returncode != 0:
             print(f"[ERR]\n  {command_line}")
+            return 0
 
 
 def func(input_dir, output_dir, duration):
@@ -60,13 +71,12 @@ def func(input_dir, output_dir, duration):
 
     output_dir = Path(output_dir)
     shutil.rmtree(output_dir, ignore_errors=True)
-    (output_dir / "videos").mkdir(parents=True, exist_ok=False)
+    (output_dir / "split").mkdir(parents=True, exist_ok=False)
 
-    out_dir = str(output_dir / "videos")
     for video_path in find_videos(input_dir):
-        split_video(video_path, duration, out_dir)
+        split_video(video_path, duration, output_dir)
 
-    return str(out_dir)
+    return str(output_dir)
 
 
 def parse_args(args=None):
