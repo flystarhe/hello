@@ -4,21 +4,11 @@ hello.mmseg package
 Submodules
 ----------
 
-hello.mmseg.log module
-----------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: hello.mmseg.log
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hello.mmseg.lr module
----------------------
-
-.. automodule:: hello.mmseg.lr
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   hello.mmseg.log
+   hello.mmseg.lr
 
 Module contents
 ---------------

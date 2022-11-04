@@ -4,13 +4,10 @@ hello.transforms package
 Submodules
 ----------
 
-hello.transforms.transforms module
-----------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: hello.transforms.transforms
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   hello.transforms.transforms
 
 Module contents
 ---------------

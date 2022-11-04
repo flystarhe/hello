@@ -1,5 +1,5 @@
 .. hello2 documentation master file, created by
-   sphinx-quickstart on Fri Nov  4 16:53:54 2022.
+   sphinx-quickstart on Fri Nov  4 21:36:31 2022.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
@@ -11,7 +11,6 @@ Welcome to hello2's documentation!
    :caption: Python API
 
    modules
-   hello
 
 
 

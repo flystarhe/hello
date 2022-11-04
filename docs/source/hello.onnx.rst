@@ -4,21 +4,11 @@ hello.onnx package
 Submodules
 ----------
 
-hello.onnx.export module
-------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: hello.onnx.export
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hello.onnx.infer module
------------------------
-
-.. automodule:: hello.onnx.infer
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   hello.onnx.export
+   hello.onnx.infer
 
 Module contents
 ---------------

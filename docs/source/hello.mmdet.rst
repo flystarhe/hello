@@ -4,37 +4,13 @@ hello.mmdet package
 Submodules
 ----------
 
-hello.mmdet.export module
--------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: hello.mmdet.export
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hello.mmdet.flop module
------------------------
-
-.. automodule:: hello.mmdet.flop
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hello.mmdet.infer module
-------------------------
-
-.. automodule:: hello.mmdet.infer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hello.mmdet.log module
-----------------------
-
-.. automodule:: hello.mmdet.log
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   hello.mmdet.export
+   hello.mmdet.flop
+   hello.mmdet.infer
+   hello.mmdet.log
 
 Module contents
 ---------------

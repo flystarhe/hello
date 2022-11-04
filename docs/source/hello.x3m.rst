@@ -4,29 +4,12 @@ hello.x3m package
 Submodules
 ----------
 
-hello.x3m.config module
------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: hello.x3m.config
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hello.x3m.preprocess module
----------------------------
-
-.. automodule:: hello.x3m.preprocess
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hello.x3m.transforms module
----------------------------
-
-.. automodule:: hello.x3m.transforms
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   hello.x3m.config
+   hello.x3m.preprocess
+   hello.x3m.transforms
 
 Module contents
 ---------------

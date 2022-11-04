@@ -4,13 +4,10 @@ hello.data package
 Submodules
 ----------
 
-hello.data.coco2yolo module
----------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: hello.data.coco2yolo
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   hello.data.coco2yolo
 
 Module contents
 ---------------

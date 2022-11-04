@@ -4,45 +4,14 @@ hello.utils package
 Submodules
 ----------
 
-hello.utils.colors module
--------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: hello.utils.colors
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hello.utils.cuda module
------------------------
-
-.. automodule:: hello.utils.cuda
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hello.utils.importer module
----------------------------
-
-.. automodule:: hello.utils.importer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hello.utils.plots module
-------------------------
-
-.. automodule:: hello.utils.plots
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hello.utils.points module
--------------------------
-
-.. automodule:: hello.utils.points
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   hello.utils.colors
+   hello.utils.cuda
+   hello.utils.importer
+   hello.utils.plots
+   hello.utils.points
 
 Module contents
 ---------------
