@@ -121,7 +121,7 @@ def load_text_dataset(info, data_path, labels_path, field_name):
 
 
 def _parse_text_line(line):
-    """
+    """\
     line format:
         filepath,height,width,x1,y1,x2,y2,confidence,label,x1,y1,x2,y2,confidence,label
     """

@@ -1,3 +1,13 @@
+r"""
+LRFinder(https://docs.fast.ai/callback.schedule.html#lrfinder)
+
+.. math::
+    \begin{align}
+    & lr_i = lr_{min} \times q^i , \quad i \in [0, N-1]\\
+    & lr_{min} = 1e-07 , \quad lr_{max} = 10\\
+    & q = \lgroup \frac{lr_{max}}{lr_{min}} \rgroup ^ {\frac{1}{N-1}}
+    \end{align}
+"""
 import re
 import shutil
 import sys
@@ -7,19 +17,6 @@ from pathlib import Path
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-
-"""
-LRFinder(https://docs.fast.ai/callback.schedule.html#lrfinder)
-
-$$
-\begin{align}
-& lr_i = lr_{min} \times q^i , \quad i \in [0, N-1]\\
-& lr_{min} = 1e-07 , \quad lr_{max} = 10\\
-& q = \lgroup \frac{lr_{max}}{lr_{min}} \rgroup ^ {\frac{1}{N-1}}
-\end{align}
-$$
-"""
-
 
 _pattern = re.compile(r"Iter \[(\d+)/(\d+)\]")
 
