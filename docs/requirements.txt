@@ -7,5 +7,5 @@ prettytable
 onnx
 onnx-simplifier
 onnxruntime
-sphinx
+sphinx>=5.3.0
 sphinx_rtd_theme
