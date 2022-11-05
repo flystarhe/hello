@@ -8,3 +8,4 @@ onnx
 onnx-simplifier
 onnxruntime
 sphinx
+sphinx_rtd_theme
