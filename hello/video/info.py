@@ -3,7 +3,7 @@ from pathlib import Path
 
 import cv2 as cv
 
-suffix_set = set(".avi,.mp4,.MOV".split(","))
+suffix_set = set(".avi,.mp4,.MOV,.mkv".split(","))
 
 
 def find_videos(input_dir):

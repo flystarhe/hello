@@ -3,7 +3,8 @@ import sys
 
 __version__ = "1.0.0"
 
-help_doc_str = """usage: hello [--version] [--help]
+help_doc_str = """\
+usage: hello [--version] [--help]
 
 shell command:
     hello -h

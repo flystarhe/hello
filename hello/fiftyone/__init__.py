@@ -1,6 +1,7 @@
 import sys
 
-help_doc_str = """usage: hello-fiftyone <command> [options]
+help_doc_str = """\
+usage: hello-fiftyone <command> [options]
 
 Commands:
     miou

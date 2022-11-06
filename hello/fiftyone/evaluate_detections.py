@@ -7,7 +7,8 @@ from string import Template
 
 import hello.fiftyone.dataset_detections as hod
 
-tmpl_readme = """# README
+tmpl_readme = """\
+# README
 - `$date`
 
 ---

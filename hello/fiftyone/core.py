@@ -82,7 +82,7 @@ def map_default_mask_targets(dataset, classes, ignore_index=255):
 
 
 def gen_mapping(old_classes, new_classes):
-    """generate segmentation mapping
+    """Generate segmentation mapping.
 
     Args:
         old_classes (list): `['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'be ignored']`

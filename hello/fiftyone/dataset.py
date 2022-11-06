@@ -9,7 +9,8 @@ from hello.fiftyone.core import count_values, merge_samples
 from hello.fiftyone.dataset_detections import load_dataset as _load_detection_dataset
 from hello.fiftyone.dataset_segmentations import load_dataset as _load_segmentation_dataset
 
-tmpl_info = """info = {
+tmpl_info = """\
+info = {
     'dataset_name': '$dataset_name',
     'dataset_type': '$dataset_type',
     'version': '$version',

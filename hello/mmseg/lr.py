@@ -1,5 +1,4 @@
-r"""
-LRFinder(https://docs.fast.ai/callback.schedule.html#lrfinder)
+r"""LRFinder(https://docs.fast.ai/callback.schedule.html#lrfinder)
 
 .. math::
     \begin{align}
@@ -22,7 +21,7 @@ _pattern = re.compile(r"Iter \[(\d+)/(\d+)\]")
 
 
 def valley(lrs: list, losses: list):
-    """Suggests a learning rate from the longest valley and returns its index
+    """Suggests a learning rate from the longest valley and returns its index.
 
     https://github.com/fastai/fastai/blob/master/fastai/callback/schedule.py
 

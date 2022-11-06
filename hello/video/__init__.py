@@ -3,7 +3,8 @@
 # https://docs.opencv.org/5.x/dd/d43/tutorial_py_video_display.html
 import sys
 
-help_doc_str = """usage: hello-video <command> [options]
+help_doc_str = """\
+usage: hello-video <command> [options]
 
 Commands:
     clip

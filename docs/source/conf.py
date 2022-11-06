@@ -33,7 +33,7 @@ extensions = [
 ]
 
 autodoc_mock_imports = [
-    'torch', 'torchvision', 'fiftyone', 'mmdet', 'pycocotools', 'pyomniunwarp'
+    'torch', 'torchvision', 'fiftyone', 'mmdet', 'mmseg', 'pycocotools', 'pyomniunwarp'
 ]
 
 templates_path = ['_templates']

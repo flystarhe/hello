@@ -8,9 +8,9 @@ import numpy as np
 
 pattern_decimal = re.compile(r"\d+(\.\d+)?")
 
-suffix_set = set(".avi,.mp4,.MOV".split(","))
+suffix_set = set(".avi,.mp4,.MOV,.mkv".split(","))
 
-help_doc_str = """
+help_doc_str = """\
 - press `esc` to exit
 - press `space` change mode
 - press `u` speed up

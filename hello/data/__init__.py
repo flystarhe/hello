@@ -1,6 +1,7 @@
 import sys
 
-help_doc_str = """usage: hello-data <command> [options]
+help_doc_str = """\
+usage: hello-data <command> [options]
 
 Commands:
     coco2yolo

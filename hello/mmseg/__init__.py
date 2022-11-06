@@ -1,6 +1,7 @@
 import sys
 
-help_doc_str = """usage: hello-mmseg <command> [options]
+help_doc_str = """\
+usage: hello-mmseg <command> [options]
 
 Commands:
     log

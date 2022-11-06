@@ -7,7 +7,7 @@ import cv2 as cv
 _bgr_image = None
 _data_points = None
 
-help_doc_str = """
+help_doc_str = """\
 - press the left mouse button to mark points
 - press `q` to quit
 - press `b` to undo
