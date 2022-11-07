@@ -4,6 +4,7 @@ from pathlib import Path
 import cv2 as cv
 import numpy as np
 import torch
+from hello.utils import importer
 from prettytable import PrettyTable
 
 
@@ -89,6 +90,12 @@ def func(true_dir, pred_dir, num_classes, class_names, reduce_zero_label=True):
     print(f"[INFO] number of common files: {len(common_stems)}")
 
     assert (num_classes is not None) or (class_names is not None)
+
+    if class_names is None:
+        info_py = Path(true_dir).with_name("info.py")
+        if info_py.is_file():
+            info = importer.load_from_file("info_py", info_py).info
+            class_names = info["classes"][:num_classes]
 
     if class_names is None:
         class_names = [f"c{i:03d}" for i in range(num_classes)]
