@@ -15,7 +15,7 @@ suffix_set = set(".avi,.mp4,.MOV,.mkv".split(","))
 warnings.filterwarnings('ignore')
 
 
-def test_image(model, img, palette, out_dir, out_name):
+def test_image(model, img, palette, out_dir, out_name, add_zero_label=False):
     """Inference image.
 
     Args:
@@ -24,6 +24,7 @@ def test_image(model, img, palette, out_dir, out_name):
         palette (list[list[int]]): The palette of segmentation map.
         out_dir (pathlib.Path): The directory to save.
         out_name (str): The file name to save.
+        add_zero_label (bool, optional): Defaults to False.
     """
     if isinstance(img, str):
         img = cv.imread(img, flags=cv.IMREAD_COLOR)
@@ -38,10 +39,12 @@ def test_image(model, img, palette, out_dir, out_name):
     cv.imwrite(out_file, np.concatenate((img, mask), axis=0))
 
     out_file = str(out_dir / "predictions" / f"{out_name}.png")
+    if add_zero_label:
+        result = [x + 1 for x in result]
     cv.imwrite(out_file, result[0].clip(min=0, max=255).astype("uint8"))
 
 
-def test_images(model, image_paths, palette, out_dir):
+def test_images(model, image_paths, palette, out_dir, add_zero_label=False):
     """Inference images.
 
     Args:
@@ -49,13 +52,14 @@ def test_images(model, image_paths, palette, out_dir):
         image_paths (list[str]): Image files to inference.
         palette (list[list[int]]): The palette of segmentation map.
         out_dir (pathlib.Path): The directory to save.
+        add_zero_label (bool, optional): Defaults to False.
     """
     for img in tqdm(image_paths):
         out_name = f"{Path(img).stem}"
-        test_image(model, img, palette, out_dir, out_name)
+        test_image(model, img, palette, out_dir, out_name, add_zero_label)
 
 
-def test_video(model, video_path, palette, out_dir):
+def test_video(model, video_path, palette, out_dir, add_zero_label=False):
     """Inference video.
 
     Args:
@@ -63,6 +67,7 @@ def test_video(model, video_path, palette, out_dir):
         video_path (str): Video file to inference.
         palette (list[list[int]]): The palette of segmentation map.
         out_dir (pathlib.Path): The directory to save.
+        add_zero_label (bool, optional): Defaults to False.
     """
     cap = cv.VideoCapture(video_path)
     cap_fps = int(cap.get(cv.CAP_PROP_FPS))
@@ -81,12 +86,12 @@ def test_video(model, video_path, palette, out_dir):
             continue
 
         out_name = f"{prefix}_{index:06d}"
-        test_image(model, img, palette, out_dir, out_name)
+        test_image(model, img, palette, out_dir, out_name, add_zero_label)
 
     cap.release()
 
 
-def test_videos(model, video_paths, palette, out_dir):
+def test_videos(model, video_paths, palette, out_dir, add_zero_label=False):
     """Inference videos.
 
     Args:
@@ -94,12 +99,13 @@ def test_videos(model, video_paths, palette, out_dir):
         video_paths (list[str]): Video files to inference.
         palette (list[list[int]]): The palette of segmentation map.
         out_dir (pathlib.Path): The directory to save.
+        add_zero_label (bool, optional): Defaults to False.
     """
     for video_path in video_paths:
-        test_video(model, video_path, palette, out_dir)
+        test_video(model, video_path, palette, out_dir, add_zero_label)
 
 
-def func(root, config_file, checkpoint_file, testdata, out_dir):
+def func(root, config_file, checkpoint_file, testdata, out_dir, add_zero_label=False):
     """Inference test data.
 
     Args:
@@ -108,6 +114,7 @@ def func(root, config_file, checkpoint_file, testdata, out_dir):
         checkpoint_file (_type_): _description_
         testdata (_type_): _description_
         out_dir (_type_): _description_
+        add_zero_label (bool, optional): Defaults to False.
     """
     root = Path(root)
     config_file = str(root / config_file)
@@ -132,10 +139,10 @@ def func(root, config_file, checkpoint_file, testdata, out_dir):
     video_paths = [str(f) for f in testdata if f.suffix in suffix_set]
 
     if image_paths:
-        test_images(model, image_paths, model.PALETTE, out_dir)
+        test_images(model, image_paths, model.PALETTE, out_dir, add_zero_label)
 
     if video_paths:
-        test_videos(model, video_paths, model.PALETTE, out_dir)
+        test_videos(model, video_paths, model.PALETTE, out_dir, add_zero_label)
 
 
 def parse_args(args=None):
@@ -152,6 +159,8 @@ def parse_args(args=None):
                         help="image/video(s) path or dir")
     parser.add_argument("-o", dest="out_dir", type=str,
                         help="save results")
+    parser.add_argument("-y", dest="add_zero_label", action="store_true",
+                        help="add zero label as background")
 
     args = parser.parse_args(args=args)
     return vars(args)
