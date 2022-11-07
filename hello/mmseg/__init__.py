@@ -4,6 +4,7 @@ help_doc_str = """\
 usage: hello-mmseg <command> [options]
 
 Commands:
+    infer
     log
     lr
 """
@@ -20,7 +21,10 @@ def main(args=None):
 
     args = ["--help"] if len(args) == 0 else args
 
-    if command == "log":
+    if command == "infer":
+        from .infer import main as _main
+        _main(args)
+    elif command == "log":
         from .log import main as _main
         _main(args)
     elif command == "lr":

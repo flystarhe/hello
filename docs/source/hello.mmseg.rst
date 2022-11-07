@@ -7,6 +7,7 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   hello.mmseg.infer
    hello.mmseg.log
    hello.mmseg.lr
 

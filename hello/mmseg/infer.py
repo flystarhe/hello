@@ -29,7 +29,7 @@ def test_image(model, img, palette, out_dir, out_name):
         img = cv.imread(img, flags=cv.IMREAD_COLOR)
 
     result = inference_segmentor(model, img)
-    mask = model.show_result(img, result, palette=palette, show=False, out_file=None, opacity=0.5)
+    mask = model.show_result(img, result, palette=palette, show=False, out_file=None, opacity=0.9)
 
     out_file = str(out_dir / "data" / f"{out_name}.jpg")
     cv.imwrite(out_file, img)
