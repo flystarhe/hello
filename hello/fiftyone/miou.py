@@ -42,26 +42,41 @@ class ConfusionMatrix:
         self.mat.zero_()
 
     @property
-    def pretty_text(self):
+    def confusion_matrix(self):
+        mat = self.mat.float()
+
+        mat = mat / mat.sum(dim=1, keepdim=True)
+
+        table_data = PrettyTable()
+        table_data.add_column("x", [f"{v:02d}" for v in range(mat.size(0))])
+        for i in range(mat.size(1)):
+            table_data.add_column(f"{i:02d}", [f"{v:.2%}" for v in mat[:, i]], align="r")
+        return table_data
+
+    @property
+    def metrics(self):
         h = self.mat.float()
         precision = torch.diag(h) / h.sum(0) * 100
         recall = torch.diag(h) / h.sum(1) * 100  # diag / sum(gt_label)
         iou = torch.diag(h) / (h.sum(0) + h.sum(1) - torch.diag(h)) * 100
         support = h.sum(1)
 
+        n = self.num_classes
         table_data = PrettyTable()
-        table_data.add_column("class name", self.class_names)
-        table_data.add_column("precision", [f"{i:.2f}" for i in precision.tolist()])
-        table_data.add_column("recall", [f"{i:.2f}" for i in recall.tolist()])
-        table_data.add_column("iou", [f"{i:.2f}" for i in iou.tolist()])
-        table_data.add_column("support", [int(i) for i in support.tolist()])
+        table_data.add_column("class_name", self.class_names)
+        table_data.add_column("index", [f"{v:02d}" for v in range(n)])
+        table_data.add_column("precision", [f"{v:.2f}" for v in precision.tolist()], align="r")
+        table_data.add_column("recall", [f"{v:.2f}" for v in recall.tolist()], align="r")
+        table_data.add_column("iou", [f"{v:.2f}" for v in iou.tolist()], align="r")
+        table_data.add_column("support", [int(v) for v in support.tolist()], align="r")
+        table_data.add_column("support_ratio", [f"{v:.2%}" for v in (support / support.sum()).tolist()], align="r")
 
-        table_data.add_row(["macro avg"] + [f"{i.nanmean().item():.2f}" for i in [precision, recall, iou]] + ["-"])
+        table_data.add_row(["macro avg", "-"] + [f"{v.nanmean().item():.2f}" for v in [precision, recall, iou]] + ["-", "-"])
 
         w = support / support.sum()
         precision, recall, iou = precision * w, recall * w, iou * w
-        table_data.add_row(["weighted avg"] + [f"{i.nansum().item():.2f}" for i in [precision, recall, iou]] + ["-"])
-        return table_data.get_string()
+        table_data.add_row(["weighted avg", "-"] + [f"{v.nansum().item():.2f}" for v in [precision, recall, iou]] + ["-", "-"])
+        return table_data
 
 
 def func(true_dir, pred_dir, num_classes, class_names, reduce_zero_label=True):
@@ -84,7 +99,8 @@ def func(true_dir, pred_dir, num_classes, class_names, reduce_zero_label=True):
         output = cv.imread(pred_files[stem], 0)
         confmat.update(target, output)
 
-    return confmat.pretty_text
+    print(confmat.metrics.get_string())
+    print(confmat.confusion_matrix.get_string())
 
 
 def parse_args(args=None):
