@@ -77,6 +77,11 @@ PDF文档依赖：`apt-get install texlive-xetex texlive-fonts-recommended texli
 - `make html/make help`生成文档
 - `make clean`清空文档目录
 
+在项目根目录执行时，需要修改文档输出路径及模块路径：
+```
+sphinx-apidoc -o docs/source -f -e .
+```
+
 目录结构如下：
 ```textile
 .
