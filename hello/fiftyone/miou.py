@@ -47,11 +47,17 @@ class ConfusionMatrix:
         mat = self.mat.float()
 
         mat = mat / mat.sum(dim=1, keepdim=True)
+        mat = mat - torch.diag_embed(mat.diag())
 
+        top_values, top_indices = mat.topk(2, dim=1)
+
+        n = self.num_classes
         table_data = PrettyTable()
-        table_data.add_column("x", [f"{v:02d}" for v in range(mat.size(0))])
-        for i in range(mat.size(1)):
-            table_data.add_column(f"{i:02d}", [f"{v:.2%}" for v in mat[:, i]], align="r")
+        table_data.add_column("class_name", self.class_names)
+        table_data.add_column("index", [f"{v:02d}" for v in range(n)])
+        for i in range(top_values.size(1)):
+            table_data.add_column(f"top{i+1}_ratio", [f"{v:.2%}" for v in top_values[:, i]], align="r")
+            table_data.add_column(f"top{i+1}_class", [self.class_names[v.item()] for v in top_indices[:, i]], align="r")
         return table_data
 
     @property
