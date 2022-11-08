@@ -1,4 +1,5 @@
 # https://plotly.com/python-api-reference/generated/plotly.colors.html#module-plotly.colors
+# https://plotly.com/python/discrete-color/#color-sequences-in-plotly-express
 import plotly.express as px
 
 _swatches = set(["Plotly", "D3", "G10", "T10", "Alphabet", "Dark24", "Light24"])
