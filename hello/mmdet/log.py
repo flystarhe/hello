@@ -11,6 +11,7 @@ def func(json_logs, out_dir, metrics=["loss", "loss_cls", "loss_bbox"], mmdet_ho
 
     if Path(json_logs[0]).is_dir():
         json_logs = [str(f) for f in Path(json_logs[0]).glob("*/*.log.json")]
+        json_logs = sorted(json_logs)
 
     py_script = str(Path(mmdet_home) / "tools/analysis_tools/analyze_logs.py")
 
