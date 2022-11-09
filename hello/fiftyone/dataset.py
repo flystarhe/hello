@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 from string import Template
 
@@ -6,8 +7,10 @@ import fiftyone.utils.yolo as fouy
 from fiftyone.utils.labels import segmentations_to_detections
 
 from hello.fiftyone.core import count_values, merge_samples
-from hello.fiftyone.dataset_detections import load_dataset as _load_detection_dataset
-from hello.fiftyone.dataset_segmentations import load_dataset as _load_segmentation_dataset
+from hello.fiftyone.dataset_detections import \
+    load_dataset as _load_detection_dataset
+from hello.fiftyone.dataset_segmentations import \
+    load_dataset as _load_segmentation_dataset
 
 tmpl_info = """\
 info = {
@@ -114,6 +117,7 @@ def export_segmentation_dataset(export_dir, dataset, label_field, mask_types="st
 def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None, mask_types="stuff"):
     # mask_types: "stuff"(amorphous regions of pixels), "thing"(connected regions, each representing an instance)
     assert label_field is not None or mask_label_field is not None
+    shutil.rmtree(export_dir, ignore_errors=True)
 
     dataset.save()
     info = dataset.info
