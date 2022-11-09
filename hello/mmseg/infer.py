@@ -30,13 +30,14 @@ def test_image(model, img, palette, out_dir, out_name, add_zero_label=False):
         img = cv.imread(img, flags=cv.IMREAD_COLOR)
 
     result = inference_segmentor(model, img)
-    mask = model.show_result(img, result, palette=palette, show=False, out_file=None, opacity=0.9)
+    mask = model.show_result(img, result, palette=palette, show=False, out_file=None, opacity=0.5)
+    mask_pure = model.show_result(img, result, palette=palette, show=False, out_file=None, opacity=1.0)
 
     out_file = str(out_dir / "data" / f"{out_name}.jpg")
     cv.imwrite(out_file, img)
 
     out_file = str(out_dir / "results" / f"{out_name}.jpg")
-    cv.imwrite(out_file, np.concatenate((img, mask), axis=0))
+    cv.imwrite(out_file, np.concatenate((img, mask, mask_pure), axis=0))
 
     out_file = str(out_dir / "predictions" / f"{out_name}.png")
     if add_zero_label:
