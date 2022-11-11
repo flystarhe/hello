@@ -26,7 +26,7 @@ conda info -e
 ```sh
 # requirements.txt
 pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-pip install opencv-python Pillow scikit-image scikit-learn simplejson onnx prettytable
+pip install opencv-python Pillow scikit-image scikit-learn simplejson onnx prettytable pycocotools
 
 # FFmpeg
 apt install -y ffmpeg
