@@ -72,7 +72,7 @@ def func(dataset_dir, info_py="info.py", data_path="data", preds_path="predictio
         (output_dir).mkdir(parents=True, exist_ok=False)
 
         tmpl_mapping = {
-            "date": time.strftime("%Y-%m-%d %H:%M"),
+            "date": time.strftime(r"%Y-%m-%d %H:%M"),
             "aggregate_metrics": "\n".join([format_kv(k, v) for k, v in results.metrics().items()]),
             "report": json.dumps(results.report(), indent=4),
         }

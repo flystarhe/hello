@@ -53,7 +53,7 @@ def split_video(video_path, duration, out_dir):
         i_h, i_m = divmod(i_m, 60)
         curr_duration = f"{i_h:02d}:{i_m:02d}:{i_s:02d}"
 
-        prefix = time.strftime("%Y%m%d_%H%M%S")
+        prefix = time.strftime(r"%Y%m%d_%H%M%S")
         if i == 0:
             curr_output = str(out_dir / f"split/{prefix}{suffix}")
         else:

@@ -75,7 +75,7 @@ def func(input_dir, output_dir, cal_file, version, mode, fov, rois, format, pref
 
     if prefix is not None:
         if prefix == "date":
-            prefix = time.strftime("%Y%m%d_%H%M%S")
+            prefix = time.strftime(r"%Y%m%d_%H%M%S")
 
     image_paths = find_images(input_dir)
     print(f"[INFO] find images: {len(image_paths)}")
