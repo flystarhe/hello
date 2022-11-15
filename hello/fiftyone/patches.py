@@ -32,13 +32,16 @@ def from_coco_instance(out_dir, dataset, class_names, field_name="segmentations"
         assert sample.metadata["width"] == img_w
         assert sample.metadata["height"] == img_h
 
-        for obj in sample[field_name]["detections"]:
+        try:
+            detections = sample[field_name]["detections"]
+        except:
+            detections = []
+
+        for obj in detections:
             label = obj.label
 
             if class_names is not None and label not in class_names:
                 continue
-
-            index += 1
 
             _box = obj.bounding_box  # [x, y, w, h] / s
             x, y = round(_box[0] * img_w), round(_box[1] * img_h)
@@ -48,6 +51,11 @@ def from_coco_instance(out_dir, dataset, class_names, field_name="segmentations"
 
             mask = obj.mask.astype("uint8") * 255
 
+            retval = cv.connectedComponents(mask)[0]
+            if retval == 2:
+                continue
+
+            index += 1
             patch_mask = mask[:h, :w]
             patch = img[y:y + h, x:x + w]
 
