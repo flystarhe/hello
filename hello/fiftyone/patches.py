@@ -4,6 +4,7 @@ import time
 from pathlib import Path
 
 import cv2 as cv
+from fiftyone import ViewField as F
 from tqdm import tqdm
 
 
@@ -18,7 +19,7 @@ def from_coco_instance(out_dir, dataset, class_names, field_name="segmentations"
     (out_dir / "data").mkdir(parents=True, exist_ok=False)
 
     if class_names is not None:
-        class_names = set(class_names)
+        dataset = dataset.filter_labels(field_name, F("label").is_in(class_names))
 
     if prefix is None:
         prefix = time.strftime(r"%y%m%d_%H%M%S")
@@ -39,9 +40,6 @@ def from_coco_instance(out_dir, dataset, class_names, field_name="segmentations"
 
         for obj in detections:
             label = obj.label
-
-            if class_names is not None and label not in class_names:
-                continue
 
             _box = obj.bounding_box  # [x, y, w, h] / s
             x, y = round(_box[0] * img_w), round(_box[1] * img_h)
