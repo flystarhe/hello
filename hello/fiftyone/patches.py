@@ -21,6 +21,8 @@ def from_coco_instance(out_dir, dataset, class_names, field_name="segmentations"
 
     if class_names is not None:
         dataset = dataset.filter_labels(field_name, F("label").is_in(class_names))
+    else:
+        dataset = dataset.match(F(f"{field_name}.detections").length() > 0)
 
     if prefix is None:
         prefix = time.strftime(r"%y%m%d_%H%M%S")
@@ -34,12 +36,7 @@ def from_coco_instance(out_dir, dataset, class_names, field_name="segmentations"
         assert sample.metadata["width"] == img_w
         assert sample.metadata["height"] == img_h
 
-        try:
-            detections = sample[field_name]["detections"]
-        except:
-            detections = []
-
-        for obj in detections:
+        for obj in sample[field_name]["detections"]:
             label = obj.label
 
             _box = obj.bounding_box  # [x, y, w, h] / s
@@ -48,21 +45,29 @@ def from_coco_instance(out_dir, dataset, class_names, field_name="segmentations"
             mask_h, mask_w = obj.mask.shape
             w, h = min(mask_w, img_w - x), min(mask_h, img_h - y)
 
+            if w < 4 or h < 4:
+                continue
+
             mask = obj.mask.astype("uint8") * 255
 
             retval = cv.connectedComponents(mask)[0]
-            if retval == 2:
+            if retval != 2:
                 continue
 
             patch_mask = mask[:h, :w]
             patch = img[y:y + h, x:x + w]
 
             counts[label] += 1
-            _index = counts[label]
-            _label = "_".join(label.split())
-            file_stem = f"{prefix}_{_label}_{_index:06d}"
-            patch_file = f"data/{label}/{file_stem}.jpg"
-            mask_file = f"data/{label}/{file_stem}.png"
+
+            sub_dir = "_".join(label.split())
+
+            _curr_dir = out_dir / f"data/{sub_dir}"
+            if not _curr_dir.is_dir():
+                _curr_dir.mkdir(parents=True, exist_ok=False)
+
+            file_stem = f"{prefix}_{sub_dir}_{counts[label]:06d}"
+            patch_file = f"data/{sub_dir}/{file_stem}.jpg"
+            mask_file = f"data/{sub_dir}/{file_stem}.png"
 
             _db[file_stem] = {
                 "label": label,
@@ -77,4 +82,5 @@ def from_coco_instance(out_dir, dataset, class_names, field_name="segmentations"
 
     with open(out_dir / "db.json", "w") as f:
         json.dump(_db, f, indent=4)
+    print(f"[INFO] {counts=}")
     return str(out_dir)
