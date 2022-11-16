@@ -1,6 +1,7 @@
 import json
 import shutil
 import time
+from collections import defaultdict
 from pathlib import Path
 
 import cv2 as cv
@@ -25,7 +26,7 @@ def from_coco_instance(out_dir, dataset, class_names, field_name="segmentations"
         prefix = time.strftime(r"%y%m%d_%H%M%S")
 
     _db = {}
-    index = 0
+    counts = defaultdict(int)
     for sample in tqdm(dataset):
         img = cv.imread(sample.filepath, 1)
 
@@ -53,11 +54,13 @@ def from_coco_instance(out_dir, dataset, class_names, field_name="segmentations"
             if retval == 2:
                 continue
 
-            index += 1
             patch_mask = mask[:h, :w]
             patch = img[y:y + h, x:x + w]
 
-            file_stem = f"{prefix}_{index:06d}"
+            counts[label] += 1
+            _index = counts[label]
+            _label = "_".join(label.split())
+            file_stem = f"{prefix}_{_label}_{_index:06d}"
             patch_file = f"data/{label}/{file_stem}.jpg"
             mask_file = f"data/{label}/{file_stem}.png"
 
