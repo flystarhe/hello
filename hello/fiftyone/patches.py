@@ -9,12 +9,12 @@ from fiftyone import ViewField as F
 from tqdm import tqdm
 
 
-def extract_patch(out_dir, dataset, class_names, field_name="segmentations", prefix=None, mode=None):
+def extract_patch(out_dir, dataset, class_names, field_name="segmentations", min_bbox_size=32, prefix=None, mode=None):
     # TODO
     pass
 
 
-def from_coco_instance(out_dir, dataset, class_names, field_name="segmentations", prefix=None):
+def from_coco_instance(out_dir, dataset, class_names, field_name="segmentations", min_bbox_size=32, prefix=None):
     out_dir = Path(out_dir)
     shutil.rmtree(out_dir, ignore_errors=True)
     (out_dir / "data").mkdir(parents=True, exist_ok=False)
@@ -45,7 +45,7 @@ def from_coco_instance(out_dir, dataset, class_names, field_name="segmentations"
             mask_h, mask_w = obj.mask.shape
             w, h = min(mask_w, img_w - x), min(mask_h, img_h - y)
 
-            if w < 4 or h < 4:
+            if w < min_bbox_size or h < min_bbox_size:
                 continue
 
             mask = obj.mask.astype("uint8") * 255
