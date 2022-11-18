@@ -3,7 +3,7 @@ import fiftyone as fo
 
 def annotate(dataset_or_view, label_field="ground_truth", label_type="instances",
              url="http://119.23.212.113:6060", username="hejian", password="LFIcvat123",
-             task_assignee="hejian", job_assignees=["weiqiaomu", "jiasiyu"]):
+             task_size=2000, segment_size=1000, task_assignee="hejian", job_assignees=["weiqiaomu", "jiasiyu"]):
     # `label_type` (None) - a string. The possible values are: `classification`, `classifications`, `detections`, `instances`, `segmentation`, `scalar`.
     # `mask_targets` (None) - a dict mapping pixel values to semantic label strings. Only applicable when annotating semantic segmentations.
     anno_key = f"{dataset_or_view.name}_{label_field}_{label_type}"
@@ -30,8 +30,8 @@ def annotate(dataset_or_view, label_field="ground_truth", label_type="instances"
         url=url,
         username=username,
         password=password,
-        task_size=1500,
-        segment_size=50,
+        task_size=task_size,
+        segment_size=segment_size,
         image_quality=95,
         task_assignee=task_assignee,
         job_assignees=job_assignees,

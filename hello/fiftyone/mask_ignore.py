@@ -46,5 +46,5 @@ def mask_ignore_from_dir(dataset_dir, splits=None, field_name="segmentations", i
     shutil.copytree(dataset_dir, target_dir)
 
     dataset = load_detection_dataset(target_dir, splits=splits)
-    mask_ignore_dataset(dataset)
+    mask_ignore_dataset(dataset, field_name, ignore_label, color)
     return str(target_dir)

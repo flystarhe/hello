@@ -39,6 +39,9 @@ def from_coco_instance(out_dir, dataset, field_name="segmentations", crop_size=(
                     mask_h, mask_w = obj.mask.shape
                     w, h = min(mask_w, img_w - x), min(mask_h, img_h - y)
 
+                    if w < 4 or h < 4:
+                        continue
+
                     mask = obj.mask.astype("uint8") * 255
                     mask = np.stack((mask, mask, mask), axis=-1)
 
