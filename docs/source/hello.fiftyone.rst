@@ -7,6 +7,7 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   hello.fiftyone.copypaste
    hello.fiftyone.core
    hello.fiftyone.dataset
    hello.fiftyone.dataset_annotate
@@ -17,7 +18,10 @@ Submodules
    hello.fiftyone.evaluate
    hello.fiftyone.evaluate_detections
    hello.fiftyone.evaluate_segmentations
+   hello.fiftyone.gen_examples
+   hello.fiftyone.mask_ignore
    hello.fiftyone.miou
+   hello.fiftyone.patches
    hello.fiftyone.unique
    hello.fiftyone.video
 
