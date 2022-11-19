@@ -51,22 +51,10 @@ def map_labels(dataset, mapping, field_name="ground_truth"):
     return dataset
 
 
-def map_default_classes(dataset, mapping, background="background"):
-    classes = dataset.default_classes
+def map_default_classes(dataset, classes, background="background"):
+    new_classes = [c[0] if isinstance(c, list) else c for c in classes]
+    new_classes = new_classes[:-1] + [background]
 
-    new_classes = []
-    for label in classes:
-        if label in mapping:
-            label = mapping[label]
-        elif "*" in mapping:
-            label = mapping["*"]
-        new_classes.append(label)
-
-    sorted_key = classes + list(mapping.values())
-    distinct_labels = set(new_classes) - set([background])
-    new_classes = sorted(distinct_labels, key=lambda x: sorted_key.index(x))
-
-    new_classes.append(background)
     dataset.default_classes = new_classes
     return dataset
 
@@ -81,7 +69,34 @@ def map_default_mask_targets(dataset, classes, ignore_index=255):
     return dataset
 
 
-def gen_mapping(old_classes, new_classes):
+def gen_label_mapping(old_classes, new_classes):
+    """Generate detections mapping.
+
+    Args:
+        old_classes (list): `['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'background']`
+        new_classes (list): `['c0', 'c1', 'c2', ['c3', 'c4', 'c5'], 'background']`
+
+    Returns:
+        _type_: _description_
+    """
+    old_classes, new_classes = old_classes[:-1], new_classes[:-1]
+
+    mapping = {}
+    for names in new_classes:
+        names = [names] if isinstance(names, str) else names
+        assert isinstance(names, list)
+        label = names[0]
+        for name in names:
+            assert name not in mapping
+            mapping[name] = label
+
+    for name in old_classes:
+        assert name in mapping
+
+    return mapping
+
+
+def gen_mask_mapping(old_classes, new_classes):
     """Generate segmentation mapping.
 
     Args:
@@ -109,12 +124,12 @@ def gen_mapping(old_classes, new_classes):
     return mapping
 
 
-def filter_detections_dataset(dataset, mapping=None, field_name="ground_truth", background="background"):
+def filter_detections_dataset(dataset, new_classes=None, field_name="ground_truth", background="background"):
     """Steps: map labels -> check dataset.classes -> filter valid samples
 
     Args:
         dataset (fo.Dataset): _description_
-        mapping (dict[str, str], optional): _description_. Defaults to None.
+        new_classes (list, optional): refer to `gen_label_mapping()`. Defaults to None.
         field_name (str, optional): _description_. Defaults to "ground_truth".
         background (str, optional): _description_. Defaults to "background".
 
@@ -124,9 +139,11 @@ def filter_detections_dataset(dataset, mapping=None, field_name="ground_truth", 
     dataset.save()
     dataset = dataset.clone()
 
-    if mapping is not None:
+    if new_classes is not None:
+        old_classes = dataset.default_classes
+        mapping = gen_label_mapping(old_classes, new_classes)
         dataset = map_labels(dataset, mapping, field_name=field_name)
-        dataset = map_default_classes(dataset, mapping, background=background)
+        dataset = map_default_classes(dataset, new_classes, background=background)
 
     dataset = dataset.filter_labels(field_name, F("label") != background).clone()
 
@@ -138,7 +155,7 @@ def filter_segmentation_dataset(dataset, new_classes=None, field_name="ground_tr
 
     Args:
         dataset (fo.Dataset): _description_
-        new_classes (list, optional): refer to `gen_mapping()`. Defaults to None.
+        new_classes (list, optional): refer to `gen_mask_mapping()`. Defaults to None.
         field_name (str, optional): _description_. Defaults to "ground_truth".
         ignore_index (int, optional): _description_. Defaults to 255.
 
@@ -156,7 +173,7 @@ def filter_segmentation_dataset(dataset, new_classes=None, field_name="ground_tr
 
     if new_classes is not None:
         old_classes = dataset.default_classes
-        mapping = gen_mapping(old_classes, new_classes)
+        mapping = gen_mask_mapping(old_classes, new_classes)
         dataset = map_labels(dataset, mapping, field_name=field_name)
         dataset = map_default_mask_targets(dataset, new_classes, ignore_index)
 
