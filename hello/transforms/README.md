@@ -29,8 +29,12 @@ cv.COLOR_YUV420SP2BGR
 ```
 
 ### YUV420
-- YUV420P: YV12
-- YUV420SP: NV21
+- YUV420P
+  - U前V后: I420/YU12
+  - V前U后: YV12
+- YUV420SP
+  - U前V后: NV12
+  - V前U后: NV21
 
 ```text
       Y Y Y Y Y Y      Y Y Y Y Y Y      Y Y Y Y Y Y      Y Y Y Y Y Y
@@ -39,7 +43,7 @@ cv.COLOR_YUV420SP2BGR
       Y Y Y Y Y Y      Y Y Y Y Y Y      Y Y Y Y Y Y      Y Y Y Y Y Y
       U U U U U U      V V V V V V      U V U V U V      V U V U V U
       V V V V V V      U U U U U U      U V U V U V      V U V U V U
-        - I420 -         - YV12 -         - NV12 -         - NV21 -
+        - YU12 -         - YV12 -         - NV12 -         - NV21 -
 ```
 
 先使用`ffmpeg`将指定的图片转为`YUV420P`格式

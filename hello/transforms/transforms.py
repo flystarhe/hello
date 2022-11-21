@@ -12,6 +12,36 @@ def gen_nv12(h, w, input_dtype="uint8"):
     return nv12.flatten()
 
 
+def bgr_to_yuv444(bgr):
+    img_h, img_w = bgr.shape[:2]
+    y_size = img_h * img_w
+
+    uv_h, uv_w = img_h // 2, img_w // 2
+    uv_size = uv_h * uv_w
+
+    # bgr -> yuv420p(YU12)
+    yuv420p = cv.cvtColor(bgr, cv.COLOR_BGR2YUV_I420)
+    yuv420p = yuv420p.flatten()
+
+    # yuv420p(YU12) -> yuv444
+    img_y = yuv420p[:y_size].reshape((img_h, img_w, 1))
+
+    img_u = yuv420p[y_size:y_size + uv_size]
+    img_u = img_u.reshape(uv_h, uv_w, 1)
+
+    img_u = np.repeat(img_u, 2, axis=0)
+    img_u = np.repeat(img_u, 2, axis=1)
+
+    img_v = yuv420p[y_size + uv_size:]
+    img_v = img_v.reshape(uv_h, uv_w, 1)
+
+    img_v = np.repeat(img_v, 2, axis=0)
+    img_v = np.repeat(img_v, 2, axis=1)
+
+    yuv444 = np.concatenate((img_y, img_u, img_v), axis=2)
+    return yuv444
+
+
 def bgr_to_nv12(bgr):
     # NV12 shape as (h*1.5,w)
     # YUV_NV12: Y(y:h*w)UV(u,v:h*w/4)
