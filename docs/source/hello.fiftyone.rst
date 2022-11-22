@@ -23,7 +23,9 @@ Submodules
    hello.fiftyone.miou
    hello.fiftyone.patches
    hello.fiftyone.unique
+   hello.fiftyone.utils
    hello.fiftyone.video
+   hello.fiftyone.view
 
 Module contents
 ---------------
