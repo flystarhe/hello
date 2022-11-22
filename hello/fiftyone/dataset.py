@@ -3,6 +3,7 @@ from pathlib import Path
 from string import Template
 
 import fiftyone as fo
+import fiftyone.core.labels as fol
 import fiftyone.utils.yolo as fouy
 from fiftyone.utils.labels import segmentations_to_detections
 
@@ -11,6 +12,7 @@ from hello.fiftyone.dataset_detections import \
     load_dataset as _load_detection_dataset
 from hello.fiftyone.dataset_segmentations import \
     load_dataset as _load_segmentation_dataset
+from hello.fiftyone.utils import load_predictions
 
 tmpl_info = """\
 info = {
@@ -43,7 +45,46 @@ def add_yolov5_labels(dataset, label_field, labels_path, classes=None, include_m
         include_missing,
     )
 
-    return dataset
+
+def add_text_labels(dataset, label_field, labels_path, classes=None):
+    classes = classes or dataset.default_classes
+
+    filepaths, ids = dataset.values(["filepath", "id"])
+    id_map = {Path(k).stem: v for k, v in zip(filepaths, ids)}
+
+    _db = load_predictions(labels_path, classes=classes, mode="text")
+
+    stems_add = set(_db.keys())
+    stems_base = set(id_map.keys())
+
+    bad_stems = stems_add - stems_base
+    if bad_stems:
+        print(f"Ignoring {len(bad_stems)} nonexistent images (eg {bad_stems[:6]})")
+
+    stems = sorted(stems_add & stems_base)
+    matched_ids = [id_map[stem] for stem in stems]
+    view = dataset.select(matched_ids, ordered=True)
+
+    view.compute_metadata()
+    widths, heights = view.values(["metadata.width", "metadata.height"])
+
+    labels = []
+    for stem, width, height in zip(stems, widths, heights):
+        obj = _db[stem]
+
+        img_size = obj.get("size", None)
+        if img_size is not None:
+            width, height = img_size
+
+        detections = []
+        for detection in obj["detections"]:
+            x, y, w, h = detection["bounding_box"]
+            detection["bounding_box"] = [x / width, y / height, w / width, h / height]
+            detections.append(fol.Detection(**detection))
+
+        labels.append(fol.Detections(detections=detections))
+
+    view.set_values(label_field, labels)
 
 
 def load_images_dir(dataset_dir, dataset_name=None, dataset_type=None, classes=[], mask_targets={}):
