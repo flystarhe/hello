@@ -8,6 +8,7 @@ Commands:
     flop
     infer
     log
+    plot
 """
 
 
@@ -33,6 +34,9 @@ def main(args=None):
         _main(args)
     elif command == "log":
         from .log import main as _main
+        _main(args)
+    elif command == "plot":
+        from .plot import main as _main
         _main(args)
     else:
         print(help_doc_str)

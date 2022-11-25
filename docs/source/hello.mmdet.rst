@@ -11,6 +11,7 @@ Submodules
    hello.mmdet.flop
    hello.mmdet.infer
    hello.mmdet.log
+   hello.mmdet.plot
 
 Module contents
 ---------------
