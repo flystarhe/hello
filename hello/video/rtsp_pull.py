@@ -18,9 +18,10 @@ class Queue:
         self.data = self.data[-self.size:]
 
     def info(self):
-        n = len(self.data)
+        data = self.data
+        n = len(data)
         if n > 1:
-            v = n / sum(self.data)
+            v = (n - 1) / (data[-1] - data[0])
             return f"{v:.1f}"
         return "none"
 
@@ -138,9 +139,8 @@ def func(rtsp_url, view="front"):
     flag = "watch"
     # watch, recording
 
+    time_loc = time.time()
     while True:
-        time_loc = time.time()
-
         frame, errstr = _video.read()
 
         if flag == "recording":
@@ -157,9 +157,11 @@ def func(rtsp_url, view="front"):
             frame = frame[:, frame.shape[1]//2:]
             frame = cv.flip(cv.transpose(frame), 0)
 
+        if errstr is None:
+            errstr = "hotkey: n (recording), s (save), q (quit)"
+
         cv.putText(frame, msgstr, (15, 25), cv.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
-        if errstr is not None:
-            cv.putText(frame, errstr, (15, 55), cv.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
+        cv.putText(frame, errstr, (15, 55), cv.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
 
         cv.imshow("RTSP STREAM", frame)
 
@@ -179,11 +181,12 @@ def func(rtsp_url, view="front"):
             _video.save()
             flag = "watch"
 
-        time_loss = time.time() - time_loc
-        _queue.append(time_loss)
+        time_loc = time.time()
+        _queue.append(time_loc)
 
 
 # python rtsp_pull.py rtsp://localhost:8554/mystream
+# python -m hello.video.rtsp_pull rtsp://localhost:8554/mystream front
 if __name__ == "__main__":
     args = sys.argv[1:]
 

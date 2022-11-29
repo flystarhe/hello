@@ -20,6 +20,7 @@ import numpy as np
 #
 # push with python:
 # python rtsp.py push -i rtsp://localhost:8554/mystream -fps 10
+# python -m hello.video.rtsp push -i rtsp://localhost:8554/mystream -fps 30
 
 
 def rtsp_push(rtsp_url="rtsp://localhost:8554/video", height=1080, width=1920, fps=20, **kwargs):
@@ -40,8 +41,8 @@ def rtsp_push(rtsp_url="rtsp://localhost:8554/video", height=1080, width=1920, f
     pipe = subprocess.Popen(command, stdin=subprocess.PIPE)
 
     time_window = 1000 // fps
+    time_loc = time.time()
     while True:
-        time_loc = time.time()
         time_str = time.strftime(r"%Y-%m-%d %H:%M:%S")
 
         frame = np.zeros((height, width, 3), dtype=np.uint8)
@@ -57,6 +58,8 @@ def rtsp_push(rtsp_url="rtsp://localhost:8554/video", height=1080, width=1920, f
         key = cv.waitKey(sleep)
         if key == ord("q"):
             break
+
+        time_loc = time.time()
 
     cv.destroyAllWindows()
     return 0
@@ -77,9 +80,8 @@ def rtsp_pull(rtsp_url, frames=900, save=False, **kwargs):
         Path("tmp").mkdir(parents=True, exist_ok=True)
         out = cv.VideoWriter("tmp/rtsp_video.avi", fourcc, fps, (width, height))
 
+    time_loc = time.time()
     while True:
-        time_loc = time.time()
-
         if cap.isOpened():
             try:
                 ret, frame = cap.read()
@@ -104,6 +106,8 @@ def rtsp_pull(rtsp_url, frames=900, save=False, **kwargs):
         key = cv.waitKey(sleep)
         if key == ord("q"):
             break
+
+        time_loc = time.time()
 
     cv.destroyAllWindows()
 
