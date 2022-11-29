@@ -13,6 +13,7 @@ Submodules
    hello.video.info
    hello.video.resize
    hello.video.rtsp
+   hello.video.rtsp_pull
    hello.video.split
    hello.video.unwarp
    hello.video.utils
