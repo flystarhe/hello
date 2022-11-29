@@ -61,14 +61,15 @@ def plotting_log_dicts(log_dicts, out_dir, schedules, metrics, format):
     assert "iter" in columns or "epoch" in columns
 
     x_label, schedules = schedules[0], schedules[1:]
+    y_labels = schedules + metrics
 
-    for metric in metrics:
-        out_file = str(out_dir / f"images/{metric}{format}")
-        plotting_metrics(cache, x_label, metric, out_file)
+    for y_label in y_labels:
+        out_file = str(out_dir / f"images/{y_label}{format}")
+        plotting_metrics(cache, x_label, y_label, out_file)
 
     for exp_name, data in cache.groupby(by="exp_name"):
         out_file = str(out_dir / f"images/{exp_name}{format}")
-        plotting_schedules(data, x_label, schedules + metrics, out_file)
+        plotting_schedules(data, x_label, y_labels, out_file)
 
 
 def plotting_metrics(cache, x_label, y_label, out_file):
@@ -92,7 +93,7 @@ def plotting_metrics(cache, x_label, y_label, out_file):
 
     title_text = "<br>".join([
         "Analyze MMDetection Training Json Log",
-        str(exp_names)
+        f"{exp_names[0]},..."
     ])
     fig.update_layout(title_text=title_text)
 

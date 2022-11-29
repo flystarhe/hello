@@ -17,6 +17,9 @@ import numpy as np
 # 1. launch rtsp server: rtsp-simple-server.exe
 # 2. push: `ffmpeg -re -stream_loop -1 -i test.mp4 -c copy -f rtsp rtsp://localhost:8554/mystream`
 # 3. pull: `ffmpeg -i rtsp://localhost:8554/mystream -c copy output.mp4`
+#
+# push with python:
+# python rtsp.py push -i rtsp://localhost:8554/mystream -fps 10
 
 
 def rtsp_push(rtsp_url="rtsp://localhost:8554/video", height=1080, width=1920, fps=20, **kwargs):
@@ -36,14 +39,22 @@ def rtsp_push(rtsp_url="rtsp://localhost:8554/video", height=1080, width=1920, f
 
     pipe = subprocess.Popen(command, stdin=subprocess.PIPE)
 
+    time_window = 1000 // fps
     while True:
+        time_loc = time.time()
+        time_str = time.strftime(r"%Y-%m-%d %H:%M:%S")
+
         frame = np.zeros((height, width, 3), dtype=np.uint8)
-        cv.putText(frame, f"{time.time():.3f}", (15, 35), cv.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
+        frame[(height // 4):(height // 2), :] = (0, 0, 255)
+
+        cv.putText(frame, f"{time_str} {time_loc:.3f}", (15, 150), cv.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
 
         pipe.stdin.write(frame.tobytes())
         cv.imshow("rtsp push", frame)
 
-        key = cv.waitKey(30)
+        latency = int((time.time() - time_loc) * 1000)
+        sleep = max(1, time_window - latency)
+        key = cv.waitKey(sleep)
         if key == ord("q"):
             break
 
@@ -59,7 +70,7 @@ def rtsp_pull(rtsp_url, frames=900, save=False, **kwargs):
     height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
     print(f"[INFO] {fps=}, {width=}, {height=}")
 
-    delay = 1000 // fps
+    time_window = 1000 // fps
 
     if save:
         fourcc = cv.VideoWriter_fourcc(*"XVID")
@@ -71,25 +82,25 @@ def rtsp_pull(rtsp_url, frames=900, save=False, **kwargs):
 
         if cap.isOpened():
             try:
-                frame = cap.read()[1]
+                ret, frame = cap.read()
 
-                if save:
-                    out.write(frame)
-
-                cv.imshow("rtsp stream", frame)
+                if ret:
+                    frames -= 1
+                    if save:
+                        out.write(frame)
+                    cv.imshow("rtsp stream", frame)
             except Exception as e:
                 print(f"\n[ERROR]\n{traceback.format_exc()}")
-                cap = cv.VideoCapture(rtsp_url)
                 time.sleep(1)
         else:
             print(f"[INFO] can't open <{rtsp_url=}>")
+            cap.open(rtsp_url)
 
-        frames -= 1
         if frames < 1:
             break
 
-        latency = (time.time() - time_loc) * 1000
-        sleep = max(1, delay - latency)
+        latency = int((time.time() - time_loc) * 1000)
+        sleep = max(1, time_window - latency)
         key = cv.waitKey(sleep)
         if key == ord("q"):
             break
