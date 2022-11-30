@@ -12,6 +12,7 @@ Submodules
    hello.utils.importer
    hello.utils.plots
    hello.utils.points
+   hello.utils.strtime
 
 Module contents
 ---------------
