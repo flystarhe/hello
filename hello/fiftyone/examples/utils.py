@@ -242,7 +242,7 @@ def split_dataset(dataset, splits, limit=500, field_name="ground_truth"):
     val_ids = set(val_ids)
     train_ids = set(train_ids) - val_ids
     dataset.select(train_ids).tag_samples("train")
-    dataset.select(val_ids).tag_samples("validation")
+    dataset.select(val_ids).tag_samples("val")
     dataset.exclude(train_ids | val_ids).tag_samples("test")
     print(dataset.count_values("tags"))
     return dataset

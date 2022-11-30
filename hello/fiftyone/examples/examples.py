@@ -26,7 +26,7 @@ cat_dog.info = {
     "dataset_name": "cat-and-dog",
     "dataset_type": "segmentation",
     "version": "0.01",
-    "num_samples": {"all": 500, "train": 400, "validation": 100},
+    "num_samples": {"all": 500, "train": 400, "val": 100},
     "tail": {},
 }
 cat_dog.save()  # when `Dataset.info` is modified
@@ -52,7 +52,7 @@ info = {
     "version": "0.01",
     "classes": ["cat", "dog", "other"],
     "mask_targets": {70: "cat", 120: "dog", 255: "other"},
-    "num_samples": {"all": 500, "train": 400, "validation": 100},
+    "num_samples": {"all": 500, "train": 400, "val": 100},
     "tail": {},
 }
 datasets = [cat_dog, ]
@@ -84,7 +84,7 @@ info = {
     "version": "0.01",
     "classes": ["cat", "dog", "other"],
     "mask_targets": {70: "cat", 120: "dog", 255: "other"},
-    "num_samples": {"all": 500, "train": 400, "validation": 100},
+    "num_samples": {"all": 500, "train": 400, "val": 100},
     "tail": {},
 }
 data = create_dataset(images_dir, info, predictions=None)

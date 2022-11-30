@@ -28,7 +28,7 @@ def _parse_text_row(row):
 
     assert len(row_vals) >= 3, "filepath,height,width,..."
 
-    filepath = row_vals[0]
+    filepath = Path(row_vals[0])
     height = int(row_vals[1])
     width = int(row_vals[2])
     data = row_vals[3:]
@@ -38,8 +38,11 @@ def _parse_text_row(row):
     assert total_size % group_size == 0
 
     detections = []
+    _scale = [width, height, width, height]
     for i in range(0, total_size, group_size):
         bounding_box, confidence, label = _parse_text_slice(data[i:(i + group_size)])
+
+        bounding_box = [a / b for a, b in zip(bounding_box, _scale)]
 
         detection = dict(
             bounding_box=bounding_box,
@@ -49,11 +52,7 @@ def _parse_text_row(row):
 
         detections.append(detection)
 
-    img_size = None
-    if width > 0 and height > 0:
-        img_size = (width, height)
-
-    return filepath, img_size, detections
+    return filepath, detections
 
 
 def _parse_yolo_row(row, classes):
@@ -75,7 +74,7 @@ def _parse_yolo_row(row, classes):
     if len(row_vals) > 5:
         confidence = float(row_vals[5])
     else:
-        confidence = None
+        confidence = 1.0
 
     detection = dict(
         bounding_box=bounding_box,
@@ -97,8 +96,7 @@ def load_yolo_annotations(filepath, classes):
 
     detections = []
     for row in lines:
-        detection = _parse_yolo_row(row, classes)
-        detections.append(detection)
+        detections.append(_parse_yolo_row(row, classes))
     return detections
 
 
@@ -110,11 +108,8 @@ def load_text_predictions(labels_path):
 
     db = {}
     for row in lines:
-        filepath, img_size, detections = _parse_text_row(row)
-        db[Path(filepath).stem] = dict(
-            detections=detections,
-            size=img_size,
-        )
+        filepath, detections = _parse_text_row(row)
+        db[filepath.stem] = detections
     return db
 
 
@@ -122,9 +117,7 @@ def load_yolo_predictions(labels_path, classes):
     db = {}
     for filepath in Path(labels_path).glob("*.txt"):
         detections = load_yolo_annotations(filepath, classes)
-        db[filepath.stem] = dict(
-            detections=detections,
-        )
+        db[filepath.stem] = detections
     return db
 
 

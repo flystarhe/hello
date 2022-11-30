@@ -3,8 +3,8 @@ import shutil
 import sys
 from pathlib import Path
 
+import cv2 as cv
 import numpy as np
-
 from mmdet.apis import inference_detector, init_detector, show_result_pyplot
 
 
@@ -57,12 +57,15 @@ class Detector:
         Args:
             img (str): Image file.
         """
-        bbox_result = inference_detector(self.model, image_path)
+        image = cv.imread(image_path, 1)  # cv.IMREAD_COLOR
+
+        bbox_result = inference_detector(self.model, image)
 
         if out_file is not None:
-            show_result_pyplot(self.model, image_path, bbox_result, score_thr=score_thr, out_file=out_file)
+            show_result_pyplot(self.model, image, bbox_result, score_thr=score_thr, out_file=out_file)
 
-        return bbox_result, image_path
+        height, width = image.shape[:2]
+        return bbox_result, image_path, height, width
 
     def to_file(self, results, txt_file):
         """Format results.
@@ -76,7 +79,7 @@ class Detector:
         class_names = self.model.CLASSES
 
         lines = []
-        for bbox_result, image_path in results:
+        for bbox_result, image_path, height, width in results:
             bboxes = np.vstack(bbox_result)
             labels = [
                 np.full(bbox.shape[0], i, dtype=np.int32)
@@ -84,7 +87,7 @@ class Detector:
             ]
             labels = np.concatenate(labels)
 
-            line = [image_path, "0", "0"]
+            line = [f"{image_path},{height},{width}"]
             for bbox, label in zip(bboxes, labels):
                 line.extend([f"{v:.2f}" for v in bbox[:4]])
                 line.extend([f"{bbox[4]:.4f}", class_names[label]])

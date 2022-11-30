@@ -53,7 +53,7 @@ def load_coco_dataset(info, data_path, labels_path, field_name):
     imgs = {img["id"]: img for img in coco["images"]}
     cats = {cat["id"]: cat for cat in coco["categories"]}
 
-    _db = defaultdict(list)
+    db = defaultdict(list)
     for ann in coco["annotations"]:
         _img = imgs[ann["image_id"]]
 
@@ -70,17 +70,17 @@ def load_coco_dataset(info, data_path, labels_path, field_name):
 
         confidence = 1.0
 
-        _db[filepath].append(
+        db[filepath].append(
             fo.Detection(
-                label=label,
                 bounding_box=bounding_box,
                 confidence=confidence,
+                label=label,
             )
         )
 
     for img in coco["images"]:
         filepath = img["file_name"]
-        detections = _db[filepath]  # default=[]
+        detections = db[filepath]  # default=[]
         params = {
             "filepath": str(data_path / filepath),
             field_name: fo.Detections(detections=detections),
@@ -103,12 +103,12 @@ def load_text_dataset(info, data_path, labels_path, field_name):
     data_path = Path(data_path)
 
     with open(labels_path, "r") as f:
-        data = [line.strip() for line in f.readlines()]
+        lines = [l.strip() for l in f.read().splitlines()]
 
-    data = [line for line in data if line and not line.startswith("#")]
+    lines = [l for l in lines if l and not l.startswith("#")]
 
-    for line in data:
-        filepath, detections = _parse_text_line(line)
+    for row in lines:
+        filepath, detections = _parse_text_row(row)
         params = {
             "filepath": str(data_path / filepath),
             field_name: fo.Detections(detections=detections),
@@ -121,19 +121,19 @@ def load_text_dataset(info, data_path, labels_path, field_name):
     return dataset
 
 
-def _parse_text_line(line):
+def _parse_text_row(row):
     """\
-    line format:
+    row format:
         filepath,height,width,x1,y1,x2,y2,confidence,label,x1,y1,x2,y2,confidence,label
     """
-    vals = line.split(",")
+    row_vals = row.split(",")
 
-    assert len(vals) >= 3, "filepath,height,width,..."
+    assert len(row_vals) >= 3, "filepath,height,width,..."
 
-    filepath = vals[0].strip()
-    height = int(vals[1])
-    width = int(vals[2])
-    data = vals[3:]
+    filepath = row_vals[0]
+    height = int(row_vals[1])
+    width = int(row_vals[2])
+    data = row_vals[3:]
 
     group_size = 6
     total_size = len(data)
@@ -141,7 +141,7 @@ def _parse_text_line(line):
 
     def _parse(args):
         x1, y1, x2, y2 = [float(v) for v in args[:4]]
-        return x1, y1, x2, y2, float(args[4]), args[5].strip()
+        return x1, y1, x2, y2, float(args[4]), args[5]
 
     detections = []
     for i in range(0, total_size, group_size):
@@ -152,9 +152,9 @@ def _parse_text_line(line):
 
         detections.append(
             fo.Detection(
-                label=label,
                 bounding_box=bounding_box,
                 confidence=confidence,
+                label=label,
             )
         )
 
@@ -178,7 +178,7 @@ def load_dataset(dataset_dir, info_py="info.py", data_path="data", labels_path="
     info = {
         "dataset_name": "dataset-name",
         "dataset_type": "detection",
-        "version": "0.01",
+        "version": "001",
         "classes": [],
         "num_samples": {},
         "tail": {},

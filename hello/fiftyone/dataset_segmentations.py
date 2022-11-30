@@ -97,7 +97,7 @@ def load_dataset(dataset_dir, info_py="info.py", data_path="data", labels_path="
     info = {
         "dataset_name": "dataset-name",
         "dataset_type": "segmentation",
-        "version": "0.01",
+        "version": "001",
         "classes": [],
         "mask_targets": {},
         "num_samples": {},

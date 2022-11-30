@@ -1,9 +1,11 @@
+import json
 import shutil
 from pathlib import Path
 from string import Template
 
 import fiftyone as fo
 import fiftyone.core.labels as fol
+import fiftyone.utils.coco as fouc
 import fiftyone.utils.yolo as fouy
 from fiftyone.utils.labels import segmentations_to_detections
 
@@ -28,63 +30,100 @@ info = {
 tmpl_info = Template(tmpl_info)
 
 
-def add_mmdet_labels(dataset, label_field, labels_path, classes=None, include_missing=False):
-    classes = classes or dataset.default_classes
+def add_coco_labels(dataset, label_field, labels_path):
+    # https://voxel51.com/docs/fiftyone/api/fiftyone.utils.coco.html#fiftyone.utils.coco.add_coco_labels
+    assert Path(labels_path).suffix == ".json"
 
-    return dataset
+    with open(labels_path, "r") as f:
+        coco = json.load(f)
+
+    assert "categories" in coco and "images" in coco and "annotations" in coco
+
+    classes = [cat["name"] for cat in coco["categories"]]
+
+    db = {Path(img["file_name"]).stem: img["id"] for img in coco["images"]}
+    coco_ids = [db.get(Path(filepath).stem, -1) for filepath in dataset.values("filepath")]
+
+    coco_id_field = "coco_id"
+    dataset.set_values(coco_id_field, coco_ids)
+
+    fouc.add_coco_labels(
+        dataset,
+        label_field,
+        coco["annotations"],
+        classes,
+        label_type="detections",
+        coco_id_field=coco_id_field,
+    )
 
 
-def add_yolov5_labels(dataset, label_field, labels_path, classes=None, include_missing=False):
-    classes = classes or dataset.default_classes
+def add_yolo_labels(dataset, label_field, labels_path, classes):
+    # https://voxel51.com/docs/fiftyone/api/fiftyone.utils.yolo.html#fiftyone.utils.yolo.add_yolo_labels
+    assert isinstance(classes, list)
 
     fouy.add_yolo_labels(
         dataset,
         label_field,
         labels_path,
         classes,
-        include_missing,
     )
 
 
-def add_text_labels(dataset, label_field, labels_path, classes=None):
-    classes = classes or dataset.default_classes
+def add_detection_labels(dataset, label_field, labels_path, classes, mode="text"):
+    """Adds detection labels to the dataset.
+
+    if `text` mode, a text row corresponds to a sample prediction result.
+    row format: `filepath,height,width,x1,y1,x2,y2,confidence,label,x1,y1,x2,y2,confidence,label`
+    if `yolo` mode, a txt file corresponds to a sample prediction result.
+    row format: `target,xc,yc,w,h,s`
+    if `coco` mode, a standard COCO format json file.
+    from https://cocodataset.org/#format-data
+
+    Args:
+        dataset (_type_): _description_
+        label_field (_type_): _description_
+        labels_path (_type_): _description_
+        classes (_type_): _description_
+        mode (str, optional): _description_. Defaults to "text".
+    """
+    assert mode in {"text", "yolo", "coco"}
+
+    if mode == "coco":
+        add_coco_labels(dataset, label_field, labels_path)
+        return
 
     filepaths, ids = dataset.values(["filepath", "id"])
     id_map = {Path(k).stem: v for k, v in zip(filepaths, ids)}
 
-    _db = load_predictions(labels_path, classes=classes, mode="text")
+    db = load_predictions(labels_path, classes=classes, mode=mode)
 
-    stems_add = set(_db.keys())
+    stems_adds = set(db.keys())
     stems_base = set(id_map.keys())
 
-    bad_stems = stems_add - stems_base
+    bad_stems = stems_adds - stems_base
     if bad_stems:
-        print(f"Ignoring {len(bad_stems)} nonexistent images (eg {bad_stems[:6]})")
+        print(f"Ignoring {len(bad_stems)} nonexistent images\n  (eg {bad_stems[:6]})")
 
-    stems = sorted(stems_add & stems_base)
+    stems = sorted(stems_adds & stems_base)
     matched_ids = [id_map[stem] for stem in stems]
     view = dataset.select(matched_ids, ordered=True)
 
-    view.compute_metadata()
-    widths, heights = view.values(["metadata.width", "metadata.height"])
-
     labels = []
-    for stem, width, height in zip(stems, widths, heights):
-        obj = _db[stem]
-
-        img_size = obj.get("size", None)
-        if img_size is not None:
-            width, height = img_size
-
-        detections = []
-        for detection in obj["detections"]:
-            x, y, w, h = detection["bounding_box"]
-            detection["bounding_box"] = [x / width, y / height, w / width, h / height]
-            detections.append(fol.Detection(**detection))
-
+    for stem in stems:
+        detections = [fol.Detection(**detection) for detection in db[stem]]
         labels.append(fol.Detections(detections=detections))
 
     view.set_values(label_field, labels)
+
+
+def add_images_dir(images_dir, tags=None, recursive=True):
+    # https://voxel51.com/docs/fiftyone/api/fiftyone.core.dataset.html#fiftyone.core.dataset.Dataset.add_images_dir
+    raise NotImplementedError
+
+
+def add_dataset_dir(dataset_dir, data_path=None, labels_path=None, label_field=None, tags=None):
+    # https://voxel51.com/docs/fiftyone/api/fiftyone.core.dataset.html#fiftyone.core.dataset.Dataset.add_dir
+    raise NotImplementedError
 
 
 def load_images_dir(dataset_dir, dataset_name=None, dataset_type=None, classes=[], mask_targets={}):
@@ -98,7 +137,7 @@ def load_images_dir(dataset_dir, dataset_name=None, dataset_type=None, classes=[
     info = {
         "dataset_name": dataset_name if dataset_name else "dataset-name",
         "dataset_type": dataset_type if dataset_type else "unknown",
-        "version": "0.01",
+        "version": "001",
         "classes": classes,
         "mask_targets": mask_targets,
         "num_samples": {},
