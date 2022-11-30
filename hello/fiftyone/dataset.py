@@ -72,12 +72,15 @@ def add_yolo_labels(dataset, label_field, labels_path, classes):
 def add_detection_labels(dataset, label_field, labels_path, classes, mode="text"):
     """Adds detection labels to the dataset.
 
-    if `text` mode, a text row corresponds to a sample prediction result.
-    row format: `filepath,height,width,x1,y1,x2,y2,confidence,label,x1,y1,x2,y2,confidence,label`
-    if `yolo` mode, a txt file corresponds to a sample prediction result.
-    row format: `target,xc,yc,w,h,s`
-    if `coco` mode, a standard COCO format json file.
-    from https://cocodataset.org/#format-data
+    .. note::
+        if ``mode=text``, a text row corresponds to a sample prediction result.
+        row format: ``filepath,height,width,x1,y1,x2,y2,confidence,label,x1,y1,x2,y2,confidence,label``.
+
+        if ``mode=yolo``, a txt file corresponds to a sample prediction result.
+        row format: ``target,xc,yc,w,h,s``.
+
+        if ``mode=coco``, a standard COCO format json file.
+        from https://cocodataset.org/#format-data.
 
     Args:
         dataset (_type_): _description_

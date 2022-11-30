@@ -73,8 +73,8 @@ def gen_label_mapping(old_classes, new_classes):
     """Generate detections mapping.
 
     Args:
-        old_classes (list): `['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'background']`
-        new_classes (list): `['c0', 'c1', 'c2', ['c3', 'c4', 'c5'], 'background']`
+        old_classes (list): ``['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'background']``
+        new_classes (list): ``['c0', 'c1', 'c2', ['c3', 'c4', 'c5'], 'background']``
 
     Returns:
         _type_: _description_
@@ -100,8 +100,8 @@ def gen_mask_mapping(old_classes, new_classes):
     """Generate segmentation mapping.
 
     Args:
-        old_classes (list): `['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'be ignored']`
-        new_classes (list): `['c0', 'c1', 'c2', ['c3', 'c4', 'c5'], 'be ignored']`
+        old_classes (list): ``['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'be ignored']``
+        new_classes (list): ``['c0', 'c1', 'c2', ['c3', 'c4', 'c5'], 'be ignored']``
 
     Returns:
         _type_: _description_
@@ -129,7 +129,7 @@ def filter_detections_dataset(dataset, new_classes=None, field_name="ground_trut
 
     Args:
         dataset (fo.Dataset): _description_
-        new_classes (list, optional): refer to `gen_label_mapping()`. Defaults to None.
+        new_classes (list, optional): refer to :func:`gen_label_mapping`. Defaults to None.
         field_name (str, optional): _description_. Defaults to "ground_truth".
         background (str, optional): _description_. Defaults to "background".
 
@@ -155,7 +155,7 @@ def filter_segmentation_dataset(dataset, new_classes=None, field_name="ground_tr
 
     Args:
         dataset (fo.Dataset): _description_
-        new_classes (list, optional): refer to `gen_mask_mapping()`. Defaults to None.
+        new_classes (list, optional): refer to :func:`gen_mask_mapping`. Defaults to None.
         field_name (str, optional): _description_. Defaults to "ground_truth".
         ignore_index (int, optional): _description_. Defaults to 255.
 
