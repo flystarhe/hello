@@ -74,7 +74,7 @@ def add_detection_labels(dataset, label_field, labels_path, classes, mode="text"
 
     .. note::
         if ``mode=text``, a text row corresponds to a sample prediction result.
-        row format: ``filepath,height,width,x1,y1,x2,y2,confidence,label,x1,y1,x2,y2,confidence,label``.
+        row format: ``filepath,height,width,x1,y1,x2,y2,s,l,x1,y1,x2,y2,s,l``.
 
         if ``mode=yolo``, a txt file corresponds to a sample prediction result.
         row format: ``target,xc,yc,w,h,s``.
