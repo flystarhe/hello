@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import fiftyone.brain as fob
 
 
@@ -63,4 +65,16 @@ def match_tags(dataset, tags, bool=None, all=False):
         _type_: _description_
     """
     view = dataset.match_tags(tags, bool, all)
+    return view
+
+
+def sort_by_filename(dataset):
+    filepaths, ids = dataset.values(["filepath", "id"])
+
+    data = [(Path(k).name, v) for k, v in zip(filepaths, ids)]
+    data = sorted(data, key=lambda x: x[0])
+    sorted_ids = [x[1] for x in data]
+
+    view = dataset.select(sorted_ids, ordered=True)
+
     return view

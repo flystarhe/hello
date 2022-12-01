@@ -129,8 +129,53 @@ def add_dataset_dir(dataset_dir, data_path=None, labels_path=None, label_field=N
     raise NotImplementedError
 
 
+def add_dataset(dataset, skip_existing=True, insert_new=True, fields=None, expand_schema=True):
+    # https://voxel51.com/docs/fiftyone/api/fiftyone.core.dataset.html#fiftyone.core.dataset.Dataset.merge_samples
+    raise NotImplementedError
+
+
+def create_dataset(dataset_name, dataset_type=None, classes=[], mask_targets={}):
+    """Create an empty :class:`fiftyone.core.dataset.Dataset` with the name.
+
+    Args:
+        dataset_name (str): a name for the dataset.
+        dataset_type (str, optional): optional values are in ``{'detection', 'segmentation'}``. Defaults to None.
+        classes (list, optional): _description_. Defaults to [].
+        mask_targets (dict, optional): _description_. Defaults to {}.
+    """
+    dataset = fo.Dataset()
+
+    dataset.name = dataset_name
+    dataset.persistent = True
+
+    info = {
+        "dataset_name": dataset_name,
+        "dataset_type": dataset_type if dataset_type else "unknown",
+        "version": "001",
+        "classes": classes,
+        "mask_targets": mask_targets,
+        "num_samples": {},
+        "tail": {},
+    }
+
+    dataset.default_classes = info.pop("classes", [])
+    dataset.default_mask_targets = info.pop("mask_targets", {})
+    dataset.info = info
+    dataset.save()
+
+    return dataset
+
+
 def load_images_dir(dataset_dir, dataset_name=None, dataset_type=None, classes=[], mask_targets={}):
-    # `dataset_type` (None) - a string. The possible values are: `detection`, `segmentation`.
+    """Create a :class:`fiftyone.core.dataset.Dataset` from the given directory of images.
+
+    Args:
+        dataset_dir (str): a directory of images.
+        dataset_name (str, optional): a name for the dataset. Defaults to None.
+        dataset_type (str, optional): optional values are in ``{'detection', 'segmentation'}``. Defaults to None.
+        classes (list, optional): _description_. Defaults to [].
+        mask_targets (dict, optional): _description_. Defaults to {}.
+    """
     dataset = fo.Dataset.from_images_dir(dataset_dir)
 
     if dataset_name:
@@ -189,15 +234,15 @@ def load_segmentation_dataset(dataset_dir, info_py="info.py", data_path="data", 
     return dataset
 
 
-def export_detection_dataset(export_dir, dataset, label_field):
-    return export_dataset(export_dir, dataset, label_field=label_field)
+def export_detection_dataset(export_dir, dataset, label_field, splits=None):
+    return export_dataset(export_dir, dataset, label_field=label_field, splits=splits)
 
 
-def export_segmentation_dataset(export_dir, dataset, label_field, mask_types="stuff"):
-    return export_dataset(export_dir, dataset, mask_label_field=label_field, mask_types=mask_types)
+def export_segmentation_dataset(export_dir, dataset, label_field, mask_types="stuff", splits=None):
+    return export_dataset(export_dir, dataset, mask_label_field=label_field, mask_types=mask_types, splits=splits)
 
 
-def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None, mask_types="stuff"):
+def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None, mask_types="stuff", splits=None):
     # mask_types: "stuff"(amorphous regions of pixels), "thing"(connected regions, each representing an instance)
     assert label_field is not None or mask_label_field is not None
     shutil.rmtree(export_dir, ignore_errors=True)
@@ -213,12 +258,18 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
         print("todo: segmentations_to_detections()")
         dataset = dataset.select_fields(mask_label_field).clone()
         segmentations_to_detections(dataset, mask_label_field, label_field, mask_targets=dataset.default_mask_targets, mask_types=mask_types)
+    else:
+        dataset = dataset.clone()
 
-    splits = dataset.distinct("tags")
+    if splits is None:
+        splits = ["train", "val", "test"]
+
+    _tags = set(dataset.distinct("tags"))
+    splits = [s for s in splits if s in _tags]
 
     if not splits:
         splits = ["train"]
-        dataset.tag_samples("train")
+        dataset.tag_samples(splits)
 
     for split in splits:
         print(f"\n[{split}]\n")

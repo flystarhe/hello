@@ -2,12 +2,11 @@ import shutil
 from pathlib import Path
 
 import cv2 as cv
-from prettytable import PrettyTable
-from tqdm import tqdm
-
 import fiftyone as fo
 from fiftyone import ViewField as F
 from fiftyone.utils.labels import segmentations_to_detections
+from prettytable import PrettyTable
+from tqdm import tqdm
 
 
 def _map_detections(field_data, mapping):
@@ -216,23 +215,33 @@ def count_values(dataset, field_or_expr, ordered=True):
     return count_label
 
 
-def split_dataset(dataset, splits=None, limit=3000, field_name="ground_truth", from_field=None):
-    dataset.untag_samples(dataset.distinct("tags"))
-    dataset = dataset.shuffle()
+def split_dataset(dataset, splits=None, limit=3000, seed=51, field_name="ground_truth", from_field=None):
+    """Adds the split tags to all samples in this dataset.
+
+    Args:
+        dataset (Dataset): _description_
+        splits (dict, optional): _description_. Defaults to None.
+        limit (int, optional): _description_. Defaults to 3000.
+        seed (int, optional): _description_. Defaults to 51.
+        field_name (str, optional): _description_. Defaults to "ground_truth".
+        from_field (str, optional): _description_. Defaults to None.
+    """
+    view = dataset.shuffle(seed=seed)
+    view.untag_samples(["train", "val", "test"])
 
     if from_field is not None:
         print("todo: segmentations_to_detections()")
-        segmentations_to_detections(dataset, from_field, field_name, mask_targets=dataset.default_mask_targets, mask_types="stuff")
+        segmentations_to_detections(view, from_field, field_name, mask_targets=view.default_mask_targets, mask_types="stuff")
 
     if splits is None:
         splits = {"val": 0.1, "train": 0.9}
 
     val_ids, train_ids = [], []
-    for label, _ in count_values(dataset, f"{field_name}.detections.label", ordered=True):
+    for label, _ in count_values(view, f"{field_name}.detections.label", ordered=True):
         _detections = F(f"{field_name}.detections").filter(F("label") == label)
-        view = dataset.exclude(val_ids + train_ids).match(_detections.length() > 0)
+        subset = view.exclude(val_ids + train_ids).match(_detections.length() > 0)
 
-        ids = view.take(limit).values("id")
+        ids = subset.take(limit).values("id")
 
         pos_val = splits.get("val", 0.1)
         pos_train = splits.get("train", 0.9)
@@ -245,11 +254,11 @@ def split_dataset(dataset, splits=None, limit=3000, field_name="ground_truth", f
         val_ids.extend(ids[:pos_val])
         train_ids.extend(ids[pos_val:])
 
-    dataset.select(val_ids).tag_samples("val")
-    dataset.select(train_ids).tag_samples("train")
-    dataset.exclude(val_ids + train_ids).tag_samples("test")
-    print(count_values(dataset, "tags", ordered=True))
-    return dataset
+    view.select(val_ids).tag_samples("val")
+    view.select(train_ids).tag_samples("train")
+    view.exclude(val_ids + train_ids).tag_samples("test")
+    print(count_values(view, "tags", ordered=True))
+    return view
 
 
 def filter_segmentation_samples(out_dir, data_root, classes, mask_targets, threshold=0.05, splits=["train", "val"],
