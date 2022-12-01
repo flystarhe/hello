@@ -9,16 +9,16 @@ from mmdet.apis import inference_detector, init_detector, show_result_pyplot
 
 
 class Detector:
+    """Instantiate an object detector.
+
+    Args:
+        config_file (str): Config file path.
+        checkpoint_file (str): Checkpoint file path.
+        device (str, optional): Device used for calculating. Defaults to "cuda:0".
+        cfg_options (dict, optional): Options to override some settings. Defaults to None.
+    """
 
     def __init__(self, config_file, checkpoint_file, device="cuda:0", cfg_options=None) -> None:
-        """Instantiate an object detector.
-
-        Args:
-            config_file (str): Config file path.
-            checkpoint_file (str): Checkpoint file path.
-            device (str, optional): Device used for calculating. Defaults to "cuda:0".
-            cfg_options (dict, optional): Options to override some settings. Defaults to None.
-        """
         self.model = init_detector(config_file, checkpoint_file, device, cfg_options)
 
     def test_images(self, images_or_dir, score_thr=0.3, out_dir=None):
@@ -70,8 +70,7 @@ class Detector:
     def to_file(self, results, txt_file):
         """Format results.
 
-        Such as:
-            filepath,height,width,x1,y1,x2,y2,confidence,label,x1,y1,x2,y2,confidence,label
+        Such as ``filepath,height,width,x1,y1,x2,y2,s,l,x1,y1,x2,y2,s,l``.
 
         Args:
             results (list[tuple]): The results.

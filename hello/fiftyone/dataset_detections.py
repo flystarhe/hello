@@ -25,7 +25,7 @@ tips:
     ground_truth/predictions:
         - *.json: COCO format
         - *.txt: An inference result saves a row
-            filepath,height,width,x1,y1,x2,y2,confidence,label,x1,y1,x2,y2,confidence,label
+            filepath,height,width,x1,y1,x2,y2,s,l,x1,y1,x2,y2,s,l
 
     **Basic Usage**
     - To open a dataset in the App, simply set the `session.dataset` property.
@@ -124,7 +124,7 @@ def load_text_dataset(info, data_path, labels_path, field_name):
 def _parse_text_row(row):
     """\
     row format:
-        filepath,height,width,x1,y1,x2,y2,confidence,label,x1,y1,x2,y2,confidence,label
+        ``filepath,height,width,x1,y1,x2,y2,s,l,x1,y1,x2,y2,s,l``
     """
     row_vals = row.split(",")
 

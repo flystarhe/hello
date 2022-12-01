@@ -12,14 +12,15 @@ def from_tar():
     """\
     cn_courtyard_lfi_20220527_v0.01.tar
 
-    >>> <cn_courtyard_lfi_20220527>/
-    >>> ├── calib_results.txt
-    >>> ├── customize.json
-    >>> ├── libprocess.so
-    >>> └── data
-    >>>     ├── 20220527_113755.mp4
-    >>>     ├── 20220527_113803.mp4
-    >>>     ├── 20220527_113805.png
-    >>>     └── 20220527_113814.png
+    Examples::
+        >>> <cn_courtyard_lfi_20220527>/
+        >>> ├── calib_results.txt
+        >>> ├── customize.json
+        >>> ├── libprocess.so
+        >>> └── data
+        >>>     ├── 20220527_113755.mp4
+        >>>     ├── 20220527_113803.mp4
+        >>>     ├── 20220527_113805.png
+        >>>     └── 20220527_113814.png
     """
     return 0

@@ -9,13 +9,14 @@ from prettytable import PrettyTable
 
 
 class ConfusionMatrix:
-    def __init__(self, class_names, reduce_zero_label=True):
-        """For segmentation metrics.
+    """For segmentation metrics.
 
-        Args:
-            class_names (list[str]): _description_
-            reduce_zero_label (bool, optional): _description_. Defaults to True.
-        """
+    Args:
+        class_names (list[str]): _description_
+        reduce_zero_label (bool, optional): _description_. Defaults to True.
+    """
+
+    def __init__(self, class_names, reduce_zero_label=True):
         self.class_names = class_names
         self.num_classes = len(class_names)
         self.reduce_zero_label = reduce_zero_label

@@ -22,7 +22,7 @@ def _parse_text_slice(vals):
 def _parse_text_row(row):
     """\
     row format:
-        filepath,height,width,x1,y1,x2,y2,confidence,label,x1,y1,x2,y2,confidence,label
+        ``filepath,height,width,x1,y1,x2,y2,s,l,x1,y1,x2,y2,s,l``
     """
     row_vals = row.split(",")
 
@@ -87,7 +87,7 @@ def _parse_yolo_row(row, classes):
 def load_yolo_annotations(filepath, classes):
     """\
     row format:
-        target,xc,yc,w,h,s
+        ``target,xc,yc,w,h,s``
     """
     with open(filepath, "r") as f:
         lines = [l.strip() for l in f.read().splitlines()]
