@@ -105,7 +105,7 @@ def add_detection_labels(dataset, label_field, labels_path, classes, mode="text"
 
     bad_stems = stems_adds - stems_base
     if bad_stems:
-        print(f"Ignoring {len(bad_stems)} nonexistent images\n  (eg {bad_stems[:6]})")
+        print(f"Ignoring {len(bad_stems)} nonexistent images (eg {list(bad_stems)[:6]})")
 
     stems = sorted(stems_adds & stems_base)
     matched_ids = [id_map[stem] for stem in stems]
@@ -198,6 +198,26 @@ def load_images_dir(dataset_dir, dataset_name=None, dataset_type=None, classes=[
     dataset.save()
 
     return dataset
+
+
+def list_datasets():
+    return fo.list_datasets()
+
+
+def delete_datasets(names=None, non_persistent=True):
+    names = set(names or [])
+
+    _vals = set(fo.list_datasets())
+
+    bad_names = names - _vals
+    if bad_names:
+        print(f"Ignoring {len(bad_names)} nonexistent datasets (eg {list(bad_names)[:6]})")
+
+    for name in sorted(names & _vals):
+        fo.delete_dataset(name, verbose=True)
+
+    if non_persistent:
+        fo.delete_non_persistent_datasets(verbose=True)
 
 
 def load_detection_dataset(dataset_dir, info_py="info.py", data_path="data", labels_path="labels.json", field_name="ground_truth", splits=None):
