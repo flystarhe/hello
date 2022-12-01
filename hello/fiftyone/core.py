@@ -76,7 +76,7 @@ def gen_label_mapping(old_classes, new_classes):
         new_classes (list): ``['c0', 'c1', 'c2', ['c3', 'c4', 'c5'], 'background']``
 
     Returns:
-        a dict
+        mapping (dict)
     """
     old_classes, new_classes = old_classes[:-1], new_classes[:-1]
 
@@ -103,7 +103,7 @@ def gen_mask_mapping(old_classes, new_classes):
         new_classes (list): ``['c0', 'c1', 'c2', ['c3', 'c4', 'c5'], 'be ignored']``
 
     Returns:
-        a dict
+        mapping (dict)
     """
     old_classes, new_classes = old_classes[:-1], new_classes[:-1]
 
@@ -133,7 +133,7 @@ def filter_detections_dataset(dataset, new_classes=None, field_name="ground_trut
         background (str, optional): _description_. Defaults to "background".
 
     Returns:
-        a :class:`fiftyone.core.dataset.Dataset`
+        dataset (fiftyone.core.dataset.Dataset)
     """
     dataset.save()
     dataset = dataset.clone()
@@ -159,7 +159,7 @@ def filter_segmentation_dataset(dataset, new_classes=None, field_name="ground_tr
         ignore_index (int, optional): _description_. Defaults to 255.
 
     Returns:
-        a :class:`fiftyone.core.dataset.Dataset`
+        dataset (fiftyone.core.dataset.Dataset)
     """
     dataset.save()
     dataset = dataset.clone()
@@ -227,7 +227,7 @@ def split_dataset(dataset, splits=None, limit=3000, seed=51, field_name="ground_
         from_field (str, optional): _description_. Defaults to None.
 
     Returns:
-        a :class:`DatasetView`
+        view (DatasetView)
     """
     view = dataset.shuffle(seed=seed)
     view.untag_samples(["train", "val", "test"])
@@ -291,7 +291,7 @@ def filter_segmentation_samples(out_dir, data_root, classes, mask_targets, thres
         seg_map_suffix (str, optional): _description_. Defaults to ".png".
 
     Returns:
-        output dir
+        out_dir (str)
     """
     _mapping = {name: index for index, name in mask_targets.items()}
     _labels = [_mapping[name] for name in classes]
