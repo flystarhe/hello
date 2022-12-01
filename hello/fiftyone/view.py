@@ -12,6 +12,7 @@ def uniqueness(dataset, count, model=None):
         model (_type_, optional): _description_. Defaults to None.
 
     Examples::
+
         >>> model: 'mobilenet-v2-imagenet-torch'
         >>> model: 'resnet50-imagenet-torch', 'resnet101-imagenet-torch', 'resnet152-imagenet-torch'
         >>> model: 'resnext50-32x4d-imagenet-torch', 'resnext101-32x8d-imagenet-torch'
