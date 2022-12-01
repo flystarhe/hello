@@ -142,6 +142,9 @@ def create_dataset(dataset_name, dataset_type=None, classes=[], mask_targets={})
         dataset_type (str, optional): optional values are in ``{'detection', 'segmentation'}``. Defaults to None.
         classes (list, optional): _description_. Defaults to [].
         mask_targets (dict, optional): _description_. Defaults to {}.
+
+    Returns:
+        a :class:`fiftyone.core.dataset.Dataset`
     """
     dataset = fo.Dataset()
 
@@ -175,6 +178,9 @@ def load_images_dir(dataset_dir, dataset_name=None, dataset_type=None, classes=[
         dataset_type (str, optional): optional values are in ``{'detection', 'segmentation'}``. Defaults to None.
         classes (list, optional): _description_. Defaults to [].
         mask_targets (dict, optional): _description_. Defaults to {}.
+
+    Returns:
+        a :class:`fiftyone.core.dataset.Dataset`
     """
     dataset = fo.Dataset.from_images_dir(dataset_dir)
 

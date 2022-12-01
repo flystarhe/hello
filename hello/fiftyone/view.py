@@ -11,12 +11,13 @@ def uniqueness(dataset, count, model=None):
         count (_type_): _description_
         model (_type_, optional): _description_. Defaults to None.
 
-    >>> model: 'mobilenet-v2-imagenet-torch'
-    >>> model: 'resnet50-imagenet-torch', 'resnet101-imagenet-torch', 'resnet152-imagenet-torch'
-    >>> model: 'resnext50-32x4d-imagenet-torch', 'resnext101-32x8d-imagenet-torch'
+    Examples:
+        >>> model: 'mobilenet-v2-imagenet-torch'
+        >>> model: 'resnet50-imagenet-torch', 'resnet101-imagenet-torch', 'resnet152-imagenet-torch'
+        >>> model: 'resnext50-32x4d-imagenet-torch', 'resnext101-32x8d-imagenet-torch'
 
     Returns:
-        _type_: _description_
+        a :class:`DatasetView`
     """
     num_samples = len(dataset)
     assert num_samples > 0
@@ -53,7 +54,7 @@ def unlabeled(dataset, field_name="ground_truth"):
 
 
 def match_tags(dataset, tags, bool=None, all=False):
-    """_summary_
+    """Returns a view containing the samples in the collection that have or don’t have any/all of the given tag(s).
 
     Args:
         dataset (_type_): _description_
@@ -62,7 +63,7 @@ def match_tags(dataset, tags, bool=None, all=False):
         all (bool, optional): whether to match samples that have (or don’t have) all (True) or any (False) of the given tags.
 
     Returns:
-        _type_: _description_
+        a :class:`DatasetView`
     """
     view = dataset.match_tags(tags, bool, all)
     return view

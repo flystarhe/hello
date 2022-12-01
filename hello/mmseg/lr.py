@@ -28,9 +28,6 @@ def valley(lrs: list, losses: list):
     Args:
         lrs (list): _description_
         losses (list): _description_
-
-    Returns:
-        _type_: _description_
     """
     n = len(losses)
     max_start, max_end = 0, 0
