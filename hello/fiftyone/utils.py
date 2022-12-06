@@ -84,7 +84,7 @@ def _parse_yolo_row(row, classes):
     return detection
 
 
-def load_yolo_annotations(filepath, classes):
+def _parse_yolo_annotations(filepath, classes):
     """\
     row format:
         ``target,xc,yc,w,h,s``
@@ -116,7 +116,7 @@ def load_text_predictions(labels_path):
 def load_yolo_predictions(labels_path, classes):
     db = {}
     for filepath in Path(labels_path).glob("*.txt"):
-        detections = load_yolo_annotations(filepath, classes)
+        detections = _parse_yolo_annotations(filepath, classes)
         db[filepath.stem] = detections
     return db
 

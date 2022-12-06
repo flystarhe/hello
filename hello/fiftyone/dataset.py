@@ -83,11 +83,11 @@ def add_detection_labels(dataset, label_field, labels_path, classes, mode="text"
         from https://cocodataset.org/#format-data.
 
     Args:
-        dataset (_type_): _description_
-        label_field (_type_): _description_
-        labels_path (_type_): _description_
-        classes (_type_): _description_
-        mode (str, optional): _description_. Defaults to "text".
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        label_field (str): the label field in which to store the labels
+        labels_path (str): the labels load from
+        classes (list): the list of class label strings
+        mode (str, optional): supported values are ``("text", "yolo", "coco")``
     """
     assert mode in {"text", "yolo", "coco"}
 
@@ -119,9 +119,48 @@ def add_detection_labels(dataset, label_field, labels_path, classes, mode="text"
     view.set_values(label_field, labels)
 
 
-def add_images_dir(images_dir, tags=None, recursive=True):
+def add_images_dir(dataset, images_dir, tags=None, recursive=True):
+    """Adds the given directory of images to the dataset.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        images_dir (str): a directory of images
+        tags (None): an optional tag or iterable of tags to attach to each sample
+        recursive (True): whether to recursively traverse subdirectories
+    """
     # https://voxel51.com/docs/fiftyone/api/fiftyone.core.dataset.html#fiftyone.core.dataset.Dataset.add_images_dir
-    raise NotImplementedError
+    if not recursive:
+        image_paths = [str(f) for f in Path(images_dir).glob("*.jpg")]
+    else:
+        image_paths = [str(f) for f in Path(images_dir).glob("**/*.jpg")]
+
+    stems_base = set([Path(filepath).stem for filepath in dataset.values("filepath")])
+    stems_adds = set([Path(filepath).stem for filepath in image_paths])
+
+    bad_stems = stems_base & stems_adds
+    if bad_stems:
+        print(f"Ignoring {len(bad_stems)} existing images (eg {list(bad_stems)[:6]})")
+
+    image_paths = sorted([filepath for filepath in image_paths
+                          if Path(filepath).stem not in bad_stems])
+
+    dataset.add_images(image_paths, tags=tags)
+
+
+def delete_duplicates(dataset):
+    """Delete duplicate images.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+    """
+    filepaths, ids = dataset.values(["filepath", "id"])
+    id_map = {Path(k).stem: v for k, v in zip(filepaths, ids)}
+
+    dup_ids = set(ids) - set(id_map.values())
+    if dup_ids:
+        print(f"Delete {len(dup_ids)} duplicate images (eg {list(dup_ids)[:6]})")
+
+    dataset.delete_samples(dup_ids)
 
 
 def add_dataset_dir(dataset_dir, data_path=None, labels_path=None, label_field=None, tags=None):
@@ -139,9 +178,9 @@ def create_dataset(dataset_name, dataset_type=None, classes=[], mask_targets={})
 
     Args:
         dataset_name (str): a name for the dataset.
-        dataset_type (str, optional): optional values are in ``{'detection', 'segmentation'}``. Defaults to None.
-        classes (list, optional): _description_. Defaults to [].
-        mask_targets (dict, optional): _description_. Defaults to {}.
+        dataset_type (str, optional): supported values are ``("detection", "segmentation")``
+        classes (list, optional): defaults to []
+        mask_targets (dict, optional): defaults to {}
 
     Returns:
         a :class:`fiftyone.core.dataset.Dataset`
@@ -175,9 +214,9 @@ def load_images_dir(dataset_dir, dataset_name=None, dataset_type=None, classes=[
     Args:
         dataset_dir (str): a directory of images.
         dataset_name (str, optional): a name for the dataset. Defaults to None.
-        dataset_type (str, optional): optional values are in ``{'detection', 'segmentation'}``. Defaults to None.
-        classes (list, optional): _description_. Defaults to [].
-        mask_targets (dict, optional): _description_. Defaults to {}.
+        dataset_type (str, optional): supported values are ``("detection", "segmentation")``
+        classes (list, optional): defaults to []
+        mask_targets (dict, optional): defaults to {}
 
     Returns:
         a :class:`fiftyone.core.dataset.Dataset`

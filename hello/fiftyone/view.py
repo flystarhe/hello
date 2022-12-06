@@ -7,9 +7,9 @@ def uniqueness(dataset, count, model=None):
     """The uniqueness of a Dataset.
 
     Args:
-        dataset (_type_): _description_
-        count (_type_): _description_
-        model (_type_, optional): _description_. Defaults to None.
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        count (int, float): specific int value or percentage
+        model (None): a :class:`fiftyone.core.models.Model` or the name of a model
 
     Examples::
 
@@ -54,19 +54,18 @@ def unlabeled(dataset, field_name="ground_truth"):
     return view
 
 
-def match_tags(dataset, tags, bool=None, all=False):
-    """Returns a view containing the samples in the collection that have or don’t have any/all of the given tag(s).
+def match_tags(dataset, tags, bool=None):
+    """Returns a view containing the samples in the collection that have (or do not have) any of the given tag(s).
 
     Args:
-        dataset (_type_): _description_
-        tags (_type_): the tag or iterable of tags to match.
-        bool (_type_, optional): whether to match samples that have (None or True) or do not have (False) the given tags.
-        all (bool, optional): whether to match samples that have (or don’t have) all (True) or any (False) of the given tags.
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        tags: the tag or iterable of tags to match
+        bool (None): whether to match samples that have (None or True) or do not have (False) the given tags
 
     Returns:
         a :class:`DatasetView`
     """
-    view = dataset.match_tags(tags, bool, all)
+    view = dataset.match_tags(tags, bool)
     return view
 
 

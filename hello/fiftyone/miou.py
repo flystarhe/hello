@@ -12,8 +12,8 @@ class ConfusionMatrix:
     """For segmentation metrics.
 
     Args:
-        class_names (list[str]): _description_
-        reduce_zero_label (bool, optional): _description_. Defaults to True.
+        class_names (list[str]): the list of class label strings
+        reduce_zero_label (bool, optional): defaults to True
     """
 
     def __init__(self, class_names, reduce_zero_label=True):

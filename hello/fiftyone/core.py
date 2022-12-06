@@ -127,10 +127,10 @@ def filter_detections_dataset(dataset, new_classes=None, field_name="ground_trut
     """Steps: map labels -> check dataset.classes -> filter valid samples
 
     Args:
-        dataset (fo.Dataset): _description_
-        new_classes (list, optional): refer to :func:`gen_label_mapping`. Defaults to None.
-        field_name (str, optional): _description_. Defaults to "ground_truth".
-        background (str, optional): _description_. Defaults to "background".
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        new_classes (None): refer to :func:`gen_label_mapping`
+        field_name (str, optional): defaults to "ground_truth"
+        background (str, optional): defaults to "background"
 
     Returns:
         a :class:`fiftyone.core.dataset.Dataset`
@@ -153,10 +153,10 @@ def filter_segmentation_dataset(dataset, new_classes=None, field_name="ground_tr
     """Steps: map labels -> check dataset.mask_targets -> filter valid samples
 
     Args:
-        dataset (fo.Dataset): _description_
-        new_classes (list, optional): refer to :func:`gen_mask_mapping`. Defaults to None.
-        field_name (str, optional): _description_. Defaults to "ground_truth".
-        ignore_index (int, optional): _description_. Defaults to 255.
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        new_classes (None): refer to :func:`gen_mask_mapping`
+        field_name (str, optional): defaults to "ground_truth"
+        ignore_index (int, optional): defaults to 255
 
     Returns:
         a :class:`fiftyone.core.dataset.Dataset`
@@ -219,12 +219,12 @@ def split_dataset(dataset, splits=None, limit=3000, seed=51, field_name="ground_
     """Adds the split tags to all samples in this dataset.
 
     Args:
-        dataset (Dataset): _description_
-        splits (dict, optional): _description_. Defaults to None.
-        limit (int, optional): _description_. Defaults to 3000.
-        seed (int, optional): _description_. Defaults to 51.
-        field_name (str, optional): _description_. Defaults to "ground_truth".
-        from_field (str, optional): _description_. Defaults to None.
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        splits (dict, optional): defaults to None
+        limit (int, optional): defaults to 3000
+        seed (int, optional): defaults to 51
+        field_name (str, optional): defaults to "ground_truth"
+        from_field (str, optional): defaults to None
 
     Returns:
         a :class:`DatasetView`
@@ -283,12 +283,12 @@ def filter_segmentation_samples(out_dir, data_root, classes, mask_targets, thres
         data_root (str): _description_
         classes (list[str]): _description_
         mask_targets (dict[int, str]): _description_
-        threshold (float, optional): _description_. Defaults to 0.05.
-        splits (list, optional): _description_. Defaults to ["train", "val"].
-        img_dir (str, optional): _description_. Defaults to "data".
-        ann_dir (str, optional): _description_. Defaults to "labels".
-        img_suffix (str, optional): _description_. Defaults to ".jpg".
-        seg_map_suffix (str, optional): _description_. Defaults to ".png".
+        threshold (float, optional): _description_. Defaults to 0.05
+        splits (list, optional): _description_. Defaults to ["train", "val"]
+        img_dir (str, optional): _description_. Defaults to "data"
+        ann_dir (str, optional): _description_. Defaults to "labels"
+        img_suffix (str, optional): _description_. Defaults to ".jpg"
+        seg_map_suffix (str, optional): _description_. Defaults to ".png"
 
     Returns:
         a :class:`str`
