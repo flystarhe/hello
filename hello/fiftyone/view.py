@@ -23,22 +23,22 @@ def uniqueness(dataset, count, model=None):
     num_samples = len(dataset)
     assert num_samples > 0
 
-    if isinstance(count, float):
-        count = int(num_samples * count) + 1
+    p = count if isinstance(count, float) else count / num_samples
 
-    count = min(num_samples, count)
+    p = min(1.0, p)
 
     if model is None:
         view = dataset.sort_by("filepath")
 
+        step = int(1.01 / p)
         sample_ids = view.values("id")
-        sample_ids = sample_ids[::(num_samples//count)]
+        sample_ids = sample_ids[::step]
 
         view = view.select(sample_ids, ordered=True)
         return view
 
     results = fob.compute_similarity(dataset, brain_key="img_sim", model=model)
-    results.find_unique(count)
+    results.find_unique(int(num_samples * p))
 
     unique_view = dataset.select(results.unique_ids)
     return unique_view
