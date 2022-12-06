@@ -1,5 +1,6 @@
 # https://plotly.com/python-api-reference/generated/plotly.colors.html#module-plotly.colors
 # https://plotly.com/python/discrete-color/#color-sequences-in-plotly-express
+# pip install plotly
 import cv2 as cv
 import numpy as np
 import plotly.express as px

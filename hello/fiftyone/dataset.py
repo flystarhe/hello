@@ -265,6 +265,15 @@ def delete_datasets(names=None, non_persistent=True):
         fo.delete_non_persistent_datasets(verbose=True)
 
 
+def load_dataset(name):
+    """Loads the FiftyOne dataset with the given name.
+
+    Args:
+        name (str): the name of the dataset
+    """
+    return fo.load_dataset(name)
+
+
 def load_detection_dataset(dataset_dir, info_py="info.py", data_path="data", labels_path="labels.json", field_name="ground_truth", splits=None):
     dataset_dir = Path(dataset_dir)
 
