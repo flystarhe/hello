@@ -173,18 +173,19 @@ def add_dataset(dataset, skip_existing=True, insert_new=True, fields=None, expan
     raise NotImplementedError
 
 
-def create_dataset(dataset_name, dataset_type=None, classes=[], mask_targets={}):
+def create_dataset(dataset_name, dataset_type, classes=[], mask_targets={}):
     """Create an empty :class:`fiftyone.core.dataset.Dataset` with the name.
 
     Args:
-        dataset_name (str): a name for the dataset.
-        dataset_type (str, optional): supported values are ``("detection", "segmentation")``
+        dataset_name (str): a name for the dataset
+        dataset_type (str): supported values are ``("detection", "segmentation", "unknown")``
         classes (list, optional): defaults to []
         mask_targets (dict, optional): defaults to {}
 
     Returns:
         a :class:`fiftyone.core.dataset.Dataset`
     """
+    assert dataset_type in {"detection", "segmentation", "unknown"}
     dataset = fo.Dataset()
 
     dataset.name = dataset_name
@@ -192,7 +193,7 @@ def create_dataset(dataset_name, dataset_type=None, classes=[], mask_targets={})
 
     info = {
         "dataset_name": dataset_name,
-        "dataset_type": dataset_type if dataset_type else "unknown",
+        "dataset_type": dataset_type,
         "version": "001",
         "classes": classes,
         "mask_targets": mask_targets,
@@ -208,28 +209,28 @@ def create_dataset(dataset_name, dataset_type=None, classes=[], mask_targets={})
     return dataset
 
 
-def load_images_dir(dataset_dir, dataset_name=None, dataset_type=None, classes=[], mask_targets={}):
+def load_images_dir(dataset_dir, dataset_name, dataset_type, classes=[], mask_targets={}):
     """Create a :class:`fiftyone.core.dataset.Dataset` from the given directory of images.
 
     Args:
-        dataset_dir (str): a directory of images.
-        dataset_name (str, optional): a name for the dataset. Defaults to None.
-        dataset_type (str, optional): supported values are ``("detection", "segmentation")``
+        dataset_dir (str): a directory of images
+        dataset_name (str): a name for the dataset
+        dataset_type (str): supported values are ``("detection", "segmentation", "unknown")``
         classes (list, optional): defaults to []
         mask_targets (dict, optional): defaults to {}
 
     Returns:
         a :class:`fiftyone.core.dataset.Dataset`
     """
+    assert dataset_type in {"detection", "segmentation", "unknown"}
     dataset = fo.Dataset.from_images_dir(dataset_dir)
 
-    if dataset_name:
-        dataset.name = dataset_name
-        dataset.persistent = True
+    dataset.name = dataset_name
+    dataset.persistent = True
 
     info = {
-        "dataset_name": dataset_name if dataset_name else "dataset-name",
-        "dataset_type": dataset_type if dataset_type else "unknown",
+        "dataset_name": dataset_name,
+        "dataset_type": dataset_type,
         "version": "001",
         "classes": classes,
         "mask_targets": mask_targets,
