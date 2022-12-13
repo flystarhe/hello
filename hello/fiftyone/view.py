@@ -81,6 +81,36 @@ def sort_by_filename(dataset):
     return view
 
 
+def select_labels(dataset, labels=None, ids=None, tags=None, fields=None, omit_empty=True):
+    """Selects only the specified labels from the collection.
+
+    Args:
+        dataset: a :class:`fiftyone.core.collections.SampleCollection`
+        labels (None):  a list of dicts specifying the labels to select in the format returned by :func:`fiftyone.core.session.Session.selected_labels()`
+        ids (None): an ID or iterable of IDs of the labels to select
+        tags (None): a tag or iterable of tags of labels to select
+        fields (None): a field or iterable of fields from which to select
+        omit_empty (True): whether to omit samples that have no labels after filtering
+    """
+    view = dataset.select_labels(labels=labels, ids=ids, tags=tags, fields=fields, omit_empty=omit_empty)
+    return view
+
+
+def exclude_labels(dataset, labels=None, ids=None, tags=None, fields=None, omit_empty=True):
+    """Excludes the specified labels from the collection.
+
+    Args:
+        dataset: a :class:`fiftyone.core.collections.SampleCollection`
+        labels (None):  a list of dicts specifying the labels to exclude in the format returned by :func:`fiftyone.core.session.Session.selected_labels()`
+        ids (None): an ID or iterable of IDs of the labels to exclude
+        tags (None): a tag or iterable of tags of labels to exclude
+        fields (None): a field or iterable of fields from which to exclude
+        omit_empty (True): whether to omit samples that have no labels after filtering
+    """
+    view = dataset.exclude_labels(labels=labels, ids=ids, tags=tags, fields=fields, omit_empty=omit_empty)
+    return view
+
+
 def filter_labels(dataset, field, filter, only_matches=True):
     """Filters the :class:`fiftyone.core.labels.Label` field of each sample in the collection.
 
