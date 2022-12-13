@@ -30,6 +30,48 @@ info = {
 tmpl_info = Template(tmpl_info)
 
 
+def add_classification_labels(dataset, label_field, labels_path):
+    # https://voxel51.com/docs/fiftyone/user_guide/export_datasets.html#fiftyoneimageclassificationdataset-export
+    assert Path(labels_path).suffix == ".json"
+
+    with open(labels_path, "r") as f:
+        data = json.load(f)
+
+    assert "classes" in data and "labels" in data
+
+    db = {}
+    label_type = None
+    for k, v in data["labels"].items():
+        if isinstance(v, list):
+            if label_type is None:
+                label_type = "classifications"
+            assert label_type == "classifications"
+            classifications = [fol.Classification(**vi) for vi in v]
+            db[k] = fol.Classifications(classifications=classifications)
+        else:
+            if label_type is None:
+                label_type = "classification"
+            assert label_type == "classification"
+            db[k] = fol.Classification(**v)
+
+    filepaths, ids = dataset.values(["filepath", "id"])
+    id_map = {Path(k).stem: v for k, v in zip(filepaths, ids)}
+
+    stems_adds = set(db.keys())
+    stems_base = set(id_map.keys())
+
+    bad_stems = stems_adds - stems_base
+    if bad_stems:
+        print(f"Ignoring {len(bad_stems)} nonexistent images (eg {list(bad_stems)[:6]})")
+
+    stems = sorted(stems_adds & stems_base)
+    matched_ids = [id_map[stem] for stem in stems]
+    view = dataset.select(matched_ids, ordered=True)
+
+    labels = [db[stem] for stem in stems]
+    view.set_values(label_field, labels)
+
+
 def add_coco_labels(dataset, label_field, labels_path):
     # https://voxel51.com/docs/fiftyone/api/fiftyone.utils.coco.html#fiftyone.utils.coco.add_coco_labels
     assert Path(labels_path).suffix == ".json"
@@ -307,6 +349,62 @@ def load_segmentation_dataset(dataset_dir, info_py="info.py", data_path="data", 
         dataset = merge_samples(_datasets)
 
     return dataset
+
+
+def export_classification_labels(export_dir, dataset, label_field, splits=None):
+    shutil.rmtree(export_dir, ignore_errors=True)
+
+    if splits is None:
+        splits = ["train", "val", "test"]
+
+    _tags = set(dataset.distinct("tags"))
+    splits = [s for s in splits if s in _tags]
+
+    if not splits:
+        splits = ["train"]
+        dataset.tag_samples(splits)
+
+    for split in splits:
+        print(f"\n[{split}]\n")
+        view = dataset.match_tags(split)
+        curr_dir = Path(export_dir) / split
+
+        view.export(
+            dataset_type=fo.types.FiftyOneImageClassificationDataset,
+            labels_path=str(curr_dir / "labels.json"),
+            label_field=label_field,
+            include_confidence=True,
+        )
+
+    return export_dir
+
+
+def export_classification_dataset(export_dir, dataset, label_field, splits=None):
+    shutil.rmtree(export_dir, ignore_errors=True)
+
+    if splits is None:
+        splits = ["train", "val", "test"]
+
+    _tags = set(dataset.distinct("tags"))
+    splits = [s for s in splits if s in _tags]
+
+    if not splits:
+        splits = ["train"]
+        dataset.tag_samples(splits)
+
+    for split in splits:
+        print(f"\n[{split}]\n")
+        view = dataset.match_tags(split)
+        curr_dir = Path(export_dir) / split
+
+        view.export(
+            export_dir=str(curr_dir),
+            dataset_type=fo.types.FiftyOneImageClassificationDataset,
+            label_field=label_field,
+            include_confidence=True,
+        )
+
+    return export_dir
 
 
 def export_detection_dataset(export_dir, dataset, label_field, splits=None):

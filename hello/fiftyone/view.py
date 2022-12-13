@@ -79,3 +79,114 @@ def sort_by_filename(dataset):
     view = dataset.select(sorted_ids, ordered=True)
 
     return view
+
+
+def filter_labels(dataset, field, filter, only_matches=True):
+    """Filters the :class:`fiftyone.core.labels.Label` field of each sample in the collection.
+
+    >>> from fiftyone import ViewField as F
+    >>> filter_labels(dataset, "ground_truth", F("label") == "house")
+    >>> filter_labels(dataset, "ground_truth", F("label").is_in(["cat", "dog"]))
+    >>> filter_labels(dataset, "predictions", F("confidence") > 0.8)
+
+    Args:
+        dataset: a :class:`fiftyone.core.collections.SampleCollection`
+        field: the label field to filter
+        filter: a :class:`fiftyone.core.expressions.ViewExpression`
+        only_matches (True): whether to only include samples with at least one label after filtering (True) or include all samples (False)
+    """
+    view = dataset.filter_labels(field, filter, only_matches=only_matches)
+    return view
+
+
+def filter_samples(dataset, filter):
+    """Filters the samples in the collection by the given filter.
+
+    >>> from fiftyone import ViewField as F
+    >>> filter_samples(dataset, F("filepath").ends_with(".jpg"))
+    >>> filter_samples(dataset, F("predictions.detections").length() >= 2)
+    >>> # Only include samples whose `predictions` field contains at least
+    >>> # one object with area smaller than 0.2
+    >>> bbox = F("bounding_box")
+    >>> bbox_area = bbox[2] * bbox[3]
+    >>> small_boxes = F("predictions.detections").filter(bbox_area < 0.2)
+    >>> view = dataset.match(small_boxes.length() > 0)
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        filter: a :class:`fiftyone.core.expressions.ViewExpression`
+    """
+    view = dataset.match(filter)
+    return view
+
+
+def add_sample_field(dataset, field_name, ftype):
+    """Adds a new sample field or embedded field to the dataset, if necessary.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        field_name: the field name or `embedded.field.name`
+        ftype: the field type to create. Must be a subclass of :class:`fiftyone.core.fields.Field`
+    """
+    dataset.add_sample_field(field_name, ftype)
+
+
+def clear_sample_field(dataset, field_name):
+    """Clears the values of the field from all samples in the dataset.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        field_name: the field name or `embedded.field.name`
+    """
+    dataset.clear_sample_field(field_name)
+
+
+def clone_sample_field(dataset, field_name, new_field_name):
+    """Clones the given sample field into a new field of the dataset.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        field_name: the field name or `embedded.field.name`
+        new_field_name: the new field name or `embedded.field.name`
+    """
+    dataset.clone_sample_field(field_name, new_field_name)
+
+
+def delete_sample_field(dataset, field_name, error_level=0):
+    """Deletes the field from all samples in the dataset.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        field_name: the field name or `embedded.field.name`
+        error_level (int, optional): the error level to use
+    """
+    dataset.delete_sample_field(field_name, error_level=error_level)
+
+
+def rename_sample_field(dataset, field_name, new_field_name):
+    """Renames the sample field to the given new name.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        field_name: the field name or `embedded.field.name`
+        new_field_name: the new field name or `embedded.field.name`
+    """
+    dataset.rename_sample_field(field_name, new_field_name)
+
+
+def merge_labels(dataset, in_field, out_field):
+    """Merges the labels from the given input field into the given output field of the collection.
+
+    If this collection is a dataset, the input field is deleted after the
+    merge.
+
+    If this collection is a view, the input field will still exist on the
+    underlying dataset but will only contain the labels not present in this
+    view.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        in_field (str): the name of the input label field
+        out_field (str): the name of the output label field, which will be created if necessary
+    """
+    dataset.merge_labels(in_field, out_field)
