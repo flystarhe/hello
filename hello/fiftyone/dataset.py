@@ -379,7 +379,7 @@ def export_classification_labels(export_dir, dataset, label_field, splits=None):
     return export_dir
 
 
-def export_classification_dataset(export_dir, dataset, label_field, splits=None):
+def export_classification_dataset(export_dir, dataset, label_field, splits=None, export_media=True):
     shutil.rmtree(export_dir, ignore_errors=True)
 
     if splits is None:
@@ -400,6 +400,7 @@ def export_classification_dataset(export_dir, dataset, label_field, splits=None)
         view.export(
             export_dir=str(curr_dir),
             dataset_type=fo.types.FiftyOneImageClassificationDataset,
+            export_media=export_media,
             label_field=label_field,
             include_confidence=True,
         )
