@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    hello.data
+   hello.experimental
    hello.fiftyone
    hello.fvcore
    hello.io
