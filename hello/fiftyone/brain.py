@@ -1,4 +1,6 @@
+import fiftyone as fo
 import fiftyone.brain as fob
+import fiftyone.core.view as fov
 from fiftyone import ViewField as F
 
 
@@ -23,7 +25,47 @@ def to_patches(samples, field, **kwargs):
     return view
 
 
-def mistake_view(samples, min_mistakenness=0.5):
+def mistakenness_views(samples, pred_field="predictions", pred_filter=None, label_field="ground_truth", label_filter=None):
+    """Create a view containing the currently selected objects.
+
+    Args:
+        samples: a :class:`fiftyone.core.collections.SampleCollection`
+        pred_field ("predictions"): the label field to filter
+        pred_filter (None): a :class:`fiftyone.core.expressions.ViewExpression`
+        label_field ("ground_truth"): the label field to filter
+        label_filter (None): a :class:`fiftyone.core.expressions.ViewExpression`
+    """
+    if pred_filter is None:
+        pred_filter = F("possible_missing")
+
+    if label_filter is None:
+        label_filter = (F("mistakenness") > 0.5) | (F("mistakenness_loc") > 0.5) | F("possible_spurious")
+
+    if isinstance(samples, fov.DatasetView):
+        dataset_name = samples.dataset_name
+    else:
+        dataset_name = samples.name
+
+    dataset = fo.load_dataset(dataset_name)
+
+    pred_field_review = "review_preds"
+    if dataset.has_sample_field(pred_field_review):
+        dataset.delete_sample_field(pred_field_review)
+
+    label_field_review = "review_labels"
+    if dataset.has_sample_field(label_field_review):
+        dataset.delete_sample_field(label_field_review)
+
+    pred_view = samples.filter_labels(pred_field, pred_filter)
+    pred_view.clone_sample_field(pred_field, pred_field_review)
+
+    label_view = samples.filter_labels(label_field, label_filter)
+    label_view.clone_sample_field(label_field, label_field_review)
+
+    return pred_view, label_view
+
+
+def mistakenness_view(samples, min_mistakenness=0.5):
     """Create a view containing the currently selected samples.
 
     The following sample-level fields:
@@ -36,8 +78,9 @@ def mistake_view(samples, min_mistakenness=0.5):
 
     Args:
         samples: a :class:`fiftyone.core.collections.SampleCollection`
+        min_mistakenness (0.5): the mistakenness field minimum value
     """
-    filter = (F("mistakenness") > min_mistakenness) & (F("possible_missing") > 0) & (F("possible_spurious") > 0)
+    filter = (F("mistakenness") > min_mistakenness) | (F("possible_missing") > 0) | (F("possible_spurious") > 0)
     view = samples.match(filter)
     return view
 
