@@ -7,6 +7,7 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   hello.fiftyone.brain
    hello.fiftyone.copypaste
    hello.fiftyone.core
    hello.fiftyone.dataset
