@@ -354,11 +354,15 @@ def load_segmentation_dataset(dataset_dir, info_py="info.py", data_path="data", 
 def export_classification_labels(export_dir, dataset, label_field, splits=None):
     shutil.rmtree(export_dir, ignore_errors=True)
 
+    _tags = set(dataset.distinct("tags"))
+
     if splits is None:
         splits = ["train", "val", "test"]
+        splits = [s for s in splits if s in _tags]
+    elif splits == "auto":
+        splits = sorted(_tags)
 
-    _tags = set(dataset.distinct("tags"))
-    splits = [s for s in splits if s in _tags]
+    assert isinstance(splits, list)
 
     if not splits:
         splits = ["train"]
@@ -382,11 +386,15 @@ def export_classification_labels(export_dir, dataset, label_field, splits=None):
 def export_classification_dataset(export_dir, dataset, label_field, splits=None, export_media=True):
     shutil.rmtree(export_dir, ignore_errors=True)
 
+    _tags = set(dataset.distinct("tags"))
+
     if splits is None:
         splits = ["train", "val", "test"]
+        splits = [s for s in splits if s in _tags]
+    elif splits == "auto":
+        splits = sorted(_tags)
 
-    _tags = set(dataset.distinct("tags"))
-    splits = [s for s in splits if s in _tags]
+    assert isinstance(splits, list)
 
     if not splits:
         splits = ["train"]
@@ -417,7 +425,16 @@ def export_segmentation_dataset(export_dir, dataset, label_field, mask_types="st
 
 
 def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None, mask_types="stuff", splits=None):
-    # mask_types: "stuff"(amorphous regions of pixels), "thing"(connected regions, each representing an instance)
+    """Exports the samples in the collection to disk.
+
+    Args:
+        export_dir: the directory to which to export the samples
+        dataset: a :class:`fiftyone.core.collections.SampleCollection`
+        label_field: controls the label field(s) to export
+        mask_label_field: controls the label field(s) to export
+        mask_types ("stuff"): "stuff"(amorphous regions of pixels), "thing"(connected regions, each representing an instance)
+        splits (None): a list of strings, respectively, specifying the splits to load. If "auto" will computes the distinct tags
+    """
     assert label_field is not None or mask_label_field is not None
     shutil.rmtree(export_dir, ignore_errors=True)
 
@@ -435,11 +452,15 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
     else:
         dataset = dataset.clone()
 
+    _tags = set(dataset.distinct("tags"))
+
     if splits is None:
         splits = ["train", "val", "test"]
+        splits = [s for s in splits if s in _tags]
+    elif splits == "auto":
+        splits = sorted(_tags)
 
-    _tags = set(dataset.distinct("tags"))
-    splits = [s for s in splits if s in _tags]
+    assert isinstance(splits, list)
 
     if not splits:
         splits = ["train"]
