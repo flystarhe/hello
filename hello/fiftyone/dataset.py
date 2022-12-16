@@ -358,11 +358,11 @@ def export_classification_labels(export_dir, dataset, label_field, splits=None):
 
     if splits is None:
         splits = ["train", "val", "test"]
-        splits = [s for s in splits if s in _tags]
     elif splits == "auto":
         splits = sorted(_tags)
 
     assert isinstance(splits, list)
+    splits = [s for s in splits if s in _tags]
 
     if not splits:
         splits = ["train"]
@@ -390,11 +390,11 @@ def export_classification_dataset(export_dir, dataset, label_field, splits=None,
 
     if splits is None:
         splits = ["train", "val", "test"]
-        splits = [s for s in splits if s in _tags]
     elif splits == "auto":
         splits = sorted(_tags)
 
     assert isinstance(splits, list)
+    splits = [s for s in splits if s in _tags]
 
     if not splits:
         splits = ["train"]
@@ -456,11 +456,11 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
 
     if splits is None:
         splits = ["train", "val", "test"]
-        splits = [s for s in splits if s in _tags]
     elif splits == "auto":
         splits = sorted(_tags)
 
     assert isinstance(splits, list)
+    splits = [s for s in splits if s in _tags]
 
     if not splits:
         splits = ["train"]
