@@ -95,11 +95,16 @@ def tag_video(video_path, factor):
     return tag_frames[0, :, 1]
 
 
-def clip_video(video_path, tag_frames, output_dir):
+def clip_video(video_path, tag_frames, output_dir, task):
     txt_file = Path(video_path).with_suffix(".txt")
     clip_text_file(txt_file, tag_frames, output_dir)
 
-    outfile = Path(output_dir) / f"data/{Path(video_path).stem}.mp4"
+    if task is None:
+        task = ""
+    else:
+        task = f"_{task}"
+
+    outfile = Path(output_dir) / f"data/{Path(video_path).stem}{task}.mp4"
     fourcc = cv.VideoWriter_fourcc(*"mp4v")
 
     cap = cv.VideoCapture(video_path)
@@ -159,7 +164,7 @@ def clip_text_file(infile, tag_frames, output_dir):
     return outfile
 
 
-def func(input_dir, output_dir, factor):
+def func(input_dir, output_dir, factor, task):
     input_dir = Path(input_dir)
 
     if input_dir.is_file():
@@ -180,7 +185,7 @@ def func(input_dir, output_dir, factor):
     for video_path in video_paths:
         tag_frames = tag_video(video_path, factor)
         if tag_frames.max() > 0:
-            clip_video(video_path, tag_frames, output_dir)
+            clip_video(video_path, tag_frames, output_dir, task)
 
     return f"\n[OUTDIR]\n{output_dir}"
 
@@ -195,6 +200,8 @@ def parse_args(args=None):
                         help="output dir")
     parser.add_argument("-f", "--factor", type=float, default=None,
                         help="resize factor")
+    parser.add_argument("-t", "--task", type=str, default=None,
+                        help="e.g. 'det', 'seg', ...")
 
     args = parser.parse_args(args=args)
     return vars(args)
