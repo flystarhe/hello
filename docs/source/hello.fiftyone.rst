@@ -23,6 +23,7 @@ Submodules
    hello.fiftyone.mask_ignore
    hello.fiftyone.miou
    hello.fiftyone.patches
+   hello.fiftyone.tarinfo
    hello.fiftyone.unique
    hello.fiftyone.utils
    hello.fiftyone.video
