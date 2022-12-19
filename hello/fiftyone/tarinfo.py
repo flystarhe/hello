@@ -1,4 +1,6 @@
+import shutil
 import tarfile
+from collections import defaultdict
 from pathlib import Path
 
 import cv2 as cv
@@ -40,13 +42,7 @@ def get_image_paths(filename, data_path="data"):
             filepath = Path(name)
             if filepath.parent.name == data_path:
                 data.append(name)
-
-    vals = set(data)
-    a, b = len(data), len(vals)
-    if a != b:
-        print(f"[W] {filename}: total {a}, unique {b}")
-
-    return sorted(vals)
+    return data
 
 
 def compare(file1, file2, data_path="data"):
@@ -90,3 +86,42 @@ def compare(file1, file2, data_path="data"):
     tar2.close()
 
     return names, eqs
+
+
+def extract_images(out_dir, files, data_path="data"):
+    shutil.rmtree(out_dir, ignore_errors=True)
+
+    if isinstance(files, str):
+        files = [files]
+
+    db = {}
+    for file in sorted(files):
+        for name in get_image_paths(file, data_path):
+            db[Path(name).name] = (file, name)
+
+    tasks = defaultdict(list)
+    for file, name in db.values():
+        tasks[file].append(name)
+
+    tmp_dir = Path(out_dir) / "tmp"
+    tmp_dir.mkdir(parents=True, exist_ok=False)
+
+    for file, names in tasks.items():
+        print(f"[I] extract {len(names)} images from <{file}>")
+        with tarfile.open(file, "r") as tar:
+            members = [tar.getmember(name) for name in names]
+            tar.extractall(tmp_dir, members)
+
+    data_dir = Path(out_dir) / "data"
+    data_dir.mkdir(parents=True, exist_ok=False)
+
+    for src in tmp_dir.glob("**/*"):
+        if src.is_file():
+            shutil.copy(src, data_dir)
+
+    shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    with open(Path(out_dir) / "README.md", "w") as f:
+        f.write(f"# README\n\n## Data Processing\n\n**from**\n\n{files}")
+
+    return out_dir
