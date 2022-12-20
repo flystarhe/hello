@@ -1,3 +1,4 @@
+import re
 import shutil
 import tarfile
 from collections import defaultdict
@@ -6,17 +7,19 @@ from pathlib import Path
 import cv2 as cv
 import numpy as np
 
+from_pattern = None
+
 
 def get_readme(filename):
-    s = None
+    docstr = None
     with tarfile.open(filename, "r") as tar:
         for name in tar.getnames():
             filepath = Path(name)
             if filepath.name.lower() == "readme.md":
                 with tar.extractfile(name) as f:
-                    s = f.read().decode("utf8")
+                    docstr = f.read().decode("utf8")
                 break
-    return s
+    return docstr
 
 
 def get_image_names(filename, data_path="data"):
@@ -125,3 +128,27 @@ def extract_images(out_dir, files, data_path="data"):
         f.write(f"# README\n\n## Data Processing\n\n**from**\n\n{files}")
 
     return out_dir
+
+
+def extract_from_data(filename):
+    global from_pattern
+
+    docstr = get_readme(filename)
+
+    if docstr is None:
+        print(f"[E] <{filename}> not found `README.md`")
+        return None
+
+    if from_pattern is None:
+        from_pattern = re.compile(r"\*\*from:\*\*\n+```[a-z]+\n([\(\[\)\]\n\s,'._0-9a-z]+)\n```")
+
+    m = from_pattern.search(docstr)
+
+    if m is None:
+        return None
+
+    substr = m.group(1)
+
+    results = re.split(r"[\(\[\)\]\n\s,']+", substr)
+    results = [r for r in results if r]
+    return results
