@@ -10,12 +10,34 @@ import numpy as np
 from_pattern = None
 
 
+def equal_list(a: list, b: list) -> bool:
+    if len(a) != len(b):
+        return False
+
+    for _ai, _bi in zip(a, b):
+        if _ai != _bi:
+            return False
+
+    return True
+
+
+def equal_dict(a: dict, b: dict) -> bool:
+    if len(a) != len(b):
+        return False
+
+    for k, v in a.items():
+        if v != b.get(k):
+            return False
+
+    return True
+
+
 def get_readme(filename):
     docstr = None
     with tarfile.open(filename, "r") as tar:
         for name in tar.getnames():
             filepath = Path(name)
-            if filepath.name.lower() == "readme.md":
+            if filepath.name == "README.md":
                 with tar.extractfile(name) as f:
                     docstr = f.read().decode("utf8")
                 break
@@ -33,7 +55,7 @@ def get_image_names(filename, data_path="data"):
     vals = set(data)
     a, b = len(data), len(vals)
     if a != b:
-        print(f"[W] {filename}: total {a}, unique {b}")
+        print(f"[W] <{filename}>:\n  total {a}, unique {b}")
 
     return sorted(vals)
 
@@ -49,19 +71,21 @@ def get_image_paths(filename, data_path="data"):
 
 
 def compare(file1, file2, data_path="data"):
+    print(f"Compare data:\n  a: <{file1}>\n  b: <{file2}>")
+
     base_imgs = get_image_paths(file1, data_path)
     base_dict = {Path(f).name: f for f in base_imgs}
 
     a, b = len(base_imgs), len(base_dict)
     if a != b:
-        print(f"[W] {file1}: total {a}, unique {b}")
+        print(f"[W] <{file1}>:\n  total {a}, unique {b}")
 
     side_imgs = get_image_paths(file2, data_path)
     side_dict = {Path(f).name: f for f in side_imgs}
 
     a, b = len(side_imgs), len(side_dict)
     if a != b:
-        print(f"[W] {file2}: total {a}, unique {b}")
+        print(f"[W] <{file2}>:\n  total {a}, unique {b}")
 
     names = sorted(set(base_dict.keys()) & set(side_dict.keys()))
 
@@ -152,3 +176,39 @@ def extract_from_data(filename):
     results = re.split(r"[\(\[\)\]\n\s,']+", substr)
     results = [r for r in results if r]
     return results
+
+
+def extract_info_py(filename):
+    data = []
+    with tarfile.open(filename, "r") as tar:
+        for name in tar.getnames():
+            filepath = Path(name)
+            if filepath.name == "info.py":
+                with tar.extractfile(name) as f:
+                    codestr = f.read().decode("utf8")
+                    data.append([name, re.split(r"info\s*=\s*", codestr)[1]])
+    return data
+
+
+def compare_info_py(file1, file2, keys=None):
+    print(f"Compare info:\n  a: <{file1}>\n  b: <{file2}>")
+
+    if keys is None:
+        keys = ["classes", "mask_targets"]
+
+    base_info = eval(extract_info_py(file1)[0][1])
+    side_info = eval(extract_info_py(file2)[0][1])
+
+    for key in keys:
+        a, b = base_info[key], side_info[key]
+
+        if isinstance(a, str) and isinstance(b, str):
+            result = (a == b)
+        elif isinstance(a, list) and isinstance(b, list):
+            result = equal_list(a, b)
+        elif isinstance(a, dict) and isinstance(b, dict):
+            result = equal_dict(a, b)
+        else:
+            result = "Unkown (BadType)"
+
+        print(f"  <{key}>: {result}")
