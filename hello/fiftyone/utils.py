@@ -1,5 +1,7 @@
+from collections import defaultdict
 from pathlib import Path
 
+import fiftyone.core.utils as fou
 import fiftyone.utils.iou as foui
 
 
@@ -153,3 +155,24 @@ def find_duplicates(sample_collection, label_field, iou_thresh=0.999, method="si
     """
     dup_ids = foui.find_duplicates(sample_collection, label_field, iou_thresh=iou_thresh, method=method, iscrowd=iscrowd, classwise=classwise)
     return dup_ids
+
+
+def find_duplicate_images(filepaths, leave_one_out=False):
+    db = []
+    for filepath in filepaths:
+        filehash = fou.compute_filehash(filepath)
+        db.append([filepath, filehash])
+
+    groups = defaultdict(list)
+    for filepath, filehash in db:
+        groups[filehash].append([filepath, filehash])
+
+    results = []
+    for vals in groups.values():
+        if len(vals) > 1:
+            if leave_one_out:
+                results.extend(vals[1:])
+            else:
+                results.extend(vals)
+
+    return results
