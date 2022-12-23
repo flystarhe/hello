@@ -62,7 +62,7 @@ def add_classification_labels(dataset, label_field, labels_path):
 
     bad_stems = stems_adds - stems_base
     if bad_stems:
-        print(f"Ignoring {len(bad_stems)} nonexistent images (eg {list(bad_stems)[:6]})")
+        print(f"<{labels_path}>\n  Ignoring {len(bad_stems)} nonexistent images (eg {list(bad_stems)[:3]})")
 
     stems = sorted(stems_adds & stems_base)
     matched_ids = [id_map[stem] for stem in stems]
@@ -148,7 +148,7 @@ def add_detection_labels(dataset, label_field, labels_path, classes, mode="text"
 
     bad_stems = stems_adds - stems_base
     if bad_stems:
-        print(f"Ignoring {len(bad_stems)} nonexistent images (eg {list(bad_stems)[:6]})")
+        print(f"<{labels_path}>\n  Ignoring {len(bad_stems)} nonexistent images (eg {list(bad_stems)[:3]})")
 
     stems = sorted(stems_adds & stems_base)
     matched_ids = [id_map[stem] for stem in stems]
@@ -182,7 +182,7 @@ def add_images_dir(dataset, images_dir, tags=None, recursive=True):
 
     bad_stems = stems_base & stems_adds
     if bad_stems:
-        print(f"Ignoring {len(bad_stems)} existing images (eg {list(bad_stems)[:6]})")
+        print(f"<{images_dir}>\n  Ignoring {len(bad_stems)} existing images (eg {list(bad_stems)[:3]})")
 
     image_paths = sorted([filepath for filepath in image_paths
                           if Path(filepath).stem not in bad_stems])
@@ -201,7 +201,7 @@ def delete_duplicates(dataset):
 
     dup_ids = set(ids) - set(id_map.values())
     if dup_ids:
-        print(f"Delete {len(dup_ids)} duplicate images (eg {list(dup_ids)[:6]})")
+        print(f"Delete {len(dup_ids)} duplicate images (eg {list(dup_ids)[:3]})")
 
     dataset.delete_samples(dup_ids)
 
@@ -222,8 +222,8 @@ def create_dataset(dataset_name, dataset_type, classes=[], mask_targets={}):
     Args:
         dataset_name (str): a name for the dataset
         dataset_type (str): supported values are ``("detection", "segmentation", "unknown")``
-        classes (list, optional): defaults to []
-        mask_targets (dict, optional): defaults to {}
+        classes (list, optional): defaults to ``[]``
+        mask_targets (dict, optional): defaults to ``{}``
 
     Returns:
         a :class:`fiftyone.core.dataset.Dataset`
@@ -259,8 +259,8 @@ def load_images_dir(dataset_dir, dataset_name, dataset_type, classes=[], mask_ta
         dataset_dir (str): a directory of images
         dataset_name (str): a name for the dataset
         dataset_type (str): supported values are ``("detection", "segmentation", "unknown")``
-        classes (list, optional): defaults to []
-        mask_targets (dict, optional): defaults to {}
+        classes (list, optional): defaults to ``[]``
+        mask_targets (dict, optional): defaults to ``{}``
 
     Returns:
         a :class:`fiftyone.core.dataset.Dataset`
@@ -300,7 +300,7 @@ def delete_datasets(names=None, non_persistent=True):
 
     bad_names = names - _vals
     if bad_names:
-        print(f"Ignoring {len(bad_names)} nonexistent datasets (eg {list(bad_names)[:6]})")
+        print(f"Ignoring {len(bad_names)} nonexistent datasets (eg {list(bad_names)[:3]})")
 
     for name in sorted(names & _vals):
         fo.delete_dataset(name, verbose=True)
