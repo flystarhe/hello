@@ -1,8 +1,31 @@
 from collections import defaultdict
 from pathlib import Path
 
+import cv2 as cv
 import fiftyone.core.utils as fou
 import fiftyone.utils.iou as foui
+
+
+def equal_list(a: list, b: list) -> bool:
+    if len(a) != len(b):
+        return False
+
+    for _ai, _bi in zip(a, b):
+        if _ai != _bi:
+            return False
+
+    return True
+
+
+def equal_dict(a: dict, b: dict) -> bool:
+    if len(a) != len(b):
+        return False
+
+    for k, v in a.items():
+        if v != b.get(k):
+            return False
+
+    return True
 
 
 def _parse_text_slice(vals):
@@ -176,3 +199,48 @@ def find_duplicate_images(filepaths, leave_one_out=False):
                 results.extend(vals)
 
     return results
+
+
+def read_mask(mask_path, remap=None):
+    mask = cv.imread(mask_path, 0)
+
+    if remap is not None:
+        new_mask = mask.copy()
+        for _old, _new in remap.items():
+            if _old != _new:
+                new_mask[mask == _old] = _new
+        mask = new_mask
+
+    return mask
+
+
+def gen_mask_remap(dataset_mask_targets, label_mask_targets, ignore_index=255):
+    if equal_dict(dataset_mask_targets, label_mask_targets):
+        return None
+
+    label2index = {label: index for index, label in dataset_mask_targets.items()}
+
+    remap = {}
+    for index, label in label_mask_targets.items():
+        new_index = label2index.get(label, ignore_index)
+        if index != new_index:
+            remap[index] = new_index
+
+    remap = remap if remap else None
+    return remap
+
+
+def load_segmentation_masks(labels_path, remap=None, mode="png"):
+    labels_path = Path(labels_path)
+
+    if mode == "png":
+        assert labels_path.is_dir()
+    else:
+        raise NotImplementedError
+
+    db = {}
+    for mask_path in sorted(labels_path.glob("*.png")):
+        mask = read_mask(str(mask_path), remap)
+        db[mask_path.stem] = mask
+
+    return db

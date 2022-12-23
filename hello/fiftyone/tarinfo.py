@@ -7,29 +7,7 @@ from pathlib import Path
 import cv2 as cv
 import numpy as np
 
-from_pattern = None
-
-
-def equal_list(a: list, b: list) -> bool:
-    if len(a) != len(b):
-        return False
-
-    for _ai, _bi in zip(a, b):
-        if _ai != _bi:
-            return False
-
-    return True
-
-
-def equal_dict(a: dict, b: dict) -> bool:
-    if len(a) != len(b):
-        return False
-
-    for k, v in a.items():
-        if v != b.get(k):
-            return False
-
-    return True
+from hello.fiftyone.utils import equal_dict, equal_list
 
 
 def get_readme(filename):
@@ -169,17 +147,13 @@ def extract_images(out_dir, files, data_path="data", exclude_names=None):
 
 
 def extract_from_data(filename):
-    global from_pattern
-
     docstr = get_readme(filename)
 
     if docstr is None:
         print(f"[E] <{filename}> not found `README.md`")
         return None
 
-    if from_pattern is None:
-        from_pattern = re.compile(r"\*\*from:\*\*\n+```[a-z]+\n([\(\[\)\]\n\s,'._0-9a-z]+)\n```")
-
+    from_pattern = re.compile(r"\*\*from:\*\*\n+```[a-z]+\n([\(\[\)\]\n\s,'._0-9a-z]+)\n```")
     m = from_pattern.search(docstr)
 
     if m is None:

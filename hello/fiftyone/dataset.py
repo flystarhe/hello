@@ -1,4 +1,5 @@
 import json
+import re
 import shutil
 from pathlib import Path
 from string import Template
@@ -9,12 +10,12 @@ import fiftyone.utils.coco as fouc
 import fiftyone.utils.yolo as fouy
 from fiftyone.utils.labels import segmentations_to_detections
 
-from hello.fiftyone.core import count_values, merge_samples
+import hello.fiftyone.core as hofc
+import hello.fiftyone.utils as hofu
 from hello.fiftyone.dataset_detections import \
     load_dataset as _load_detection_dataset
 from hello.fiftyone.dataset_segmentations import \
     load_dataset as _load_segmentation_dataset
-from hello.fiftyone.utils import load_predictions
 
 tmpl_info = """\
 info = {
@@ -130,7 +131,7 @@ def add_detection_labels(dataset, label_field, labels_path, classes, mode="text"
         label_field (str): the label field in which to store the labels
         labels_path (str): the labels load from
         classes (list): the list of class label strings
-        mode (str, optional): supported values are ``("text", "yolo", "coco")``
+        mode (str): supported values are ``("text", "yolo", "coco")``
     """
     assert mode in {"text", "yolo", "coco"}
 
@@ -141,7 +142,7 @@ def add_detection_labels(dataset, label_field, labels_path, classes, mode="text"
     filepaths, ids = dataset.values(["filepath", "id"])
     id_map = {Path(k).stem: v for k, v in zip(filepaths, ids)}
 
-    db = load_predictions(labels_path, classes=classes, mode=mode)
+    db = hofu.load_predictions(labels_path, classes=classes, mode=mode)
 
     stems_adds = set(db.keys())
     stems_base = set(id_map.keys())
@@ -158,6 +159,55 @@ def add_detection_labels(dataset, label_field, labels_path, classes, mode="text"
     for stem in stems:
         detections = [fol.Detection(**detection) for detection in db[stem]]
         labels.append(fol.Detections(detections=detections))
+
+    view.set_values(label_field, labels)
+
+
+def add_segmentation_labels(dataset, label_field, labels_path, mask_targets="auto", mode="png"):
+    """Adds segmentation labels to the dataset.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        label_field (str): the label field in which to store the labels
+        labels_path (str): the labels load from
+        mask_targets (dict): a dict mapping pixel values to semantic label strings
+        mode (str): supported values are ``("png", "coco")``
+    """
+    assert mode in {"png", "coco"}
+
+    dataset_mask_targets = dataset.default_mask_targets
+
+    if mask_targets == "auto":
+        info_py = Path(labels_path).with_name("info.py")
+        with open(info_py, "r") as f:
+            codestr = f.read()
+
+        info = eval(re.split(r"info\s*=\s*", codestr)[1])
+        mask_targets = info["mask_targets"]
+
+    assert isinstance(mask_targets, dict)
+    remap = hofu.gen_mask_remap(dataset_mask_targets, mask_targets)
+
+    filepaths, ids = dataset.values(["filepath", "id"])
+    id_map = {Path(k).stem: v for k, v in zip(filepaths, ids)}
+
+    db = hofu.load_segmentation_masks(labels_path, remap, mode)
+
+    stems_adds = set(db.keys())
+    stems_base = set(id_map.keys())
+
+    bad_stems = stems_adds - stems_base
+    if bad_stems:
+        print(f"<{labels_path}>\n  Ignoring {len(bad_stems)} nonexistent images (eg {list(bad_stems)[:3]})")
+
+    stems = sorted(stems_adds & stems_base)
+    matched_ids = [id_map[stem] for stem in stems]
+    view = dataset.select(matched_ids, ordered=True)
+
+    labels = []
+    for stem in stems:
+        mask = db[stem]
+        labels.append(fol.Segmentation(mask=mask))
 
     view.set_values(label_field, labels)
 
@@ -330,7 +380,7 @@ def load_detection_dataset(dataset_dir, info_py="info.py", data_path="data", lab
             _dataset = _load_detection_dataset(str(dataset_dir / s), info_py=info_py, data_path=data_path, labels_path=labels_path, field_name=field_name)
             _dataset.tag_samples(s)
             _datasets.append(_dataset)
-        dataset = merge_samples(_datasets)
+        dataset = hofc.merge_samples(_datasets)
 
     return dataset
 
@@ -347,7 +397,7 @@ def load_segmentation_dataset(dataset_dir, info_py="info.py", data_path="data", 
             _dataset = _load_segmentation_dataset(str(dataset_dir / s), info_py=info_py, data_path=data_path, labels_path=labels_path, field_name=field_name)
             _dataset.tag_samples(s)
             _datasets.append(_dataset)
-        dataset = merge_samples(_datasets)
+        dataset = hofc.merge_samples(_datasets)
 
     return dataset
 
@@ -443,7 +493,7 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
     info = dataset.info
     classes = dataset.default_classes
     mask_targets = dataset.default_mask_targets
-    info["num_samples"] = count_values(dataset, "tags")
+    info["num_samples"] = hofc.count_values(dataset, "tags")
 
     if label_field is None:
         label_field = "detections"
@@ -487,7 +537,7 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
                 mask_targets=mask_targets,
             )
 
-        info["tail"].update(count_label=count_values(view, f"{label_field}.detections.label"))
+        info["tail"].update(count_label=hofc.count_values(view, f"{label_field}.detections.label"))
 
         info_py = tmpl_info.safe_substitute(info,
                                             classes=classes,
