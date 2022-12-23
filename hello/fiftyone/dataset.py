@@ -135,9 +135,18 @@ def add_detection_labels(dataset, label_field, labels_path, classes, mode="text"
     """
     assert mode in {"text", "yolo", "coco"}
 
-    if mode == "coco":
-        add_coco_labels(dataset, label_field, labels_path)
-        return
+    dataset_classes = dataset.default_classes
+
+    if classes == "auto":
+        info_py = Path(labels_path).with_name("info.py")
+        with open(info_py, "r") as f:
+            codestr = f.read()
+
+        info = eval(re.split(r"info\s*=\s*", codestr)[1])
+        classes = info["classes"]
+
+    assert isinstance(classes, list)
+    included_labels = set(dataset_classes)
 
     filepaths, ids = dataset.values(["filepath", "id"])
     id_map = {Path(k).stem: v for k, v in zip(filepaths, ids)}
@@ -157,7 +166,8 @@ def add_detection_labels(dataset, label_field, labels_path, classes, mode="text"
 
     labels = []
     for stem in stems:
-        detections = [fol.Detection(**detection) for detection in db[stem]]
+        detections = [fol.Detection(**detection) for detection in db[stem]
+                      if detection["label"] in included_labels]
         labels.append(fol.Detections(detections=detections))
 
     view.set_values(label_field, labels)
