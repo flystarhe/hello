@@ -70,8 +70,9 @@ def get_image_paths(filename, data_path="data"):
     return data
 
 
-def compare(file1, file2, data_path="data"):
-    print(f"Compare data:\n  a: <{file1}>\n  b: <{file2}>")
+def compare(file1, file2, data_path="data", verbose=True):
+    if verbose:
+        print(f"Compare data:\n  a: <{file1}>\n  b: <{file2}>")
 
     base_imgs = get_image_paths(file1, data_path)
     base_dict = {Path(f).name: f for f in base_imgs}
@@ -90,11 +91,12 @@ def compare(file1, file2, data_path="data"):
     names = sorted(set(base_dict.keys()) & set(side_dict.keys()))
 
     a, b, c = len(base_dict), len(side_dict), len(names)
-    print(f"[I] ({a=}) & ({b=}) => intersect:{c}")
+    if verbose:
+        print(f"[I] ({a=}) & ({b=}) => intersect:{c}")
 
+    eqs = []
     tar1 = tarfile.open(file1, "r")
     tar2 = tarfile.open(file2, "r")
-    eqs = []
     for name in names:
         member = base_dict[name]
         with tar1.extractfile(member) as f:
@@ -108,9 +110,11 @@ def compare(file1, file2, data_path="data"):
 
         if np.array_equal(im1, im2):
             eqs.append(name)
-    print(f"[I] {len(names)=}, {len(eqs)=}")
     tar1.close()
     tar2.close()
+
+    if verbose:
+        print(f"[I] {len(names)=}, {len(eqs)=}")
 
     return names, eqs
 
@@ -121,11 +125,13 @@ def extract_images(out_dir, files, data_path="data", exclude_names=None):
     if isinstance(files, str):
         files = [files]
 
+    files = sorted(files)
+
     if exclude_names is not None:
         exclude_names = set([Path(name).name for name in exclude_names])
 
     db = {}
-    for file in sorted(files):
+    for file in files:
         for name in get_image_paths(file, data_path):
             db[Path(name).name] = (file, name)
 
@@ -156,7 +162,8 @@ def extract_images(out_dir, files, data_path="data", exclude_names=None):
     shutil.rmtree(tmp_dir, ignore_errors=True)
 
     with open(Path(out_dir) / "README.md", "w") as f:
-        f.write(f"# README\n\n## Data Processing\n\n**from**\n\n{files}")
+        from_data = "\n".join([Path(file).name for file in files])
+        f.write(f"# README\n\n## Data Processing\n\n**from**\n\n```python\n{from_data}\n```")
 
     return out_dir
 
@@ -197,8 +204,9 @@ def extract_info_py(filename):
     return data
 
 
-def compare_info_py(file1, file2, keys=None):
-    print(f"Compare info:\n  a: <{file1}>\n  b: <{file2}>")
+def compare_info_py(file1, file2, keys=None, verbose=True):
+    if verbose:
+        print(f"Compare info:\n  a: <{file1}>\n  b: <{file2}>")
 
     if keys is None:
         keys = ["classes", "mask_targets"]
@@ -206,6 +214,7 @@ def compare_info_py(file1, file2, keys=None):
     base_info = eval(extract_info_py(file1)[0][1])
     side_info = eval(extract_info_py(file2)[0][1])
 
+    results = {}
     for key in keys:
         a, b = base_info[key], side_info[key]
 
@@ -218,4 +227,9 @@ def compare_info_py(file1, file2, keys=None):
         else:
             result = "Unkown (BadType)"
 
-        print(f"  <{key}>: {result}")
+        if verbose:
+            print(f"  <{key}>: {result}")
+
+        results[key] = result
+
+    return results

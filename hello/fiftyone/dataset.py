@@ -72,8 +72,9 @@ def add_classification_labels(dataset, label_field, labels_path):
     view.set_values(label_field, labels)
 
 
-def add_coco_labels(dataset, label_field, labels_path):
+def add_coco_labels(dataset, label_field, labels_path, label_type="detections"):
     # https://voxel51.com/docs/fiftyone/api/fiftyone.utils.coco.html#fiftyone.utils.coco.add_coco_labels
+    assert label_type in {"detections", "segmentations", "keypoints"}
     assert Path(labels_path).suffix == ".json"
 
     with open(labels_path, "r") as f:
@@ -94,7 +95,7 @@ def add_coco_labels(dataset, label_field, labels_path):
         label_field,
         coco["annotations"],
         classes,
-        label_type="detections",
+        label_type=label_type,
         coco_id_field=coco_id_field,
     )
 
