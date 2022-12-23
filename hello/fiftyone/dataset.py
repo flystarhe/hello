@@ -113,7 +113,7 @@ def add_yolo_labels(dataset, label_field, labels_path, classes):
     )
 
 
-def add_detection_labels(dataset, label_field, labels_path, classes, mode="text"):
+def add_detection_labels(dataset, label_field, labels_path, classes=None, mode="text"):
     """Adds detection labels to the dataset.
 
     .. note::
@@ -137,15 +137,7 @@ def add_detection_labels(dataset, label_field, labels_path, classes, mode="text"
 
     dataset_classes = dataset.default_classes
 
-    if classes == "auto":
-        info_py = Path(labels_path).with_name("info.py")
-        with open(info_py, "r") as f:
-            codestr = f.read()
-
-        info = eval(re.split(r"info\s*=\s*", codestr)[1])
-        classes = info["classes"]
-
-    assert isinstance(classes, list)
+    assert classes is None or isinstance(classes, list)
     included_labels = set(dataset_classes)
 
     filepaths, ids = dataset.values(["filepath", "id"])
