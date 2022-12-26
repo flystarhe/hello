@@ -1,3 +1,4 @@
+import json
 from collections import defaultdict
 from pathlib import Path
 
@@ -148,12 +149,51 @@ def load_yolo_predictions(labels_path, classes):
     return db
 
 
+def load_coco_predictions(labels_path):
+    with open(labels_path, "r") as f:
+        coco = json.load(f)
+
+    assert "categories" in coco and "images" in coco and "annotations" in coco
+
+    imgs = {img["id"]: img for img in coco["images"]}
+    cats = {cat["id"]: cat for cat in coco["categories"]}
+
+    db = defaultdict(list)
+    for ann in coco["annotations"]:
+        _img = imgs[ann["image_id"]]
+
+        filepath = _img["file_name"]
+        height = _img["height"]
+        width = _img["width"]
+
+        _cat = cats[ann["category_id"]]
+
+        label = _cat["name"]
+
+        x, y, w, h = ann["bbox"]
+        bounding_box = [x / width, y / height, w / width, h / height]
+
+        confidence = ann.get("score", 1.0)
+
+        detection = dict(
+            bounding_box=bounding_box,
+            confidence=confidence,
+            label=label,
+        )
+        db[Path(filepath).stem].append(detection)
+
+    stems = [Path(_img["file_name"]).stem for _img in imgs.values()]
+    return {stem: db[stem] for stem in stems}
+
+
 def load_predictions(labels_path, classes=None, mode="text"):
     if mode == "text":
         return load_text_predictions(labels_path)
     elif mode == "yolo":
         assert isinstance(classes, list)
         return load_yolo_predictions(labels_path, classes)
+    elif mode == "coco":
+        return load_coco_predictions(labels_path)
     else:
         raise NotImplementedError
 
