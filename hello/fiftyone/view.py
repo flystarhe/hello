@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import fiftyone.brain as fob
+import fiftyone.core.dataset as fod
 
 
 def uniqueness(dataset, count, model=None):
@@ -150,6 +151,19 @@ def filter_samples(dataset, filter):
     return view
 
 
+def has_sample_field(dataset, field_name):
+    """Determines whether the collection has a sample field with the given name.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        field_name: the field name
+
+    Returns:
+        True/False
+    """
+    return field_name in dataset.get_field_schema()
+
+
 def add_sample_field(dataset, field_name, ftype):
     """Adds a new sample field or embedded field to the dataset, if necessary.
 
@@ -219,4 +233,24 @@ def merge_labels(dataset, in_field, out_field):
         in_field (str): the name of the input label field
         out_field (str): the name of the output label field, which will be created if necessary
     """
-    dataset.merge_labels(in_field, out_field)
+    if not isinstance(dataset, fod.Dataset):
+        # The label IDs that we'll need to delete from `in_field`
+        _, id_path = dataset._get_label_field_path(in_field, "id")
+        del_ids = dataset.values(id_path, unwind=True)
+
+    dataset.merge_samples(
+        dataset,
+        key_field="id",
+        skip_existing=False,
+        insert_new=False,
+        fields={in_field: out_field},
+        merge_lists=True,
+        overwrite=True,
+        expand_schema=True,
+        include_info=False,
+    )
+
+    if isinstance(dataset, fod.Dataset):
+        dataset.delete_sample_field(in_field)
+    else:
+        dataset.delete_labels(ids=del_ids, fields=in_field)

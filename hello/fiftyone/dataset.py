@@ -10,8 +10,8 @@ import fiftyone.utils.coco as fouc
 import fiftyone.utils.yolo as fouy
 from fiftyone.utils.labels import segmentations_to_detections
 
-import hello.fiftyone.core as hofc
-import hello.fiftyone.utils as hofu
+import hello.fiftyone.core as hoc
+import hello.fiftyone.utils as hou
 from hello.fiftyone.dataset_detections import \
     load_dataset as _load_detection_dataset
 from hello.fiftyone.dataset_segmentations import \
@@ -143,7 +143,7 @@ def add_detection_labels(dataset, label_field, labels_path, classes=None, mode="
     filepaths, ids = dataset.values(["filepath", "id"])
     id_map = {Path(k).stem: v for k, v in zip(filepaths, ids)}
 
-    db = hofu.load_predictions(labels_path, classes=classes, mode=mode)
+    db = hou.load_predictions(labels_path, classes=classes, mode=mode)
 
     stems_adds = set(db.keys())
     stems_base = set(id_map.keys())
@@ -188,12 +188,12 @@ def add_segmentation_labels(dataset, label_field, labels_path, mask_targets="aut
         mask_targets = info["mask_targets"]
 
     assert isinstance(mask_targets, dict)
-    remap = hofu.gen_mask_remap(dataset_mask_targets, mask_targets)
+    remap = hou.gen_mask_remap(dataset_mask_targets, mask_targets)
 
     filepaths, ids = dataset.values(["filepath", "id"])
     id_map = {Path(k).stem: v for k, v in zip(filepaths, ids)}
 
-    db = hofu.load_segmentation_masks(labels_path, remap, mode)
+    db = hou.load_segmentation_masks(labels_path, remap, mode)
 
     stems_adds = set(db.keys())
     stems_base = set(id_map.keys())
@@ -382,7 +382,7 @@ def load_detection_dataset(dataset_dir, info_py="info.py", data_path="data", lab
             _dataset = _load_detection_dataset(str(dataset_dir / s), info_py=info_py, data_path=data_path, labels_path=labels_path, field_name=field_name)
             _dataset.tag_samples(s)
             _datasets.append(_dataset)
-        dataset = hofc.merge_samples(_datasets)
+        dataset = hoc.merge_samples(_datasets)
 
     return dataset
 
@@ -399,7 +399,7 @@ def load_segmentation_dataset(dataset_dir, info_py="info.py", data_path="data", 
             _dataset = _load_segmentation_dataset(str(dataset_dir / s), info_py=info_py, data_path=data_path, labels_path=labels_path, field_name=field_name)
             _dataset.tag_samples(s)
             _datasets.append(_dataset)
-        dataset = hofc.merge_samples(_datasets)
+        dataset = hoc.merge_samples(_datasets)
 
     return dataset
 
@@ -495,7 +495,7 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
     info = dataset.info
     classes = dataset.default_classes
     mask_targets = dataset.default_mask_targets
-    info["num_samples"] = hofc.count_values(dataset, "tags")
+    info["num_samples"] = hoc.count_values(dataset, "tags")
 
     if label_field is None:
         label_field = "detections"
@@ -539,7 +539,7 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
                 mask_targets=mask_targets,
             )
 
-        info["tail"].update(count_label=hofc.count_values(view, f"{label_field}.detections.label"))
+        info["tail"].update(count_label=hoc.count_values(view, f"{label_field}.detections.label"))
 
         info_py = tmpl_info.safe_substitute(info,
                                             classes=classes,
