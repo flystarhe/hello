@@ -3,6 +3,7 @@ from pathlib import Path
 
 import cv2 as cv
 import fiftyone as fo
+import fiftyone.core.dataset as fod
 from fiftyone import ViewField as F
 from fiftyone.utils.labels import segmentations_to_detections
 from prettytable import PrettyTable
@@ -327,3 +328,144 @@ def filter_segmentation_samples(out_dir, data_root, classes, mask_targets, thres
         tempfile = f.relative_to(data_root)
         shutil.copyfile(f, out_dir / tempfile)
     return out_dir
+
+
+def has_sample_field(dataset, field_name):
+    """Determines whether the collection has a sample field with the given name.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        field_name: the field name
+
+    Returns:
+        True/False
+    """
+    return field_name in dataset.get_field_schema()
+
+
+def add_sample_field(dataset, field_name, ftype):
+    """Adds a new sample field or embedded field to the dataset, if necessary.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        field_name: the field name or `embedded.field.name`
+        ftype: the field type to create. Must be a subclass of :class:`fiftyone.core.fields.Field`
+    """
+    dataset.add_sample_field(field_name, ftype)
+
+
+def clear_sample_field(dataset, field_name):
+    """Clears the values of the field from all samples in the dataset.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        field_name: the field name or `embedded.field.name`
+    """
+    dataset.clear_sample_field(field_name)
+
+
+def clone_sample_field(dataset, field_name, new_field_name):
+    """Clones the given sample field into a new field of the dataset.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        field_name: the field name or `embedded.field.name`
+        new_field_name: the new field name or `embedded.field.name`
+    """
+    dataset.clone_sample_field(field_name, new_field_name)
+
+
+def delete_sample_field(dataset, field_name, error_level=0):
+    """Deletes the field from all samples in the dataset.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        field_name: the field name or `embedded.field.name`
+        error_level (int, optional): the error level to use
+    """
+    dataset.delete_sample_field(field_name, error_level=error_level)
+
+
+def rename_sample_field(dataset, field_name, new_field_name):
+    """Renames the sample field to the given new name.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        field_name: the field name or `embedded.field.name`
+        new_field_name: the new field name or `embedded.field.name`
+    """
+    dataset.rename_sample_field(field_name, new_field_name)
+
+
+def merge_labels(dataset, in_field, out_field):
+    """Merges the labels from the given input field into the given output field of the collection.
+
+    If this collection is a dataset, the input field is deleted after the
+    merge.
+
+    If this collection is a view, the input field will still exist on the
+    underlying dataset but will only contain the labels not present in this
+    view.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        in_field (str): the name of the input label field
+        out_field (str): the name of the output label field, which will be created if necessary
+    """
+    if not isinstance(dataset, fod.Dataset):
+        # The label IDs that we'll need to delete from `in_field`
+        _, id_path = dataset._get_label_field_path(in_field, "id")
+        del_ids = dataset.values(id_path, unwind=True)
+
+    dataset.merge_samples(
+        dataset,
+        key_field="id",
+        skip_existing=False,
+        insert_new=False,
+        fields={in_field: out_field},
+        merge_lists=True,
+        overwrite=True,
+        expand_schema=True,
+        include_info=False,
+    )
+
+    if isinstance(dataset, fod.Dataset):
+        dataset.delete_sample_field(in_field)
+    else:
+        dataset.delete_labels(ids=del_ids, fields=in_field)
+
+
+def merge_datasets(dataset, others, in_field=None, out_field=None, **kwargs):
+    """Merges the given samples into this dataset.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        others: a list of :class:`fiftyone.core.dataset.Dataset`
+        in_field (str): the name of the input label field
+        out_field (str): the name of the output label field, which will be created if necessary
+        **kwargs: optional keyword arguments to pass to `merge_samples() <https://voxel51.com/docs/fiftyone/api/fiftyone.core.dataset.html#fiftyone.core.dataset.Dataset.merge_samples>`
+    """
+    if in_field is not None and out_field is not None:
+        kwargs["fields"] = {in_field: out_field}
+
+    def _key_fcn(sample):
+        return Path(sample.filepath).name
+
+    params = {
+        "key_field": "filepath",
+        "key_fcn": _key_fcn,
+        "skip_existing": False,
+        "insert_new": True,
+        "fields": None,
+        "merge_lists": True,
+        "overwrite": True,
+        "expand_schema": True,
+        "include_info": False,
+    }
+    params.update(**kwargs)
+
+    for other in others:
+        dataset.merge_samples(other, **params)
+
+    # Populate the `metadata` field
+    dataset.compute_metadata()
