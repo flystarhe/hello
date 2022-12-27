@@ -58,7 +58,9 @@ def check_files(files, data_path="data"):
             print(f"[W] duplicate {len(vals)}/{len(names)}, <{filename}>")
 
         data.update(names)
+
     print(f"[I] {len(data)} unique images from {len(files)} tars")
+    return data
 
 
 def compare(file1, file2, data_path="data", verbose=True):
