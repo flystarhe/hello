@@ -48,6 +48,19 @@ def get_image_paths(filename, data_path="data"):
     return data
 
 
+def check_files(files, data_path="data"):
+    data = set()
+    for filename in files:
+        names = get_image_names(filename, data_path)
+        vals = data & set(names)
+
+        if vals:
+            print(f"[W] duplicate {len(vals)}/{len(names)}, <{filename}>")
+
+        data.update(names)
+    print(f"[I] {len(data)} unique images from {len(files)} tars")
+
+
 def compare(file1, file2, data_path="data", verbose=True):
     if verbose:
         print(f"Compare data:\n  a: <{file1}>\n  b: <{file2}>")
