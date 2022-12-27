@@ -70,7 +70,9 @@ def add_classification_labels(dataset, label_field, labels_path):
     view = dataset.select(matched_ids, ordered=True)
 
     labels = [db[stem] for stem in stems]
+
     view.set_values(label_field, labels)
+    print(f"update {len(labels)=}")
 
 
 def add_coco_labels(dataset, label_field, labels_path, label_type="detections"):
@@ -163,6 +165,7 @@ def add_detection_labels(dataset, label_field, labels_path, classes=None, mode="
         labels.append(fol.Detections(detections=detections))
 
     view.set_values(label_field, labels)
+    print(f"update {len(labels)=}")
 
 
 def add_segmentation_labels(dataset, label_field, labels_path, mask_targets="auto", mode="png"):
@@ -212,6 +215,7 @@ def add_segmentation_labels(dataset, label_field, labels_path, mask_targets="aut
         labels.append(fol.Segmentation(mask=mask))
 
     view.set_values(label_field, labels)
+    print(f"update {len(labels)=}")
 
 
 def add_images_dir(dataset, images_dir, tags=None, recursive=True):
