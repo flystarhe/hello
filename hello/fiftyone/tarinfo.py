@@ -59,7 +59,7 @@ def check_files(files, data_path="data"):
 
         data.update(names)
 
-    print(f"[I] {len(data)} unique images from {len(files)} tars")
+    print(f"{len(data)} unique images from {len(files)} tars")
     return data
 
 
@@ -85,7 +85,7 @@ def compare(file1, file2, data_path="data", verbose=True):
 
     a, b, c = len(base_dict), len(side_dict), len(names)
     if verbose:
-        print(f"[I] ({a=}) & ({b=}) => intersect:{c}")
+        print(f"  ({a=}) & ({b=}) => intersect:{c}")
 
     eqs = []
     tar1 = tarfile.open(file1, "r")
@@ -107,7 +107,7 @@ def compare(file1, file2, data_path="data", verbose=True):
     tar2.close()
 
     if verbose:
-        print(f"[I] {len(names)=}, {len(eqs)=}")
+        print(f"  {len(names)=}, {len(eqs)=}")
 
     return names, eqs
 
@@ -135,6 +135,7 @@ def extract_images(out_dir, files, data_path="data", exclude_names=None):
     tmp_dir = Path(out_dir) / "tmp"
     tmp_dir.mkdir(parents=True, exist_ok=False)
 
+    n_total = 0
     for file, names in tasks.items():
         print(f"[I] extract {len(names)} images from <{file}>")
         if exclude_names is not None:
@@ -144,6 +145,7 @@ def extract_images(out_dir, files, data_path="data", exclude_names=None):
         with tarfile.open(file, "r") as tar:
             members = [tar.getmember(name) for name in names]
             tar.extractall(tmp_dir, members)
+        n_total += len(names)
 
     data_dir = Path(out_dir) / "data"
     data_dir.mkdir(parents=True, exist_ok=False)
@@ -158,6 +160,7 @@ def extract_images(out_dir, files, data_path="data", exclude_names=None):
         from_data = "\n".join([Path(file).name for file in files])
         f.write(f"# README\n\n## Data Processing\n\n**from**\n\n```python\n{from_data}\n```\n\n")
 
+    print(f"{n_total} images from {len(files)} tars")
     return out_dir
 
 
