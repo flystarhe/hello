@@ -254,3 +254,39 @@ def merge_labels(dataset, in_field, out_field):
         dataset.delete_sample_field(in_field)
     else:
         dataset.delete_labels(ids=del_ids, fields=in_field)
+
+
+def merge_datasets(dataset, others, in_field=None, out_field=None, **kwargs):
+    """Merges the given samples into this dataset.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        others: a list of :class:`fiftyone.core.dataset.Dataset`
+        in_field (str): the name of the input label field
+        out_field (str): the name of the output label field, which will be created if necessary
+        **kwargs: optional keyword arguments to pass to `merge_samples() <https://voxel51.com/docs/fiftyone/api/fiftyone.core.dataset.html#fiftyone.core.dataset.Dataset.merge_samples>`
+    """
+    if in_field is not None and out_field is not None:
+        kwargs["fields"] = {in_field: out_field}
+
+    def _key_fcn(sample):
+        return Path(sample.filepath).name
+
+    params = {
+        "key_field": "filepath",
+        "key_fcn": _key_fcn,
+        "skip_existing": False,
+        "insert_new": True,
+        "fields": None,
+        "merge_lists": True,
+        "overwrite": True,
+        "expand_schema": True,
+        "include_info": False,
+    }
+    params.update(**kwargs)
+
+    for other in others:
+        dataset.merge_samples(other, **params)
+
+    # Populate the `metadata` field
+    dataset.compute_metadata()

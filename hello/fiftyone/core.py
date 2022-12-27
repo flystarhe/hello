@@ -136,7 +136,6 @@ def filter_detections_dataset(dataset, new_classes=None, field_name="ground_trut
         a :class:`fiftyone.core.dataset.Dataset`
     """
     dataset.save()
-    dataset = dataset.clone()
 
     if new_classes is not None:
         old_classes = dataset.default_classes
@@ -162,7 +161,6 @@ def filter_segmentation_dataset(dataset, new_classes=None, field_name="ground_tr
         a :class:`fiftyone.core.dataset.Dataset`
     """
     dataset.save()
-    dataset = dataset.clone()
 
     def _check_sample(field_data):
         if field_data:
@@ -187,14 +185,14 @@ def merge_samples(datasets, **kwargs):
     A.save()
     A = A.clone()
 
-    def key_fcn(sample):
+    def _key_fcn(sample):
         return Path(sample.filepath).name
 
     for B in datasets[1:]:
         B.save()
         B = B.clone()
 
-        A.merge_samples(B, key_fcn=key_fcn, **kwargs)
+        A.merge_samples(B, key_fcn=_key_fcn, **kwargs)
 
     return A
 
