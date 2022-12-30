@@ -1,10 +1,10 @@
+import re
 import sys
 from pathlib import Path
 
 import cv2 as cv
 import numpy as np
 import torch
-from hello.utils import importer
 from prettytable import PrettyTable
 
 
@@ -101,7 +101,10 @@ def func(true_dir, pred_dir, num_classes, class_names, reduce_zero_label=True):
     if class_names is None:
         info_py = Path(true_dir).with_name("info.py")
         if info_py.is_file():
-            info = importer.load_from_file("info_py", info_py).info
+            with open(info_py, "r") as f:
+                codestr = f.read()
+
+            info = eval(re.split(r"info\s*=\s*", codestr)[1])
             class_names = info["classes"][:num_classes]
 
     if class_names is None:

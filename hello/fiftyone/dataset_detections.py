@@ -1,13 +1,13 @@
 import code
 import json
+import re
 import sys
 from collections import defaultdict
 from pathlib import Path
 
-from hello.fiftyone.core import merge_samples
-from hello.utils import importer
-
 import fiftyone as fo
+
+from hello.fiftyone.core import merge_samples
 
 dataset_doc_str = """\
 tips:
@@ -185,7 +185,11 @@ def load_dataset(dataset_dir, info_py="info.py", data_path="data", labels_path="
     }
 
     if info_py.is_file():
-        info.update(importer.load_from_file("info_py", info_py).info)
+        with open(info_py, "r") as f:
+            codestr = f.read()
+
+        _info = eval(re.split(r"info\s*=\s*", codestr)[1])
+        info.update(_info)
 
     suffix = labels_path.suffix
 
