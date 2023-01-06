@@ -26,6 +26,8 @@ def load_json_log(json_log, schedules=["iter", "lr", "loss_cls", "loss_bbox"], m
 
     lines = [l for l in lines if l and not l.startswith("#")]
 
+    x_labels = set(["iter", "epoch"])
+
     log_dict = defaultdict(list)
     cache = defaultdict(list)
     for row in lines:
@@ -35,7 +37,7 @@ def load_json_log(json_log, schedules=["iter", "lr", "loss_cls", "loss_bbox"], m
 
         if mode == "train":
             for k, v in log.items():
-                if k in schedules:
+                if k in schedules or k in x_labels:
                     cache[k].append(v)
         elif mode == "val":
             for k, v in log.items():
@@ -58,7 +60,9 @@ def plotting_log_dicts(log_dicts, out_dir, schedules, metrics, format):
     cache = pd.DataFrame(cache)
 
     columns = set(cache.columns)
-    assert "iter" in columns or "epoch" in columns
+    assert "iter" in columns and "epoch" in columns
+
+    cache["iter"] = cache["iter"] * cache["epoch"]
 
     x_label, schedules = schedules[0], schedules[1:]
     y_labels = schedules + metrics
