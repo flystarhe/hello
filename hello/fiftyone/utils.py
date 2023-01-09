@@ -198,8 +198,8 @@ def load_predictions(labels_path, classes=None, mode="text"):
         raise NotImplementedError
 
 
-def find_duplicates(sample_collection, label_field, iou_thresh=0.999, method="simple", iscrowd=None, classwise=False):
-    """Returns IDs of duplicate labels in the given field of the collection, as defined as labels with an IoU greater than a chosen threshold with another label in the field.
+def find_duplicate_labels(dataset, label_field, iou_thresh=0.999, method="simple", iscrowd=None, classwise=False):
+    """Returns IDs of duplicate labels in the given field of the dataset, as defined as labels with an IoU greater than a chosen threshold with another label in the field.
 
     >>> dup_ids = find_duplicates()
     >>> dataset.untag_labels("duplicate")
@@ -209,14 +209,14 @@ def find_duplicates(sample_collection, label_field, iou_thresh=0.999, method="si
     >>> # dataset.delete_labels(ids=dup_ids)  <- best
 
     Args:
-        sample_collection: a :class:`fiftyone.core.collections.SampleCollection`
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
         label_field: a label field of type :class:`fiftyone.core.labels.Detections` or :class:`fiftyone.core.labels.Polylines`
         iou_thresh (0.999): the IoU threshold to use to determine whether labels are duplicates
         method ("simple"): supported values are ``("simple", "greedy")``
         iscrowd (None): an optional name of a boolean attribute
         classwise (False): different label values as always non-overlapping
     """
-    dup_ids = foui.find_duplicates(sample_collection, label_field, iou_thresh=iou_thresh, method=method, iscrowd=iscrowd, classwise=classwise)
+    dup_ids = foui.find_duplicates(dataset, label_field, iou_thresh=iou_thresh, method=method, iscrowd=iscrowd, classwise=classwise)
     return dup_ids
 
 

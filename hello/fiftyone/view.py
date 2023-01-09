@@ -1,6 +1,8 @@
 from pathlib import Path
 
 import fiftyone.brain as fob
+import fiftyone.utils.iou as foui
+from fiftyone import ViewField as F
 
 
 def uniqueness(dataset, count, model=None):
@@ -147,4 +149,21 @@ def filter_samples(dataset, filter):
         filter: a :class:`fiftyone.core.expressions.ViewExpression`
     """
     view = dataset.match(filter)
+    return view
+
+
+def filter_duplicate_labels(dataset, label_field, iou_thresh=0.999, method="simple", iscrowd=None, classwise=False):
+    """Delete duplicate labels in the given field of the dataset, as defined as labels with an IoU greater than a chosen threshold with another label in the field.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        label_field: a label field of type :class:`fiftyone.core.labels.Detections` or :class:`fiftyone.core.labels.Polylines`
+        iou_thresh (0.999): the IoU threshold to use to determine whether labels are duplicates
+        method ("simple"): supported values are ``("simple", "greedy")``
+        iscrowd (None): an optional name of a boolean attribute
+        classwise (False): different label values as always non-overlapping
+    """
+    dup_ids = foui.find_duplicates(dataset, label_field, iou_thresh=iou_thresh, method=method, iscrowd=iscrowd, classwise=classwise)
+
+    view = dataset.match_labels(ids=dup_ids, fields=label_field)
     return view

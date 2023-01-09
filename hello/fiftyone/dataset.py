@@ -6,7 +6,9 @@ from string import Template
 
 import fiftyone as fo
 import fiftyone.core.labels as fol
+import fiftyone.core.utils as fou
 import fiftyone.utils.coco as fouc
+import fiftyone.utils.iou as foui
 import fiftyone.utils.yolo as fouy
 from fiftyone.utils.labels import segmentations_to_detections
 
@@ -246,20 +248,45 @@ def add_images_dir(dataset, images_dir, tags=None, recursive=True):
     dataset.add_images(image_paths, tags=tags)
 
 
-def delete_duplicates(dataset):
+def delete_duplicate_images(dataset):
     """Delete duplicate images.
 
     Args:
         dataset: a :class:`fiftyone.core.dataset.Dataset`
     """
     filepaths, ids = dataset.values(["filepath", "id"])
-    id_map = {Path(k).stem: v for k, v in zip(filepaths, ids)}
 
-    dup_ids = set(ids) - set(id_map.values())
+    unique_ids = []
+    filehash_set = set()
+    for k, v in zip(filepaths, ids):
+        filehash = fou.compute_filehash(k)
+        if filehash not in filehash_set:
+            filehash_set.add(filehash)
+            unique_ids.append(v)
+
+    dup_ids = set(ids) - set(unique_ids)
     if dup_ids:
         print(f"Delete {len(dup_ids)} duplicate images (eg {list(dup_ids)[:3]})")
 
     dataset.delete_samples(dup_ids)
+
+
+def delete_duplicate_labels(dataset, label_field, iou_thresh=0.999, method="simple", iscrowd=None, classwise=False):
+    """Delete duplicate labels in the given field of the dataset, as defined as labels with an IoU greater than a chosen threshold with another label in the field.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        label_field: a label field of type :class:`fiftyone.core.labels.Detections` or :class:`fiftyone.core.labels.Polylines`
+        iou_thresh (0.999): the IoU threshold to use to determine whether labels are duplicates
+        method ("simple"): supported values are ``("simple", "greedy")``
+        iscrowd (None): an optional name of a boolean attribute
+        classwise (False): different label values as always non-overlapping
+    """
+    dup_ids = foui.find_duplicates(dataset, label_field, iou_thresh=iou_thresh, method=method, iscrowd=iscrowd, classwise=classwise)
+    if dup_ids:
+        print(f"Delete {len(dup_ids)} duplicate labels (eg {list(dup_ids)[:3]})")
+
+    dataset.delete_labels(ids=dup_ids, fields=label_field)
 
 
 def add_dataset_dir(dataset_dir, data_path=None, labels_path=None, label_field=None, tags=None):
