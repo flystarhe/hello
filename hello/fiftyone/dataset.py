@@ -246,6 +246,8 @@ def add_images_dir(dataset, images_dir, tags=None, recursive=True):
                           if Path(filepath).stem not in bad_stems])
 
     dataset.add_images(image_paths, tags=tags)
+    # Populate the `metadata` field
+    dataset.compute_metadata()
 
 
 def delete_duplicate_images(dataset):
