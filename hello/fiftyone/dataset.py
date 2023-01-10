@@ -273,7 +273,7 @@ def delete_duplicate_images(dataset):
     dataset.delete_samples(dup_ids)
 
 
-def delete_duplicate_labels(dataset, label_field, iou_thresh=0.999, method="simple", iscrowd=None, classwise=False):
+def delete_duplicate_labels(dataset, label_field, iou_thresh=0.999, method="simple", iscrowd=None, classwise=True):
     """Delete duplicate labels in the given field of the dataset, as defined as labels with an IoU greater than a chosen threshold with another label in the field.
 
     Args:
@@ -282,7 +282,7 @@ def delete_duplicate_labels(dataset, label_field, iou_thresh=0.999, method="simp
         iou_thresh (0.999): the IoU threshold to use to determine whether labels are duplicates
         method ("simple"): supported values are ``("simple", "greedy")``
         iscrowd (None): an optional name of a boolean attribute
-        classwise (False): different label values as always non-overlapping
+        classwise (True): different label values as always non-overlapping
     """
     dup_ids = foui.find_duplicates(dataset, label_field, iou_thresh=iou_thresh, method=method, iscrowd=iscrowd, classwise=classwise)
     if dup_ids:

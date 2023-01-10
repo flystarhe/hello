@@ -466,6 +466,3 @@ def merge_datasets(dataset, others, in_field=None, out_field=None, **kwargs):
 
     for other in others:
         dataset.merge_samples(other, **params)
-
-    # Populate the `metadata` field
-    dataset.compute_metadata()
