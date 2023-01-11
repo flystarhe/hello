@@ -140,8 +140,7 @@ def remap_detections_dataset(dataset, new_classes=None, field_name="ground_truth
         dataset = map_labels(dataset, mapping, field_name=field_name)
         dataset = map_default_classes(dataset, new_classes, background=background)
 
-    if least_one:
-        dataset = dataset.filter_labels(field_name, F("label") != background)
+    dataset = dataset.filter_labels(field_name, F("label") != background, only_matches=least_one).clone()
 
     return dataset
 
@@ -173,7 +172,7 @@ def remap_segmentation_dataset(dataset, new_classes=None, field_name="ground_tru
         dataset = map_default_mask_targets(dataset, new_classes, ignore_index)
 
     if least_one:
-        dataset = dataset.select([s.id for s in dataset if _check_sample(s[field_name])])
+        dataset = dataset.select([s.id for s in dataset if _check_sample(s[field_name])]).clone()
 
     return dataset
 
