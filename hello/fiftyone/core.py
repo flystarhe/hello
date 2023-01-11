@@ -18,8 +18,6 @@ def _map_detections(field_data, mapping):
         label = _detection.label
         if label in mapping:
             _detection.label = mapping[label]
-        elif "*" in mapping:
-            _detection.label = mapping["*"]
         new_detections.append(_detection)
 
     return fo.Detections(detections=new_detections)
@@ -124,7 +122,7 @@ def gen_mask_mapping(old_classes, new_classes):
     return mapping
 
 
-def filter_detections_dataset(dataset, new_classes=None, field_name="ground_truth", background="background"):
+def remap_detections_dataset(dataset, new_classes=None, field_name="ground_truth", background="background", least_one=False):
     """Steps: map labels -> check dataset.classes -> filter valid samples
 
     Args:
@@ -144,12 +142,13 @@ def filter_detections_dataset(dataset, new_classes=None, field_name="ground_trut
         dataset = map_labels(dataset, mapping, field_name=field_name)
         dataset = map_default_classes(dataset, new_classes, background=background)
 
-    dataset = dataset.filter_labels(field_name, F("label") != background).clone()
+    if least_one:
+        dataset = dataset.filter_labels(field_name, F("label") != background)
 
     return dataset
 
 
-def filter_segmentation_dataset(dataset, new_classes=None, field_name="ground_truth", ignore_index=255):
+def remap_segmentation_dataset(dataset, new_classes=None, field_name="ground_truth", ignore_index=255, least_one=False):
     """Steps: map labels -> check dataset.mask_targets -> filter valid samples
 
     Args:
@@ -166,7 +165,7 @@ def filter_segmentation_dataset(dataset, new_classes=None, field_name="ground_tr
     def _check_sample(field_data):
         if field_data:
             mask = field_data.mask
-            return mask[mask < ignore_index].sum() > 0
+            return ((0 < mask) & (mask < ignore_index)).sum() > 0
         return False
 
     if new_classes is not None:
@@ -175,7 +174,8 @@ def filter_segmentation_dataset(dataset, new_classes=None, field_name="ground_tr
         dataset = map_labels(dataset, mapping, field_name=field_name)
         dataset = map_default_mask_targets(dataset, new_classes, ignore_index)
 
-    dataset = dataset.select([s.id for s in dataset if _check_sample(s[field_name])]).clone()
+    if least_one:
+        dataset = dataset.select([s.id for s in dataset if _check_sample(s[field_name])])
 
     return dataset
 
