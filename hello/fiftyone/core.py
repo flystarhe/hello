@@ -159,7 +159,9 @@ def remap_segmentation_dataset(dataset, new_classes=None, field_name="ground_tru
     """
     dataset.save()
 
-    def _check_sample(field_data):
+    def _check_sample(field_data, only_matches):
+        if not only_matches:
+            return True
         if field_data:
             mask = field_data.mask
             return ((0 < mask) & (mask < ignore_index)).sum() > 0
@@ -171,8 +173,7 @@ def remap_segmentation_dataset(dataset, new_classes=None, field_name="ground_tru
         dataset = map_labels(dataset, mapping, field_name=field_name)
         dataset = map_default_mask_targets(dataset, new_classes, ignore_index)
 
-    if least_one:
-        dataset = dataset.select([s.id for s in dataset if _check_sample(s[field_name])]).clone()
+    dataset = dataset.select([s.id for s in dataset if _check_sample(s[field_name], least_one)]).clone()
 
     return dataset
 
