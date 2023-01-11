@@ -77,8 +77,6 @@ def gen_label_mapping(old_classes, new_classes):
     Returns:
         a :class:`dict`
     """
-    old_classes, new_classes = old_classes[:-1], new_classes[:-1]
-
     mapping = {}
     for names in new_classes:
         names = [names] if isinstance(names, str) else names
