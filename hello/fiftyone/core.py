@@ -226,7 +226,9 @@ def split_dataset(dataset, splits=None, limit=3000, seed=51, field_name="ground_
     Returns:
         a :class:`DatasetView`
     """
-    view = dataset.shuffle(seed=seed)
+    view = dataset.sort_by("filepath")
+    view = view.shuffle(seed=seed)
+
     view.untag_samples(["train", "val", "test"])
 
     if from_field is not None:
