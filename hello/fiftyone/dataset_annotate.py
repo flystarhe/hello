@@ -95,7 +95,7 @@ def annotate(batch, samples, label_field="ground_truth", label_type="instances",
         project_name=anno_key,
     )
 
-    return {"dataset_name": dataset_name, "anno_key": anno_key}
+    return dataset_name, anno_key
 
 
 def load_annotations(dataset_name, anno_key, cleanup=True,
