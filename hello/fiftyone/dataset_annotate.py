@@ -2,17 +2,18 @@ import fiftyone as fo
 import fiftyone.core.view as fov
 
 
-def annotate(dataset_or_view, label_field="ground_truth", label_type="instances",
+def annotate(batch, samples, label_field="ground_truth", label_type="instances",
              url="http://119.23.212.113:6060", username="hejian", password="LFIcvat123",
              task_size=2000, segment_size=1000, task_assignee="hejian", job_assignees=["weiqiaomu", "jiasiyu"]):
     """Exports the samples to the given annotation backend.
 
     ``mask_targets`` is a dict mapping pixel values to semantic label strings.
     Only applicable when annotating semantic segmentations. the default is
-    ``dataset_or_view.default_mask_targets``.
+    ``samples.default_mask_targets``.
 
     Args:
-        dataset_or_view: a :class:`fiftyone.core.collections.SampleCollection`
+        batch: a name of str or index of int for samples
+        samples: a :class:`fiftyone.core.collections.SampleCollection`
         label_field ("ground_truth"): a string indicating a new or existing label field to annotate
         label_type ("instances"): a string indicating the type of labels to annotate. The possible values are:
 
@@ -54,15 +55,15 @@ def annotate(dataset_or_view, label_field="ground_truth", label_type="instances"
     """
     assert label_type in {"classification", "classifications", "detections", "instances", "polylines", "polygons", "keypoints", "segmentation", "scalar"}
 
-    if isinstance(dataset_or_view, fov.DatasetView):
-        dataset_name = dataset_or_view.dataset_name
+    if isinstance(samples, fov.DatasetView):
+        dataset_name = samples.dataset_name
     else:
-        dataset_name = dataset_or_view.name
+        dataset_name = samples.name
 
-    anno_key = f"{dataset_name}_{label_field}_{label_type}"
+    anno_key = f"{dataset_name}_{label_field}_{label_type}_{batch}"
 
-    if anno_key in dataset_or_view.list_annotation_runs():
-        dataset_or_view.delete_annotation_run(anno_key)
+    if anno_key in samples.list_annotation_runs():
+        samples.delete_annotation_run(anno_key)
 
     # The new attributes that we want to populate
     attributes = True
@@ -75,13 +76,13 @@ def annotate(dataset_or_view, label_field="ground_truth", label_type="instances"
             }
         }
 
-    dataset_or_view.annotate(
+    samples.annotate(
         anno_key,
         label_field=label_field,
         label_type=label_type,
-        classes=dataset_or_view.default_classes or None,
+        classes=samples.default_classes or None,
         attributes=attributes,
-        mask_targets=dataset_or_view.default_mask_targets or None,
+        mask_targets=samples.default_mask_targets or None,
         launch_editor=False,
         url=url,
         username=username,
