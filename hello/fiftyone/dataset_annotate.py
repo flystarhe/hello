@@ -61,6 +61,9 @@ def annotate(dataset_or_view, label_field="ground_truth", label_type="instances"
 
     anno_key = f"{dataset_name}_{label_field}_{label_type}"
 
+    if anno_key in dataset_or_view.list_annotation_runs():
+        dataset_or_view.delete_annotation_run(anno_key)
+
     # The new attributes that we want to populate
     attributes = True
     if label_type == "detections":
