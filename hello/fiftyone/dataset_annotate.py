@@ -4,7 +4,7 @@ import fiftyone.core.view as fov
 
 def annotate(batch, samples, label_field="ground_truth", label_type="instances",
              url="http://119.23.212.113:6060", username="hejian", password="LFIcvat123",
-             task_size=2000, segment_size=1000, task_assignee="hejian", job_assignees=["weiqiaomu", "jiasiyu"]):
+             task_size=1500, segment_size=500, task_assignee="hejian", job_assignees=["weiqiaomu", "jiasiyu"]):
     """Exports the samples to the given annotation backend.
 
     ``mask_targets`` is a dict mapping pixel values to semantic label strings.
@@ -48,8 +48,8 @@ def annotate(batch, samples, label_field="ground_truth", label_type="instances",
         url (str, optional): defaults to "http://119.23.212.113:6060"
         username (str, optional): defaults to "hejian"
         password (str, optional): defaults to "LFIcvat123"
-        task_size (int, optional): defaults to 2000
-        segment_size (int, optional): defaults to 1000
+        task_size (int, optional): defaults to 1500
+        segment_size (int, optional): defaults to 500
         task_assignee (str, optional): defaults to "hejian"
         job_assignees (list, optional): defaults to ``["weiqiaomu", "jiasiyu"]``
     """
@@ -95,19 +95,22 @@ def annotate(batch, samples, label_field="ground_truth", label_type="instances",
         project_name=anno_key,
     )
 
-    return dataset_name, anno_key
+    return anno_key
 
 
-def load_annotations(dataset_name, anno_key, cleanup=True,
+def load_annotations(dataset_name, anno_keys, cleanup=True,
                      url="http://119.23.212.113:6060", username="hejian", password="LFIcvat123"):
     dataset = fo.load_dataset(dataset_name)
 
-    dataset.load_annotations(
-        anno_key,
-        cleanup=cleanup,
-        url=url,
-        username=username,
-        password=password,
-    )
+    assert isinstance(anno_keys, list)
+
+    for anno_key in anno_keys:
+        dataset.load_annotations(
+            anno_key,
+            cleanup=cleanup,
+            url=url,
+            username=username,
+            password=password
+        )
 
     return dataset
