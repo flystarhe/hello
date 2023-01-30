@@ -11,6 +11,9 @@ from mmdet.apis import inference_detector, init_detector, show_result_pyplot
 class Detector:
     """Instantiate an object detector.
 
+    >>> cfg_options = {"test_pipeline.1": dict(img_scale=(800, 800), scale_factor=None)}
+    >>> cfg_options = {"test_pipeline.1": dict(img_scale=None, scale_factor=1.0)}
+
     Args:
         config_file (str): Config file path.
         checkpoint_file (str): Checkpoint file path.
