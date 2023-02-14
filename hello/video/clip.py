@@ -99,8 +99,8 @@ def clip_video(video_path, tag_frames, output_dir, interval, fisheye):
         with open(fisheye, "r") as f:
             params = json.load(f)
 
-        fisheye_D = params["fisheye_dist"]
-        fisheye_K = params["fisheye_camera_K"]
+        fisheye_K = np.array(params["fisheye_camera_K"]).reshape(3, 3)
+        fisheye_D = np.array(params["fisheye_dist"])
         img_shape = params["fisheye_image_size"]
 
         map1, map2 = cv.fisheye.initUndistortRectifyMap(
