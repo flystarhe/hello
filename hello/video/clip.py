@@ -1,14 +1,10 @@
-import re
+import json
 import shutil
 import sys
 from pathlib import Path
 
 import cv2 as cv
 import numpy as np
-
-pattern_decimal = re.compile(r"\d+(\.\d+)?")
-
-suffix_set = set(".avi,.mp4,.MOV,.mkv".split(","))
 
 help_doc_str = """\
 - press `esc` to exit
@@ -19,6 +15,9 @@ help_doc_str = """\
 - press `b` take a step back
 - press `f` freeze or not
 """
+
+
+suffix_set = set(".avi,.mp4".split(","))
 
 
 def find_videos(input_dir):
@@ -40,7 +39,7 @@ def tag_video(video_path, factor):
 
     tag_frames = np.full((30, frame_count, 3), (255, 0, 0), dtype="uint8")
 
-    curr_pos, step_size, freeze, keep = 0, 1, 0, 1
+    curr_pos, step_size, freeze, keep = 0, cap_fps, 0, 1
     while curr_pos < frame_count:
         this_pos = int(cap.get(cv.CAP_PROP_POS_FRAMES))
 
@@ -54,7 +53,7 @@ def tag_video(video_path, factor):
             break
 
         banner = np.full((30, frame_width, 3), (0, 0, 255), dtype="uint8")
-        txt = f"{curr_pos=}/{frame_count}, {step_size=}*{cap_fps}, {freeze=}, {keep=}"
+        txt = f"{curr_pos=}/{frame_count}:{cap_fps}, {step_size=}, {freeze=}, {keep=}"
         cv.putText(banner, txt, (15, 25), cv.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
 
         tag_bar = cv.resize(tag_frames, (frame_width, 30), interpolation=cv.INTER_NEAREST)
@@ -77,14 +76,14 @@ def tag_video(video_path, factor):
             step_size = step_size // 2
             step_size = max(1, step_size)
         elif key == ord("n"):
-            curr_pos = this_pos + step_size * cap_fps
+            curr_pos = this_pos + step_size
             if freeze == 0:
                 if keep == 1:
                     tag_frames[:, this_pos:curr_pos] = (0, 255, 0)
                 else:
                     tag_frames[:, this_pos:curr_pos] = (0, 0, 255)
         elif key == ord("b"):
-            curr_pos = this_pos - step_size * cap_fps
+            curr_pos = this_pos - step_size
             curr_pos = max(0, curr_pos)
         elif key == ord("f"):
             freeze = int(not freeze)
@@ -95,76 +94,52 @@ def tag_video(video_path, factor):
     return tag_frames[0, :, 1]
 
 
-def clip_video(video_path, tag_frames, output_dir, task):
-    txt_file = Path(video_path).with_suffix(".txt")
-    clip_text_file(txt_file, tag_frames, output_dir)
+def clip_video(video_path, tag_frames, output_dir, interval, fisheye):
+    if fisheye is not None:
+        with open(fisheye, "r") as f:
+            params = json.load(f)
 
-    if task is None:
-        task = ""
-    else:
-        task = f"_{task}"
+        fisheye_D = params["fisheye_dist"]
+        fisheye_K = params["fisheye_camera_K"]
+        img_shape = params["fisheye_image_size"]
 
-    outfile = Path(output_dir) / f"data/{Path(video_path).stem}{task}.mp4"
-    fourcc = cv.VideoWriter_fourcc(*"mp4v")
+        map1, map2 = cv.fisheye.initUndistortRectifyMap(
+            fisheye_K,
+            fisheye_D,
+            np.eye(3),
+            fisheye_K,
+            img_shape,
+            cv.CV_32FC1
+        )
 
+    index = 0
+    keep_frames = 0
+    limit = tag_frames.size
+    prefix = Path(video_path).stem
     cap = cv.VideoCapture(video_path)
 
-    fps = int(cap.get(cv.CAP_PROP_FPS))
-    width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
-
-    out = cv.VideoWriter(str(outfile), fourcc, fps, (width, height))
-
-    frame_count = tag_frames.size
-    print(f"[{outfile}] Saving ...")
-
-    curr_pos = 0
-    while curr_pos < frame_count:
+    while index < limit:
         ret, frame = cap.read()
         if not ret:
             print("Can't receive frame (stream end?). Exiting ...")
             break
 
-        if tag_frames[curr_pos] > 0:
-            out.write(frame)
+        if tag_frames[index] > 0:
+            if keep_frames % interval == 0:
+                if fisheye is not None:
+                    frame = cv.remap(frame, map1, map2, interpolation=cv.INTER_LINEAR)
 
-        curr_pos += 1
+                filename = f"data/{prefix}_i{index:06d}.jpg"
+                cv.imwrite(str(output_dir / filename), frame)
+
+            keep_frames += 1
+
+        index += 1
 
     cap.release()
-    out.release()
 
 
-def clip_text_file(infile, tag_frames, output_dir):
-    if not Path(infile).is_file():
-        return None
-
-    frame_count = tag_frames.size
-
-    curr_pos = 0
-    head, data = [], []
-    with open(infile, "r") as f:
-        lines = [l.strip() for l in f.readlines()]
-        lines = [l for l in lines if l]
-        for line in lines:
-            if curr_pos >= frame_count:
-                break
-
-            if pattern_decimal.match(line):
-                if tag_frames[curr_pos] > 0:
-                    data.append(line)
-                curr_pos += 1
-            else:
-                head.append(line)
-
-    outfile = Path(output_dir) / f"data/{Path(infile).name}"
-    with open(outfile, "w") as f:
-        f.write("\n".join(head))
-        f.write("\n")
-        f.write("\n".join(data))
-    return outfile
-
-
-def func(input_dir, output_dir, factor, task):
+def func(input_dir, output_dir, factor, interval, fisheye):
     input_dir = Path(input_dir)
 
     if input_dir.is_file():
@@ -179,13 +154,20 @@ def func(input_dir, output_dir, factor, task):
         new_name = f"{input_dir.name}_clip"
         output_dir = input_dir.with_name(new_name)
 
+    if fisheye is not None:
+        if not Path(fisheye).is_file():
+            fisheye = str(input_dir / fisheye)
+
+        if not Path(fisheye).is_file():
+            fisheye = None
+
     shutil.rmtree(output_dir, ignore_errors=True)
     (output_dir / "data").mkdir(parents=True, exist_ok=False)
 
     for video_path in video_paths:
         tag_frames = tag_video(video_path, factor)
         if tag_frames.max() > 0:
-            clip_video(video_path, tag_frames, output_dir, task)
+            clip_video(video_path, tag_frames, output_dir, interval, fisheye)
 
     return f"\n[OUTDIR]\n{output_dir}"
 
@@ -200,8 +182,10 @@ def parse_args(args=None):
                         help="output dir")
     parser.add_argument("-f", "--factor", type=float, default=None,
                         help="resize factor")
-    parser.add_argument("-t", "--task", type=str, default=None,
-                        help="e.g. 'det', 'seg', ...")
+    parser.add_argument("-i", "--interval", type=int, default=5,
+                        help="sample the frames")
+    parser.add_argument("-e", "--fisheye", type=str, default=None,
+                        help="fisheye parameter file path")
 
     args = parser.parse_args(args=args)
     return vars(args)
