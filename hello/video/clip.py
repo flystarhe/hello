@@ -8,12 +8,10 @@ import numpy as np
 
 help_doc_str = """\
 - press `esc` to exit
-- press `space` change mode
-- press `u` speed up
-- press `d` slow down
-- press `n` go further
-- press `b` take a step back
-- press `f` freeze or not
+- press `w/s` up/down step size
+- press `a/d` backward/forward pos
+- press `f` keep clip and to the next
+- press `space` drop clip and to the next
 """
 
 
@@ -39,7 +37,7 @@ def tag_video(video_path, factor):
 
     tag_frames = np.full((30, frame_count, 3), (255, 0, 0), dtype="uint8")
 
-    curr_pos, step_size, freeze, keep = 0, cap_fps, 0, 1
+    curr_pos, step_size = 0, cap_fps
     while curr_pos < frame_count:
         this_pos = int(cap.get(cv.CAP_PROP_POS_FRAMES))
 
@@ -52,8 +50,8 @@ def tag_video(video_path, factor):
             print("Can't receive frame (stream end?). Exiting ...")
             break
 
+        txt = f"{curr_pos=}/{frame_count}:{cap_fps} ({step_size=})"
         banner = np.full((30, frame_width, 3), (0, 0, 255), dtype="uint8")
-        txt = f"{curr_pos=}/{frame_count}:{cap_fps}, {step_size=}, {freeze=}, {keep=}"
         cv.putText(banner, txt, (15, 25), cv.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
 
         tag_bar = cv.resize(tag_frames, (frame_width, 30), interpolation=cv.INTER_NEAREST)
@@ -68,25 +66,22 @@ def tag_video(video_path, factor):
         key = cv.waitKey(0)
         if key == 27:  # esc
             break
-        elif key == 32:  # space
-            keep = int(not keep)
-        elif key == ord("u"):
+        elif key == ord("w"):
             step_size = step_size * 2
-        elif key == ord("d"):
+        elif key == ord("s"):
             step_size = step_size // 2
             step_size = max(1, step_size)
-        elif key == ord("n"):
-            curr_pos = this_pos + step_size
-            if freeze == 0:
-                if keep == 1:
-                    tag_frames[:, this_pos:curr_pos] = (0, 255, 0)
-                else:
-                    tag_frames[:, this_pos:curr_pos] = (0, 0, 255)
-        elif key == ord("b"):
+        elif key == ord("a"):
             curr_pos = this_pos - step_size
             curr_pos = max(0, curr_pos)
+        elif key == ord("d"):
+            curr_pos = this_pos + step_size
         elif key == ord("f"):
-            freeze = int(not freeze)
+            curr_pos = this_pos + step_size
+            tag_frames[:, this_pos:curr_pos] = (0, 255, 0)
+        elif key == 32:  # space
+            curr_pos = this_pos + step_size
+            tag_frames[:, this_pos:curr_pos] = (0, 0, 255)
 
     cv.destroyAllWindows()
     cap.release()
