@@ -164,6 +164,9 @@ def func(input_dir, output_dir, factor, interval, fisheye):
         if tag_frames.max() > 0:
             clip_video(video_path, tag_frames, output_dir, interval, fisheye)
 
+    with open(output_dir / "README.md", "w") as f:
+        f.write("# README\n\n## Data Processing\n\n")
+
     return f"\n[OUTDIR]\n{output_dir}"
 
 

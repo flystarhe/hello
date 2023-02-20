@@ -80,6 +80,9 @@ def func(input_dir, output_dir, fisheye, format, prefix):
     print(f"[INFO] find images: {len(image_paths)}")
     to_unwarp(image_paths, output_dir, fisheye, format, prefix)
 
+    with open(output_dir / "README.md", "w") as f:
+        f.write("# README\n\n## Data Processing\n\n")
+
     return f"\n[OUTDIR]\n{output_dir}"
 
 
