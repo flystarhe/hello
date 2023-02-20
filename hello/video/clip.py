@@ -113,6 +113,7 @@ def clip_video(video_path, tag_frames, output_dir, interval, fisheye):
     prefix = Path(video_path).stem
     cap = cv.VideoCapture(video_path)
 
+    saved_images = 0
     while index < limit:
         ret, frame = cap.read()
         if not ret:
@@ -127,11 +128,15 @@ def clip_video(video_path, tag_frames, output_dir, interval, fisheye):
                 filename = f"data/{prefix}_i{index:06d}.jpg"
                 cv.imwrite(str(output_dir / filename), frame)
 
+                saved_images += 1
+
             keep_frames += 1
 
         index += 1
 
     cap.release()
+
+    return saved_images
 
 
 def func(input_dir, output_dir, factor, interval, fisheye):
@@ -159,10 +164,14 @@ def func(input_dir, output_dir, factor, interval, fisheye):
     shutil.rmtree(output_dir, ignore_errors=True)
     (output_dir / "data").mkdir(parents=True, exist_ok=False)
 
+    saved_images = 0
     for video_path in video_paths:
         tag_frames = tag_video(video_path, factor)
         if tag_frames.max() > 0:
-            clip_video(video_path, tag_frames, output_dir, interval, fisheye)
+            n = clip_video(video_path, tag_frames, output_dir, interval, fisheye)
+            saved_images += n
+
+    print(f"[INFO] saved images: {saved_images}")
 
     with open(output_dir / "README.md", "w") as f:
         f.write("# README\n\n## Data Processing\n\n")
