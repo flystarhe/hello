@@ -8,7 +8,7 @@ usage: hello-video <command> [options]
 
 Commands:
     clip
-    frames
+    fisheye
     info
     resize
     split
@@ -30,8 +30,8 @@ def main(args=None):
     if command == "clip":
         from .clip import main as _main
         _main(args)
-    elif command == "frames":
-        from .frames import main as _main
+    elif command == "fisheye":
+        from .fisheye import main as _main
         _main(args)
     elif command == "info":
         from .info import main as _main
