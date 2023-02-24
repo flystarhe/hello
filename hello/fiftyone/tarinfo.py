@@ -10,6 +10,30 @@ import numpy as np
 from hello.fiftyone.utils import equal_dict, equal_list
 
 
+def list_files(filename, level=1):
+    db = []
+    with tarfile.open(filename, "r") as tar:
+        for name in tar.getnames():
+            if len(Path(name).parts) > level:
+                continue
+
+            if tar.getmember(name).isdir():
+                db.append(f"{name}/")
+            else:
+                db.append(name)
+    print("\n".join(db))
+
+
+def extract(filename, member_path, out_dir=None):
+    with tarfile.open(filename, "r") as tar:
+        if out_dir is not None:
+            result = tar.extract(member_path, out_dir)
+        else:
+            with tar.extractfile(member_path) as f:
+                result = f.read().decode("utf8")
+    return result
+
+
 def get_readme(filename):
     docstr = None
     with tarfile.open(filename, "r") as tar:
