@@ -101,13 +101,13 @@ class Detector:
             f.write(text)
 
 
-def func(root, config_file, checkpoint_file, images_dir, score_thr, out_dir, txt_file):
+def func(root, config_file, checkpoint_file, cfg_options, images_dir, score_thr, out_dir, txt_file):
     root = Path(root)
 
     config_file = str(root / config_file)
     checkpoint_file = str(root / checkpoint_file)
 
-    executor = Detector(config_file, checkpoint_file)
+    executor = Detector(config_file, checkpoint_file, cfg_options=cfg_options)
     results = executor.test_images(images_dir, score_thr, out_dir)
 
     if txt_file is not None:
@@ -134,6 +134,8 @@ def parse_args(args=None):
                         help="draw boxes on the image")
     parser.add_argument("-f", dest="txt_file", type=str, default="predictions.txt",
                         help="format and save results to a txt file")
+    parser.add_argument("-e", dest="cfg_options", type=str, default=None,
+                        help="to override some settings")
 
     args = parser.parse_args(args=args)
     return vars(args)
@@ -142,6 +144,10 @@ def parse_args(args=None):
 def main(args=None):
     kwargs = parse_args(args)
     print(f"{__file__}: {kwargs}")
+
+    cfg_options = kwargs["cfg_options"]
+    if cfg_options is not None:
+        kwargs["cfg_options"] = eval(cfg_options)
 
     print(func(**kwargs))
 
