@@ -1,11 +1,12 @@
 import json
+import re
 import shutil
 import sys
 import time
 from pathlib import Path
 from string import Template
 
-import hello.fiftyone.dataset_segmentations as hod
+import hello.fiftyone.dataset as hod
 
 tmpl_readme = """\
 # README
@@ -33,10 +34,30 @@ def format_kv(k, v):
 
 
 def make_dataset(dataset_dir, info_py="info.py", data_path="data", preds_path="predictions/", labels_path="labels/"):
-    A = hod.load_dataset(dataset_dir, info_py=info_py, data_path=data_path, labels_path=preds_path, field_name="predictions")
-    B = hod.load_dataset(dataset_dir, info_py=info_py, data_path=data_path, labels_path=labels_path, field_name="ground_truth")
+    dataset_dir = Path(dataset_dir or ".")
 
-    dataset = hod.merge_samples([A, B])
+    with open(dataset_dir / info_py, "r") as f:
+        codestr = f.read()
+
+    info = eval(re.split(r"info\s*=\s*", codestr)[1])
+
+    dataset_name = dataset_dir.name
+    dataset_type = "segmentation"
+    version = "001"
+
+    classes = info.get("classes", [])
+    mask_targets = info.get("mask_targets", {})
+
+    hod.delete_datasets([dataset_name])
+    dataset = hod.create_dataset(dataset_name, dataset_type, classes, mask_targets)
+
+    dataset.info["version"] = version
+
+    hod.add_images_dir(dataset, dataset_dir / data_path, None)
+
+    hod.add_segmentation_labels(dataset, "predictions", dataset_dir / preds_path, mask_targets, mode="png")
+    hod.add_segmentation_labels(dataset, "ground_truth", dataset_dir / labels_path, mask_targets, mode="png")
+
     return dataset
 
 
