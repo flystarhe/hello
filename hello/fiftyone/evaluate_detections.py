@@ -6,6 +6,8 @@ import time
 from pathlib import Path
 from string import Template
 
+from fiftyone import ViewField as F
+
 import hello.fiftyone.dataset as hod
 
 tmpl_readme = """\
@@ -74,6 +76,9 @@ def save_plot(plot, html_file):
 def func(dataset_dir, info_py="info.py", data_path="data", preds_path="predictions.txt", labels_path="labels.json", output_dir=None, **kwargs):
     dataset = make_dataset(dataset_dir, info_py, data_path, preds_path, labels_path)
 
+    filter_exp = F("confidence") > kwargs.pop("score_thr", 0.3)
+    view = dataset.filter_labels("predictions", filter_exp, only_matches=False)
+
     params = dict(
         gt_field="ground_truth",
         eval_key="eval",
@@ -86,7 +91,7 @@ def func(dataset_dir, info_py="info.py", data_path="data", preds_path="predictio
     )
     params.update(**kwargs)
 
-    results = dataset.evaluate_detections("predictions", **params)
+    results = view.evaluate_detections("predictions", **params)
     results.print_report()
 
     compute_mAP = kwargs.get("compute_mAP", False)
@@ -136,6 +141,8 @@ def parse_args(args=None):
                         help="which the ground_truth file")
     parser.add_argument("--out", dest="output_dir", type=str, default=None,
                         help="save results to output dir")
+    parser.add_argument("--score_thr", type=float, default=0.3,
+                        help="minimum score of bboxes to compute")
     parser.add_argument("--iou", dest="iou", type=float, default=0.5,
                         help="the IoU threshold")
     parser.add_argument("--classwise", dest="classwise", action="store_false",

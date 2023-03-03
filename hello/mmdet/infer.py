@@ -129,7 +129,7 @@ def parse_args(args=None):
     parser.add_argument("images_dir", type=str,
                         help="a directory of images")
     parser.add_argument("-s", dest="score_thr", type=float, default=0.05,
-                        help="minimum score of bboxes to be shown")
+                        help="minimum score of bboxes to display")
     parser.add_argument("-o", dest="out_dir", type=str, default=None,
                         help="draw boxes on the image")
     parser.add_argument("-f", dest="txt_file", type=str, default="predictions.txt",
