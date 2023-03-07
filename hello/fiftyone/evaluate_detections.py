@@ -76,6 +76,7 @@ def save_plot(plot, html_file):
 def func(dataset_dir, info_py="info.py", data_path="data", preds_path="predictions.txt", labels_path="labels.json", output_dir=None, **kwargs):
     dataset = make_dataset(dataset_dir, info_py, data_path, preds_path, labels_path)
 
+    classes = dataset.default_classes
     filter_exp = F("confidence") > kwargs.pop("score_thr", 0.3)
     view = dataset.filter_labels("predictions", filter_exp, only_matches=False)
 
@@ -92,7 +93,7 @@ def func(dataset_dir, info_py="info.py", data_path="data", preds_path="predictio
     params.update(**kwargs)
 
     results = view.evaluate_detections("predictions", **params)
-    results.print_report()
+    results.print_report(classes=classes)
 
     compute_mAP = kwargs.get("compute_mAP", False)
 
@@ -109,7 +110,7 @@ def func(dataset_dir, info_py="info.py", data_path="data", preds_path="predictio
         tmpl_mapping = {
             "date": time.strftime(r"%Y-%m-%d %H:%M"),
             "aggregate_metrics": format_kv("mAP", mAP),
-            "report": json.dumps(results.report(), indent=4),
+            "report": json.dumps(results.report(classes=classes), indent=4),
         }
         readme_str = tmpl_readme.safe_substitute(tmpl_mapping)
         with open(output_dir / "README.md", "w") as f:
@@ -117,10 +118,10 @@ def func(dataset_dir, info_py="info.py", data_path="data", preds_path="predictio
 
         if compute_mAP:
             html_file = str(output_dir / "plot_confusion_matrix.html")
-            plot = results.plot_confusion_matrix()
+            plot = results.plot_confusion_matrix(classes=classes)
             save_plot(plot, html_file)
             html_file = str(output_dir / "plot_pr_curves.html")
-            plot = results.plot_pr_curves()
+            plot = results.plot_pr_curves(classes=classes)
             save_plot(plot, html_file)
     return "\n[END]"
 
