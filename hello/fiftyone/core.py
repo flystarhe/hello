@@ -207,6 +207,8 @@ def count_values(dataset, field_or_expr, sort_by="label"):
 
     table_data = PrettyTable()
     table_data.field_names = ["label", "count"]
+    table_data.align["label"] = "l"
+    table_data.align["count"] = "r"
     table_data.add_rows(count_label)
     print(table_data)
 
