@@ -196,13 +196,14 @@ def merge_samples(datasets, **kwargs):
     return A
 
 
-def count_values(dataset, field_or_expr, ordered=True):
+def count_values(dataset, field_or_expr, sort_by="label"):
     # field_or_expr: "tags" or "ground_truth.detections.label"
     count_label = dataset.count_values(field_or_expr)
     count_label = [(k, v) for k, v in count_label.items()]
 
-    if ordered:
-        count_label = sorted(count_label, key=lambda x: x[1])
+    if sort_by is not None:
+        index = 0 if sort_by == "label" else 1
+        count_label = sorted(count_label, key=lambda x: x[index])
 
     table_data = PrettyTable()
     table_data.field_names = ["label", "count"]

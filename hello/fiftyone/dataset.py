@@ -437,6 +437,36 @@ def load_segmentation_dataset(dataset_dir, info_py="info.py", data_path="data", 
     return dataset
 
 
+def export_image_dataset(export_dir, dataset, splits=None):
+    shutil.rmtree(export_dir, ignore_errors=True)
+
+    _tags = set(dataset.distinct("tags"))
+
+    if splits is None:
+        splits = ["train", "val", "test"]
+    elif splits == "auto":
+        splits = sorted(_tags)
+
+    assert isinstance(splits, list)
+    splits = [s for s in splits if s in _tags]
+
+    if not splits:
+        splits = ["train"]
+        dataset.tag_samples(splits)
+
+    for split in splits:
+        print(f"\n[{split}]\n")
+        view = dataset.match_tags(split)
+        curr_dir = Path(export_dir) / split
+
+        view.export(
+            export_dir=str(curr_dir / "data"),
+            dataset_type=fo.types.ImageDirectory,
+        )
+
+    return export_dir
+
+
 def export_classification_labels(export_dir, dataset, label_field, splits=None):
     shutil.rmtree(export_dir, ignore_errors=True)
 
