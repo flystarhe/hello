@@ -301,7 +301,7 @@ def add_dataset(dataset, skip_existing=True, insert_new=True, fields=None, expan
     raise NotImplementedError
 
 
-def create_dataset(dataset_name, dataset_type, classes=[], mask_targets={}):
+def create_dataset(dataset_name, dataset_type, version="001", classes=[], mask_targets={}):
     """Create an empty :class:`fiftyone.core.dataset.Dataset` with the name.
 
     Args:
@@ -322,7 +322,7 @@ def create_dataset(dataset_name, dataset_type, classes=[], mask_targets={}):
     info = {
         "dataset_name": dataset_name,
         "dataset_type": dataset_type,
-        "version": "001",
+        "version": version,
         "classes": classes,
         "mask_targets": mask_targets,
         "num_samples": {},
@@ -337,7 +337,7 @@ def create_dataset(dataset_name, dataset_type, classes=[], mask_targets={}):
     return dataset
 
 
-def load_images_dir(dataset_dir, dataset_name, dataset_type, classes=[], mask_targets={}):
+def load_images_dir(dataset_dir, dataset_name, dataset_type, version="001", classes=[], mask_targets={}):
     """Create a :class:`fiftyone.core.dataset.Dataset` from the given directory of images.
 
     Args:
@@ -359,7 +359,7 @@ def load_images_dir(dataset_dir, dataset_name, dataset_type, classes=[], mask_ta
     info = {
         "dataset_name": dataset_name,
         "dataset_type": dataset_type,
-        "version": "001",
+        "version": version,
         "classes": classes,
         "mask_targets": mask_targets,
         "num_samples": {},
@@ -464,6 +464,9 @@ def export_image_dataset(export_dir, dataset, splits=None):
             dataset_type=fo.types.ImageDirectory,
         )
 
+        with open(curr_dir / "README.md", "w") as f:
+            f.write("# README\n\n")
+
     return export_dir
 
 
@@ -495,6 +498,9 @@ def export_classification_labels(export_dir, dataset, label_field, splits=None):
             label_field=label_field,
             include_confidence=True,
         )
+
+        with open(curr_dir / "README.md", "w") as f:
+            f.write("# README\n\n")
 
     return export_dir
 
@@ -528,6 +534,9 @@ def export_classification_dataset(export_dir, dataset, label_field, splits=None,
             label_field=label_field,
             include_confidence=True,
         )
+
+        with open(curr_dir / "README.md", "w") as f:
+            f.write("# README\n\n")
 
     return export_dir
 
