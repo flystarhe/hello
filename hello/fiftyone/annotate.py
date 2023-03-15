@@ -4,7 +4,7 @@ import fiftyone.core.view as fov
 
 def to_cvat(batch, samples, label_field="ground_truth", label_type="instances",
             url="http://localhost:8080", username="hejian", password="LFIcvat123",
-            task_size=2000, segment_size=200, task_assignee="hejian", job_assignees=["hejian"]):
+            task_size=1000, segment_size=200, task_assignee="hejian", job_assignees=["hejian"]):
     """Exports the samples to the given annotation backend.
 
     ``mask_targets`` is a dict mapping pixel values to semantic label strings.
@@ -48,7 +48,7 @@ def to_cvat(batch, samples, label_field="ground_truth", label_type="instances",
         url (str, optional): defaults to "http://localhost:8080"
         username (str, optional): defaults to "hejian"
         password (str, optional): defaults to "LFIcvat123"
-        task_size (int, optional): defaults to 2000
+        task_size (int, optional): defaults to 1000
         segment_size (int, optional): defaults to 200
         task_assignee (str, optional): defaults to "hejian"
         job_assignees (list, optional): defaults to ``["hejian"]``
