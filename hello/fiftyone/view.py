@@ -43,7 +43,9 @@ def uniqueness(dataset, count, model=None):
     results = fob.compute_similarity(dataset, brain_key="img_sim", model=model)
     results.find_unique(count)
 
-    unique_view = dataset.select(results.unique_ids)
+    unique_ids = results.unique_ids
+    unique_view = dataset.select(unique_ids)
+
     return unique_view
 
 

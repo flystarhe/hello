@@ -47,6 +47,9 @@ def find_unique(export_dir, dataset_dir, count=1, model=None):
 
 
 def find_unique2(export_dir, dataset_dir, count=1, model=None, group_size=1000):
+    # model: 'mobilenet-v2-imagenet-torch'
+    # model: 'resnet50-imagenet-torch', 'resnet101-imagenet-torch', 'resnet152-imagenet-torch'
+    # model: 'resnext50-32x4d-imagenet-torch', 'resnext101-32x8d-imagenet-torch'
     dataset = fo.Dataset.from_images_dir(dataset_dir)
     sorted_view = dataset.sort_by("filepath")
     n_total = len(sorted_view)
