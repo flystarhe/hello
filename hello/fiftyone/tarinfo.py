@@ -6,11 +6,12 @@ from pathlib import Path
 
 import cv2 as cv
 import numpy as np
+from prettytable import PrettyTable
 
 from hello.fiftyone.utils import equal_dict, equal_list
 
 
-def list_files(filename, level=1):
+def list_files(filename, level=2):
     db = []
     with tarfile.open(filename, "r") as tar:
         for name in tar.getnames():
@@ -249,3 +250,26 @@ def compare_info_py(file1, file2, keys=None, verbose=True):
         results[key] = result
 
     return results
+
+
+def tree(root):
+    groups = defaultdict(list)
+    for f in Path(root).glob("*/*.tar"):
+        groups[f.parent.as_posix()].append(f)
+
+    for group_name in sorted(groups.keys()):
+        table_data = PrettyTable(["id", "file", "count"])
+        table_data.align["id"] = "c"
+        table_data.align["file"] = "l"
+        table_data.align["count"] = "r"
+
+        filepaths = sorted(groups[group_name])
+
+        data = {"_".join(f.stem.split("_")[:-1]): f for f in filepaths}
+        filepaths = sorted(data.values())
+
+        for index, filepath in enumerate(filepaths, 1):
+            total = len(get_image_paths(filepath, data_path="data"))
+            table_data.add_row([f"{index:03d}", filepath.name, total])
+        print(f"{group_name:*^120}")
+        print(table_data)
