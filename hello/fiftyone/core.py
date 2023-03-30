@@ -228,21 +228,30 @@ def random_split(dataset, splits=None, seed=51):
     """
     view = dataset.sort_by("filepath")
     view = view.shuffle(seed=seed)
-    num_samples = len(view)
 
     view.untag_samples(["train", "val", "test"])
 
     if splits is None:
         splits = {"val": 0.1, "train": 0.9}
 
-    curr = 0
-    for tag, p in splits.items():
-        num = int(num_samples * p)
-        if num > 0:
-            split_view = view.skip(curr).limit(num)
-            split_view.tag_samples([tag])
-            curr += num
+    ids = view.values("id")
 
+    pos_val = splits.get("val", 0.1)
+    pos_train = splits.get("train", 0.9)
+    if isinstance(pos_val, float):
+        num_samples = len(ids)
+        pos_val = int(1 + pos_val * num_samples)
+        pos_train = int(1 + pos_train * num_samples)
+    ids = ids[:(pos_val+pos_train)]
+
+    val_ids = ids[:pos_val]
+    train_ids = ids[pos_val:]
+
+    view.select(val_ids).tag_samples("val")
+    view.select(train_ids).tag_samples("train")
+    view.exclude(val_ids + train_ids).tag_samples("test")
+
+    count_values(dataset, "tags", sort_by="count")
     return dataset
 
 
@@ -265,15 +274,15 @@ def split_dataset(dataset, splits=None, limit=3000, seed=51, field_name="ground_
 
     view.untag_samples(["train", "val", "test"])
 
+    if splits is None:
+        splits = {"val": 0.1, "train": 0.9}
+
     if from_field is not None:
         print("todo: segmentations_to_detections()")
         segmentations_to_detections(view, from_field, field_name, mask_targets=view.default_mask_targets, mask_types="stuff")
 
-    if splits is None:
-        splits = {"val": 0.1, "train": 0.9}
-
     val_ids, train_ids = [], []
-    for label, _ in count_values(view, f"{field_name}.detections.label", ordered=True):
+    for label, _ in count_values(view, f"{field_name}.detections.label", sort_by="count"):
         _detections = F(f"{field_name}.detections").filter(F("label") == label)
         subset = view.exclude(val_ids + train_ids).match(_detections.length() > 0)
 
@@ -293,8 +302,9 @@ def split_dataset(dataset, splits=None, limit=3000, seed=51, field_name="ground_
     view.select(val_ids).tag_samples("val")
     view.select(train_ids).tag_samples("train")
     view.exclude(val_ids + train_ids).tag_samples("test")
-    print(count_values(view, "tags", ordered=True))
-    return view
+
+    count_values(dataset, "tags", sort_by="count")
+    return dataset
 
 
 def filter_segmentation_samples(out_dir, data_root, classes, mask_targets, threshold=0.05, splits=["train", "val"],
