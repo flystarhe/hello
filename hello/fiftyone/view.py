@@ -46,7 +46,7 @@ def uniqueness(dataset, count, model=None):
     unique_ids = results.unique_ids
     unique_view = dataset.select(unique_ids)
 
-    return unique_view
+    return unique_view.limit(count)
 
 
 def labeled(dataset, field_name="ground_truth"):
