@@ -23,7 +23,7 @@ class Predictor:
     Args:
         cfg (CfgNode): The configuration tree.
         model_path (str): Checkpoint file path.
-        logger (NanoDetLightningLogger): A logger.
+        logger (Logger): A logger for `load_model_weight()`.
         device (str, optional): Device used for calculating. Defaults to "cuda:0".
         cfg_list (list, optional): A list. For example, `cfg_list = ['FOO.BAR', 0.5]`.
     """
@@ -55,8 +55,7 @@ class Predictor:
         Args:
             img (ndarray): A loaded image.
         """
-        img_info = {}
-        img_info["file_name"] = None
+        img_info = {"id": 0, "file_name": None}
 
         height, width = img.shape[:2]
         img_info["height"] = height
@@ -122,6 +121,7 @@ class Predictor:
             for bbox in bbox_list:
                 x1, y1, x2, y2, score = bbox
                 bbox_result.append([x1, y1, x2, y2, score, label])
+        bbox_result.sort(key=lambda v: v[4], reverse=True)
 
         height, width = image.shape[:2]
         return bbox_result, image_path, height, width
@@ -156,8 +156,8 @@ def func(root, config_file, checkpoint_file, cfg_options, images_dir, score_thr,
 
     load_config(cfg, config_file)
     model_path = checkpoint_file  # .ckpt
-    logger = Logger(0, use_tensorboard=False)
-    cfg_list = list(chain.from_iterable(cfg_options.items()))
+    logger = Logger(0, save_dir="./", use_tensorboard=False)
+    cfg_list = list(chain.from_iterable(cfg_options.items())) if cfg_options else None
 
     executor = Predictor(cfg, model_path, logger, cfg_list=cfg_list)
     results = executor.test_images(images_dir, score_thr, out_dir)

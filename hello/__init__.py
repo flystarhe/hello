@@ -1,7 +1,7 @@
 """A collection of useful tools!"""
 import sys
 
-__version__ = "1.4.7"
+__version__ = "1.4.8"
 
 help_doc_str = """\
 usage: hello [--version] [--help]
@@ -12,6 +12,7 @@ shell command:
     hello-fiftyone -h
     hello-mmdet -h
     hello-mmseg -h
+    hello-nanodet -h
     hello-video -h
     hello-x3m -h
 
@@ -19,8 +20,6 @@ command-line interface:
     python -m hello -h
     python -m hello.data -h
     python -m hello.fiftyone -h
-    python -m hello.video -h
-    python -m hello.x3m -h
 """
 
 
