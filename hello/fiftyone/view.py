@@ -37,8 +37,8 @@ def uniqueness(dataset, count, model=None):
         sample_ids = view.values("id")
         sample_ids = sample_ids[::step]
 
-        view = view.select(sample_ids, ordered=True)
-        return view
+        unique_view = view.select(sample_ids, ordered=True)
+        return unique_view.limit(count)
 
     results = fob.compute_similarity(dataset, brain_key="img_sim", model=model)
     results.find_unique(count)
