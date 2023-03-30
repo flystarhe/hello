@@ -215,6 +215,37 @@ def count_values(dataset, field_or_expr, sort_by="label"):
     return count_label
 
 
+def random_split(dataset, splits=None, seed=51):
+    """Adds the split tags to all samples in this dataset.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        splits (dict, optional): defaults to None
+        seed (int, optional): defaults to 51
+
+    Returns:
+        a :class:`DatasetView`
+    """
+    view = dataset.sort_by("filepath")
+    view = view.shuffle(seed=seed)
+    num_samples = len(view)
+
+    view.untag_samples(["train", "val", "test"])
+
+    if splits is None:
+        splits = {"val": 0.1, "train": 0.9}
+
+    curr = 0
+    for tag, p in splits.items():
+        num = int(num_samples * p)
+        if num > 0:
+            split_view = view.skip(curr).limit(num)
+            split_view.tag_samples([tag])
+            curr += num
+
+    return dataset
+
+
 def split_dataset(dataset, splits=None, limit=3000, seed=51, field_name="ground_truth", from_field=None):
     """Adds the split tags to all samples in this dataset.
 
