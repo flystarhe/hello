@@ -116,7 +116,35 @@ def exclude_labels(dataset, labels=None, ids=None, tags=None, fields=None, omit_
     return view
 
 
-def filter_labels(dataset, field, filter, only_matches=True):
+def filter_field(dataset, field, a, op, b, only_matches=True):
+    """Filters the values of a field or embedded field of each sample in the collection.
+
+    Args:
+        dataset: a :class:`fiftyone.core.collections.SampleCollection`
+        field: the label field to filter
+        only_matches (True): whether to only include samples with at least one label after filtering (True) or include all samples (False)
+    """
+    a = F() if a is None else F(a)
+
+    if op == "eq":
+        view = dataset.filter_field(field, a == b, only_matches)
+    elif op == "ge":
+        view = dataset.filter_field(field, a >= b, only_matches)
+    elif op == "gt":
+        view = dataset.filter_field(field, a > b, only_matches)
+    elif op == "le":
+        view = dataset.filter_field(field, a <= b, only_matches)
+    elif op == "lt":
+        view = dataset.filter_field(field, a < b, only_matches)
+    elif op == "ne":
+        view = dataset.filter_field(field, a != b, only_matches)
+    else:
+        view = dataset.filter_field(field, getattr(a, op)(b), only_matches)
+
+    return view
+
+
+def filter_labels(dataset, field, expression, only_matches=True):
     """Filters the :class:`fiftyone.core.labels.Label` field of each sample in the collection.
 
     >>> from fiftyone import ViewField as F
@@ -127,14 +155,17 @@ def filter_labels(dataset, field, filter, only_matches=True):
     Args:
         dataset: a :class:`fiftyone.core.collections.SampleCollection`
         field: the label field to filter
-        filter: a :class:`fiftyone.core.expressions.ViewExpression`
+        expression: a :class:`fiftyone.core.expressions.ViewExpression`
         only_matches (True): whether to only include samples with at least one label after filtering (True) or include all samples (False)
     """
-    view = dataset.filter_labels(field, filter, only_matches=only_matches)
+    if isinstance(expression, str):
+        expression = eval(expression)
+
+    view = dataset.filter_labels(field, expression, only_matches=only_matches)
     return view
 
 
-def filter_samples(dataset, filter):
+def filter_samples(dataset, expression):
     """Filters the samples in the collection by the given filter.
 
     >>> from fiftyone import ViewField as F
@@ -149,9 +180,12 @@ def filter_samples(dataset, filter):
 
     Args:
         dataset: a :class:`fiftyone.core.dataset.Dataset`
-        filter: a :class:`fiftyone.core.expressions.ViewExpression`
+        expression: a :class:`fiftyone.core.expressions.ViewExpression`
     """
-    view = dataset.match(filter)
+    if isinstance(expression, str):
+        expression = eval(expression)
+
+    view = dataset.match(expression)
     return view
 
 
