@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 
-def func(json_logs, out_dir, metrics=["loss", "loss_cls", "loss_bbox"], mmdet_home="/workspace", format=".png"):
+def func(json_logs, out_dir, metrics, mmdet_home="/workspace", format=".png"):
     out_dir = Path(out_dir)
     shutil.rmtree(out_dir, ignore_errors=True)
     (out_dir / "images").mkdir(parents=True, exist_ok=False)
@@ -47,6 +47,7 @@ def func(json_logs, out_dir, metrics=["loss", "loss_cls", "loss_bbox"], mmdet_ho
         result = subprocess.run(command_line, shell=True, stdout=subprocess.PIPE)
         if result.returncode != 0:
             print(f"[ERR]\n  {command_line}")
+    return str(out_dir)
 
 
 def parse_args(args=None):

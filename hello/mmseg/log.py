@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 
-def func(json_logs, out_dir, metrics, mmdet_home="/workspace", format=".png"):
+def func(json_logs, out_dir, metrics, mmseg_home="/workspace", format=".png"):
     out_dir = Path(out_dir)
     shutil.rmtree(out_dir, ignore_errors=True)
     (out_dir / "images").mkdir(parents=True, exist_ok=False)
@@ -13,7 +13,7 @@ def func(json_logs, out_dir, metrics, mmdet_home="/workspace", format=".png"):
         json_logs = [str(f) for f in Path(json_logs[0]).glob("*/*.log.json")]
         json_logs = sorted(json_logs)
 
-    py_script = str(Path(mmdet_home) / "tools/analyze_logs.py")
+    py_script = str(Path(mmseg_home) / "tools/analyze_logs.py")
 
     for metric in metrics + ["mIoU", "mAcc", "aAcc"]:
         run_name_list = [Path(f).parent.name for f in json_logs]
@@ -42,8 +42,8 @@ def parse_args(args=None):
     parser.add_argument("-m", dest="metrics", type=str, nargs='+',
                         default=["decode.loss_ce", "decode.acc_seg", "loss"],
                         help="the metric that you want to plot")
-    parser.add_argument("-b", dest="mmdet_home", type=str, default="/workspace",
-                        help="specify the mmdet home")
+    parser.add_argument("-b", dest="mmseg_home", type=str, default="/workspace",
+                        help="specify the mmseg home")
     parser.add_argument("-f", dest="format", type=str, default=".png",
                         help="image save format")
 
