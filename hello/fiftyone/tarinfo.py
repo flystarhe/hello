@@ -137,7 +137,7 @@ def compare(file1, file2, data_path="data", verbose=True):
     return names, eqs
 
 
-def extract_images(out_dir, files, data_path="data", exclude_names=None):
+def extract_images(out_dir, files, data_path="data", exclude_names=None, include_names=None):
     shutil.rmtree(out_dir, ignore_errors=True)
 
     if isinstance(files, str):
@@ -147,6 +147,9 @@ def extract_images(out_dir, files, data_path="data", exclude_names=None):
 
     if exclude_names is not None:
         exclude_names = set([Path(name).name for name in exclude_names])
+
+    if include_names is not None:
+        include_names = set([Path(name).name for name in include_names])
 
     db = {}
     for file in files:
@@ -166,7 +169,11 @@ def extract_images(out_dir, files, data_path="data", exclude_names=None):
         if exclude_names is not None:
             names = [name for name in names
                      if Path(name).name not in exclude_names]
-            print(f"[-] extract {len(names)} images after exclusion")
+            print(f"[-] extract {len(names)} images after exclude")
+        if include_names is not None:
+            names = [name for name in names
+                     if Path(name).name in include_names]
+            print(f"[-] extract {len(names)} images after include")
         with tarfile.open(file, "r") as tar:
             members = [tar.getmember(name) for name in names]
             tar.extractall(tmp_dir, members)
