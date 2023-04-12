@@ -62,7 +62,9 @@ def plotting_log_dicts(log_dicts, out_dir, schedules, metrics, format):
     columns = set(cache.columns)
     assert "iter" in columns and "epoch" in columns
 
-    cache["iter"] = cache["iter"] * cache["epoch"]
+    val1, val2 = sorted(cache["iter"].to_list())[:2]
+    if val1 == val2:
+        cache["iter"] = cache["iter"] * cache["epoch"]
 
     x_label, schedules = schedules[0], schedules[1:]
     y_labels = schedules + metrics
