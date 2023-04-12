@@ -48,6 +48,11 @@ def load_json_log(json_log, schedules=["iter", "lr", "loss_cls", "loss_bbox"], m
                 log_dict[k].append(v)
 
             cache = defaultdict(list)
+
+    val1, val2 = sorted(log_dict["iter"])[:2]
+    if val1 == val2:
+        log_dict["iter"] = [a * b for a, b in zip(log_dict["iter"], log_dict["epoch"])]
+
     return log_dict
 
 
@@ -61,10 +66,6 @@ def plotting_log_dicts(log_dicts, out_dir, schedules, metrics, format):
 
     columns = set(cache.columns)
     assert "iter" in columns and "epoch" in columns
-
-    val1, val2 = sorted(cache["iter"].to_list())[:2]
-    if val1 == val2:
-        cache["iter"] = cache["iter"] * cache["epoch"]
 
     x_label, schedules = schedules[0], schedules[1:]
     y_labels = schedules + metrics
