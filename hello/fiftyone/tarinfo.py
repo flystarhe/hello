@@ -8,6 +8,7 @@ import cv2 as cv
 import numpy as np
 from prettytable import PrettyTable
 
+import hello.io.utils as hou
 from hello.fiftyone.utils import equal_dict, equal_list
 
 
@@ -137,6 +138,19 @@ def compare(file1, file2, data_path="data", verbose=True):
     return names, eqs
 
 
+def prepare_names_file(root, sub_dirs, prefix="check"):
+    info = {}
+    root = Path(root)
+    for sub_dir in sub_dirs:
+        tag = sub_dir.rstrip("/").replace("/", "-")
+        names = [f.name for f in (root / sub_dir).glob("*.jpg")]
+        names = sorted(names)
+        count = len(names)
+        hou.save_json({"count": count, "names": names}, f"{prefix}-{tag}.json")
+        info[tag] = count
+    return info
+
+
 def extract_images(out_dir, files, data_path="data", exclude_names=None, include_names=None):
     shutil.rmtree(out_dir, ignore_errors=True)
 
@@ -146,9 +160,17 @@ def extract_images(out_dir, files, data_path="data", exclude_names=None, include
     files = sorted(files)
 
     if exclude_names is not None:
+        if isinstance(exclude_names, str):
+            exclude_names = hou.load_json(exclude_names)
+        if isinstance(exclude_names, dict):
+            exclude_names = exclude_names["names"]
         exclude_names = set([Path(name).name for name in exclude_names])
 
     if include_names is not None:
+        if isinstance(include_names, str):
+            include_names = hou.load_json(include_names)
+        if isinstance(include_names, dict):
+            include_names = include_names["names"]
         include_names = set([Path(name).name for name in include_names])
 
     db = {}
