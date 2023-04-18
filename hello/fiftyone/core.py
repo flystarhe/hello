@@ -212,6 +212,7 @@ def count_values(dataset, field_or_expr, sort_by="label"):
     table_data.add_rows(count_label)
     print(table_data)
 
+    print(sum([x[1] for x in count_label]))
     return count_label
 
 
