@@ -142,8 +142,12 @@ def prepare_names_file(root, sub_dirs, prefix="check"):
     info = {}
     root = Path(root)
     for sub_dir in sub_dirs:
+        if isinstance(sub_dir, str):
+            names = [f.name for f in (root / sub_dir).glob("*.jpg")]
+        else:
+            sub_dir, names = sub_dir
+        assert isinstance(sub_dir, str) and isinstance(names, list)
         tag = sub_dir.rstrip("/").replace("/", "-")
-        names = [f.name for f in (root / sub_dir).glob("*.jpg")]
         names = sorted(names)
         count = len(names)
         hou.save_json({"count": count, "names": names}, f"{prefix}-{tag}.json")
