@@ -14,6 +14,7 @@ Subpackages
    hello.io
    hello.mmdet
    hello.mmseg
+   hello.nanodet
    hello.onnx
    hello.transforms
    hello.utils

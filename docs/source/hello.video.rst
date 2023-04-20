@@ -9,7 +9,7 @@ Submodules
 
    hello.video.align
    hello.video.clip
-   hello.video.frames
+   hello.video.fisheye
    hello.video.info
    hello.video.resize
    hello.video.rtsp

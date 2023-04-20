@@ -7,11 +7,11 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   hello.fiftyone.annotate
    hello.fiftyone.brain
    hello.fiftyone.copypaste
    hello.fiftyone.core
    hello.fiftyone.dataset
-   hello.fiftyone.dataset_annotate
    hello.fiftyone.dataset_detections
    hello.fiftyone.dataset_segmentations
    hello.fiftyone.dataset_yolov5
