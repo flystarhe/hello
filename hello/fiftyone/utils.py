@@ -73,9 +73,9 @@ def _parse_text_row(row):
         bounding_box = [a / b for a, b in zip(bounding_box, _scale)]
 
         detection = dict(
+            label=label,
             bounding_box=bounding_box,
             confidence=confidence,
-            label=label,
         )
 
         detections.append(detection)
@@ -105,9 +105,9 @@ def _parse_yolo_row(row, classes):
         confidence = 1.0
 
     detection = dict(
+        label=label,
         bounding_box=bounding_box,
         confidence=confidence,
-        label=label,
     )
     return detection
 
@@ -158,6 +158,8 @@ def load_coco_predictions(labels_path):
     imgs = {img["id"]: img for img in coco["images"]}
     cats = {cat["id"]: cat for cat in coco["categories"]}
 
+    skip_existing = set(["id", "image_id", "category_id", "segmentation", "bbox", "label", "bounding_box", "confidence"])
+
     db = defaultdict(list)
     for ann in coco["annotations"]:
         _img = imgs[ann["image_id"]]
@@ -175,10 +177,16 @@ def load_coco_predictions(labels_path):
 
         confidence = ann.get("score", 1.0)
 
+        attributes = {}
+        for key in ann.keys():
+            if key not in skip_existing:
+                attributes[key] = ann[key]
+
         detection = dict(
+            label=label,
             bounding_box=bounding_box,
             confidence=confidence,
-            label=label,
+            **attributes,
         )
         db[Path(filepath).stem].append(detection)
 
