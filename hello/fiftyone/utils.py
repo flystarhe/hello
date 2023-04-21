@@ -158,7 +158,7 @@ def load_coco_predictions(labels_path):
     imgs = {img["id"]: img for img in coco["images"]}
     cats = {cat["id"]: cat for cat in coco["categories"]}
 
-    skip_existing = set(["id", "image_id", "category_id", "segmentation", "bbox", "label", "bounding_box", "confidence"])
+    skip_existing = set(["id", "image_id", "category_id", "segmentation", "bbox", "score", "label", "bounding_box", "confidence"])
 
     db = defaultdict(list)
     for ann in coco["annotations"]:
@@ -175,7 +175,11 @@ def load_coco_predictions(labels_path):
         x, y, w, h = ann["bbox"]
         bounding_box = [x / width, y / height, w / width, h / height]
 
-        confidence = ann.get("score", 1.0)
+        confidence = 1.0
+        if "score" in ann:
+            confidence = ann["score"]
+        elif "confidence" in ann:
+            confidence = ann["confidence"]
 
         attributes = {}
         for key in ann.keys():
