@@ -23,7 +23,7 @@ def list_files(filename, level=2):
                 db.append(f"{name}/")
             else:
                 db.append(name)
-    print("\n".join(db))
+    return db
 
 
 def extract(filename, member_path, out_dir=None):
