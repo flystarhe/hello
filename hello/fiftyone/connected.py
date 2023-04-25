@@ -26,8 +26,8 @@ def count_areas(image_dir, pattern="*.png", limit=None):
             n = labels.max()
         else:
             props = regionprops(labels)
-            n = len([1 for r in props if r.num_pixels > limit])
+            n = len([1 for r in props if r.num_pixels >= limit])
         counts.append((f, n))
 
-    print(f"{len(counts)=}, {sum([v[1] for v in counts])=}")
+    print(f"{len(counts)=}, sum(counts)={sum([v[1] for v in counts])}")
     return counts
