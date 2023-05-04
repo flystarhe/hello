@@ -9,6 +9,7 @@ Submodules
 
    hello.fiftyone.annotate
    hello.fiftyone.brain
+   hello.fiftyone.coco
    hello.fiftyone.connected
    hello.fiftyone.copypaste
    hello.fiftyone.core
