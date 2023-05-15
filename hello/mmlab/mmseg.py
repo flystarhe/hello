@@ -10,6 +10,7 @@ from pathlib import Path
 
 import cv2 as cv
 import numpy as np
+import torch
 from tqdm import tqdm
 
 from mmseg.apis import inference_model, init_model
@@ -19,10 +20,15 @@ suffix_set = set(".avi,.mp4,.MOV,.mkv".split(","))
 warnings.filterwarnings("ignore")
 
 
-def _draw_sem_seg(image, sem_seg, classes, palette):
+def tensor2ndarray(value):
+    if isinstance(value, torch.Tensor):
+        value = value.detach().cpu().numpy()
+    return value
+
+
+def draw_sem_seg(sem_seg, classes, palette):
     num_classes = len(classes)
 
-    sem_seg = sem_seg.cpu().data
     ids = np.unique(sem_seg)[::-1]
     legal_indices = ids < num_classes
     ids = ids[legal_indices]
@@ -30,8 +36,11 @@ def _draw_sem_seg(image, sem_seg, classes, palette):
 
     colors = [palette[label] for label in labels]
 
+    mask = np.zeros(sem_seg.shape + (3,), dtype="uint8")
     for label, color in zip(labels, colors):
-        pass
+        mask[sem_seg == label] = color
+
+    return mask
 
 
 def test_image(model, classes, palette, img, out_name, out_dir, add_zero_label=False):
@@ -47,24 +56,30 @@ def test_image(model, classes, palette, img, out_name, out_dir, add_zero_label=F
     if isinstance(img, str):
         img = cv.imread(img, flags=cv.IMREAD_COLOR)
 
+    assert isinstance(img, np.ndarray), "a loaded image"
+
     result = inference_model(model, img)
 
-    pred_img_data = img.copy()
-    _draw_sem_seg(pred_img_data, result.pred_sem_seg, classes, palette)
+    pred_sem_seg = result.pred_sem_seg.cpu().data  # 1xHxW
+    seg_logits = result.seg_logits.cpu().data  # CxHxW
 
-    mask = model.show_result(img, result, palette=palette, show=False, out_file=None, opacity=0.5)
-    mask_pure = model.show_result(img, result, palette=palette, show=False, out_file=None, opacity=1.0)
+    pred_sem_seg = tensor2ndarray(pred_sem_seg)
+    seg_logits = tensor2ndarray(seg_logits)
+
+    rgb_mask = draw_sem_seg(pred_sem_seg[0], classes, palette)
+    mixed = cv.addWeighted(img, 0.5, rgb_mask, 0.5, 0)
+
+    if add_zero_label:
+        pred_sem_seg = pred_sem_seg + 1
 
     out_file = str(out_dir / "data" / f"{out_name}.jpg")
     cv.imwrite(out_file, img)
 
     out_file = str(out_dir / "results" / f"{out_name}.jpg")
-    cv.imwrite(out_file, np.concatenate((img, mask, mask_pure), axis=0))
+    cv.imwrite(out_file, np.concatenate((img, mixed, rgb_mask), axis=0))
 
     out_file = str(out_dir / "predictions" / f"{out_name}.png")
-    if add_zero_label:
-        result = [x + 1 for x in result]
-    cv.imwrite(out_file, result[0].clip(min=0, max=255).astype("uint8"))
+    cv.imwrite(out_file, pred_sem_seg[0].clip(min=0, max=255).astype("uint8"))
 
 
 def test_images(model, image_paths, out_dir, add_zero_label=False):
@@ -84,8 +99,8 @@ def test_images(model, image_paths, out_dir, add_zero_label=False):
         palette = model.dataset_meta["palette"]
 
     for image_path in tqdm(image_paths):
-        out_name = Path(image_path).stem
-        test_image(model, classes, palette, image_path, out_name, out_dir, add_zero_label)
+        img, out_name = cv.imread(image_path, 1), Path(image_path).stem
+        test_image(model, classes, palette, img, out_name, out_dir, add_zero_label)
 
 
 def test_videos(model, video_paths, out_dir, add_zero_label=False):
@@ -104,7 +119,7 @@ def test_videos(model, video_paths, out_dir, add_zero_label=False):
         classes = model.dataset_meta["classes"]
         palette = model.dataset_meta["palette"]
 
-    print(f"[TODO] in development ..")
+    print(f"[W] in development ..")
     for video_path in tqdm(video_paths):
         pass
 
