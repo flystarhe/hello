@@ -301,8 +301,11 @@ def tree(root):
         data = {"_".join(f.stem.split("_")[:-1]): f for f in filepaths}
         filepaths = sorted(data.values())
 
+        total = 0
         for index, filepath in enumerate(filepaths, 1):
-            total = len(get_image_paths(filepath, data_path="data"))
-            table_data.add_row([f"{index:03d}", filepath.name, total])
+            num = len(get_image_paths(filepath, data_path="data"))
+            table_data.add_row([f"{index:03d}", filepath.name, num])
+            total += num
         print(f"{group_name:*^120}")
+        print(f"[I] {total=}")
         print(table_data)
