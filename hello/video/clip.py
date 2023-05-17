@@ -12,7 +12,7 @@ help_doc_str = """\
 - press `a/d` backward/forward pos
 - press `f` keep clip and to the next
 - press `space` drop clip and to the next
-- press `k` means to accept all remaining frames
+- press `enter` to accept all remaining frames
 """
 
 
@@ -83,7 +83,7 @@ def tag_video(video_path, factor):
         elif key == 32:  # space
             curr_pos = this_pos + step_size
             tag_frames[:, this_pos:curr_pos] = (0, 0, 255)
-        elif key == ord("k"):
+        elif key == 13:  # enter
             tag_frames[:, this_pos:] = (0, 255, 0)
             break
 
