@@ -59,3 +59,18 @@ def gen_palette(labels, template=None, size=80, out_file="palette.png"):
     cv.imwrite(out_file, img[..., ::-1])
 
     return list(zip(labels, colors))
+
+
+def rgb2seg(rgb, remap):
+    """Convert color to segmentation mask.
+
+    Args:
+        rgb (np.ndarray): a rgb image
+        remap (dict): like ``{index: (r,g,b)}``
+    """
+    seg = np.zeros(rgb.shape[:2], dtype="uint8")
+
+    for _index, _color in remap.items():
+        seg[cv.inRange(rgb, _color, _color) > 0] = _index
+
+    return seg
