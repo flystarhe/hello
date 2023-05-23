@@ -465,7 +465,7 @@ def export_image_dataset(export_dir, dataset, splits=None):
         )
 
         with open(curr_dir / "README.md", "w") as f:
-            f.write("# README\n\n")
+            f.write("# README\n\n## Data Processing\n\n")
 
     return export_dir
 
@@ -500,7 +500,7 @@ def export_classification_labels(export_dir, dataset, label_field, splits=None):
         )
 
         with open(curr_dir / "README.md", "w") as f:
-            f.write("# README\n\n")
+            f.write("# README\n\n## Data Processing\n\n")
 
     return export_dir
 
@@ -536,7 +536,7 @@ def export_classification_dataset(export_dir, dataset, label_field, splits=None,
         )
 
         with open(curr_dir / "README.md", "w") as f:
-            f.write("# README\n\n")
+            f.write("# README\n\n## Data Processing\n\n")
 
     return export_dir
 
