@@ -9,6 +9,8 @@ from fiftyone.utils.labels import segmentations_to_detections
 from prettytable import PrettyTable
 from tqdm import tqdm
 
+import hello.io.utils as hou
+
 
 def _map_detections(field_data, mapping):
     detections = field_data.detections
@@ -214,6 +216,37 @@ def count_values(dataset, field_or_expr, sort_by="label"):
 
     print(sum([x[1] for x in count_label]))
     return count_label
+
+
+def save_tags(dataset, out_file):
+    data = []
+    for sample in dataset:
+        data.append([Path(sample.filepath).name, sample.tags])
+
+    return hou.save_json({"count": len(data), "data": data}, out_file)
+
+
+def tag_from(dataset, by_dir=None, by_json=None, in_names=None):
+    data = None
+    if by_dir is not None:
+        data = {f.name: [f.parent.name] for f in Path(by_dir).glob("**/*.jpg")}
+    elif by_json is not None:
+        data = {filename: tags for filename, tags in hou.load_json(by_json)["data"]}
+    else:
+        print(f"[W] ``{by_dir=}`` & ``{by_json}``, do nothing")
+
+    if data:
+        if in_names:
+            in_names = set(in_names)
+        for sample in dataset:
+            tags = data.get(Path(sample.filepath).name)
+            if tags:
+                if in_names:
+                    tags = list(in_names & set(tags))
+                sample.tags.extend(tags)
+                sample.save()
+
+    return dataset
 
 
 def random_split(dataset, splits=None, seed=51):

@@ -467,6 +467,7 @@ def export_image_dataset(export_dir, dataset, splits=None):
         with open(curr_dir / "README.md", "w") as f:
             f.write("# README\n\n## Data Processing\n\n")
 
+    hoc.save_tags(dataset, Path(export_dir) / "tags.json")
     return export_dir
 
 
@@ -502,6 +503,7 @@ def export_classification_labels(export_dir, dataset, label_field, splits=None):
         with open(curr_dir / "README.md", "w") as f:
             f.write("# README\n\n## Data Processing\n\n")
 
+    hoc.save_tags(dataset, Path(export_dir) / "tags.json")
     return export_dir
 
 
@@ -538,6 +540,7 @@ def export_classification_dataset(export_dir, dataset, label_field, splits=None,
         with open(curr_dir / "README.md", "w") as f:
             f.write("# README\n\n## Data Processing\n\n")
 
+    hoc.save_tags(dataset, Path(export_dir) / "tags.json")
     return export_dir
 
 
@@ -620,4 +623,5 @@ def export_dataset(export_dir, dataset, label_field=None, mask_label_field=None,
         with open(curr_dir / "info.py", "w") as f:
             f.write(info_py)
 
+    hoc.save_tags(dataset, Path(export_dir) / "tags.json")
     return export_dir
