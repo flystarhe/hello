@@ -18,7 +18,7 @@ def compare_image_dir(out_dir, base_dir=None, image_dirs=None):
         if image_dirs is not None:
             image_dirs = [base_dir / image_dir for image_dir in image_dirs]
         else:
-            image_dirs = [f for f in base_dir.glob("*") if f.is_dir()]
+            image_dirs = sorted([f for f in base_dir.glob("*") if f.is_dir()])
 
     data = [{f.name: str(f) for f in Path(image_dir).glob("images/*.jpg")}
             for image_dir in image_dirs]
