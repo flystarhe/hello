@@ -43,7 +43,17 @@ def patches_view(samples, field, **kwargs):
         a :class:`fiftyone.core.patches.PatchesView`
     """
     patches = samples.to_patches(field, **kwargs)
-    return patches.sort_by("filepath").sort_by(f"{field}.label")
+
+    data = []
+    baseline = {c: i * 1e8 for i, c in enumerate(patches.distinct(f"{field}.label"), 1)}
+    for metadata, ground_truth in zip(*patches.values(["metadata", field])):
+        label, bbox = ground_truth.label, ground_truth.bounding_box
+        width, height = metadata.width, metadata.height
+        area = bbox[2] * width * bbox[3] * height
+        data.append(baseline[label] + area)
+    patches.set_values("ikey", data)
+
+    return patches.sort_by("ikey")
 
 
 def mistakenness_views(samples, pred_field="predictions", pred_filter=None, label_field="ground_truth", label_filter=None):
