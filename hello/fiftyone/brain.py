@@ -25,6 +25,27 @@ def to_patches(samples, field, **kwargs):
     return view
 
 
+def patches_view(samples, field, **kwargs):
+    """Creates a view that contains one sample per object patch in the
+    specified field of the collection.
+
+    Fields other than ``field`` and the default sample fields will not be
+    included in the returned view. A ``sample_id`` field will be added that
+    records the sample ID from which each patch was taken.
+
+    Args:
+        samples: a :class:`fiftyone.core.collections.SampleCollection`
+        field: the patches field, which must be of type
+            :class:`fiftyone.core.labels.Detections` or
+            :class:`fiftyone.core.labels.Polylines`
+
+    Returns:
+        a :class:`fiftyone.core.patches.PatchesView`
+    """
+    patches = samples.to_patches(field, **kwargs)
+    return patches.sort_by("filepath").sort_by(f"{field}.label")
+
+
 def mistakenness_views(samples, pred_field="predictions", pred_filter=None, label_field="ground_truth", label_filter=None):
     """Create a view containing the currently selected objects.
 

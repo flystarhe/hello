@@ -15,9 +15,11 @@ def uniqueness(dataset, count, model=None):
 
     Examples::
 
+        >>> model: 'clip-vit-base32-torch'
         >>> model: 'mobilenet-v2-imagenet-torch'
         >>> model: 'resnet50-imagenet-torch', 'resnet101-imagenet-torch', 'resnet152-imagenet-torch'
         >>> model: 'resnext50-32x4d-imagenet-torch', 'resnext101-32x8d-imagenet-torch'
+        >>> model: 'wide-resnet50-2-imagenet-torch', 'wide-resnet101-2-imagenet-torch'
 
     Returns:
         a :class:`DatasetView`
