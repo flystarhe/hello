@@ -152,6 +152,7 @@ def filter_labels(dataset, field, expression, only_matches=True):
     >>> from fiftyone import ViewField as F
     >>> filter_labels(dataset, "ground_truth", F("label") == "house")
     >>> filter_labels(dataset, "ground_truth", F("label").is_in(["cat", "dog"]))
+    >>> filter_labels(dataset, "ground_truth", ~F("label").is_in(["cat", "dog"]), only_matches=False)
     >>> filter_labels(dataset, "predictions", F("confidence") > 0.8)
 
     Args:
