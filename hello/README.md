@@ -45,10 +45,8 @@ pip uninstall -y opencv-python-headless
 pip install opencv-python --ignore-installed
 
 # fiftyone
+pip install --upgrade fiftyone
 pip install fiftyone>=0.20.1
-pip install fiftyone[desktop]>=0.20.1
-## $ conda list | grep voxel
-## $ conda list | grep fiftyone
 
 # pyomniunwarp
 pip install -U pyomniunwarp>=0.2.4
