@@ -4,6 +4,34 @@ import fiftyone.core.view as fov
 from fiftyone import ViewField as F
 
 
+def compute_similarity(
+    samples,
+    patches_field=None,
+    brain_key="img_sim",
+    model="clip-vit-base32-torch",
+    **kwargs,
+):
+    """Uses embeddings to index the samples or their patches so that you can
+    query/sort by similarity.
+
+    Args:
+        samples: a :class:`fiftyone.core.collections.SampleCollection`
+        patches_field (None): a sample field defining the image patches in each
+            sample
+        brain_key ("img_sim"): a brain key under which to store the results of this
+            method
+        model ("clip-vit-base32-torch): a :class:`fiftyone.core.models.Model` or the name of a
+            model from the Model Zoo
+    """
+    return fob.compute_similarity(
+        samples,
+        patches_field=patches_field,
+        brain_key=brain_key,
+        model=model,
+        **kwargs,
+    )
+
+
 def to_patches(samples, field, **kwargs):
     """Creates a view that contains one sample per object patch in the
     specified field of the collection.

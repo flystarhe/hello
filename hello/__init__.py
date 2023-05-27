@@ -1,7 +1,7 @@
 """A collection of useful tools!"""
 import sys
 
-__version__ = "1.7.4"
+__version__ = "1.7.5"
 
 help_doc_str = """\
 usage: hello [--version] [--help]
@@ -11,6 +11,7 @@ shell command:
     hello-data -h
     hello-fiftyone -h
     hello-mmdet -h
+    hello-mmlab -h
     hello-mmseg -h
     hello-nanodet -h
     hello-video -h
