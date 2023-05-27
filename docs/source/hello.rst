@@ -13,6 +13,7 @@ Subpackages
    hello.fvcore
    hello.io
    hello.mmdet
+   hello.mmlab
    hello.mmseg
    hello.nanodet
    hello.onnx

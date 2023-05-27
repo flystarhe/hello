@@ -8,6 +8,7 @@ Submodules
    :maxdepth: 4
 
    hello.utils.colors
+   hello.utils.compare
    hello.utils.cuda
    hello.utils.importer
    hello.utils.plots
