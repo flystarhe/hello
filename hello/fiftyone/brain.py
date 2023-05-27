@@ -14,6 +14,9 @@ def compute_similarity(
     """Uses embeddings to index the samples or their patches so that you can
     query/sort by similarity.
 
+    >>> compute_similarity(dataset, model="clip-vit-base32-torch", brain_key="img_sim")
+    >>> compute_similarity(dataset, patches_field="ground_truth", model="clip-vit-base32-torch", brain_key="gt_sim")
+
     Args:
         samples: a :class:`fiftyone.core.collections.SampleCollection`
         patches_field (None): a sample field defining the image patches in each
