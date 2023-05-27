@@ -15,7 +15,7 @@ def uniqueness(dataset, count, model=None):
 
     Examples::
 
-        >>> model: 'clip-vit-base32-torch'
+        >>> model: 'clip-vit-base32-torch'  # pip install ftfy regex
         >>> model: 'mobilenet-v2-imagenet-torch'
         >>> model: 'resnet50-imagenet-torch', 'resnet101-imagenet-torch', 'resnet152-imagenet-torch'
         >>> model: 'resnext50-32x4d-imagenet-torch', 'resnext101-32x8d-imagenet-torch'
