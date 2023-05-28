@@ -9,7 +9,7 @@ import numpy as np
 from prettytable import PrettyTable
 
 import hello.io.utils as hou
-from hello.fiftyone.utils import equal_dict, equal_list
+import hello.utils.compare as hoc
 
 
 def list_files(filename, level=2):
@@ -271,9 +271,9 @@ def compare_info_py(file1, file2, keys=None, verbose=True):
         if isinstance(a, str) and isinstance(b, str):
             result = (a == b)
         elif isinstance(a, list) and isinstance(b, list):
-            result = equal_list(a, b)
+            result = hoc.equal_list(a, b)
         elif isinstance(a, dict) and isinstance(b, dict):
-            result = equal_dict(a, b)
+            result = hoc.equal_dict(a, b)
         else:
             result = "Unkown (BadType)"
 

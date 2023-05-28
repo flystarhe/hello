@@ -6,29 +6,8 @@ import cv2 as cv
 import fiftyone.core.utils as fou
 import fiftyone.utils.iou as foui
 
-from hello.fiftyone.coco import coco_segmentation_to_mask
-
-
-def equal_list(a: list, b: list) -> bool:
-    if len(a) != len(b):
-        return False
-
-    for _ai, _bi in zip(a, b):
-        if _ai != _bi:
-            return False
-
-    return True
-
-
-def equal_dict(a: dict, b: dict) -> bool:
-    if len(a) != len(b):
-        return False
-
-    for k, v in a.items():
-        if v != b.get(k):
-            return False
-
-    return True
+from hello.fiftyone.coco_utils import coco_segmentation_to_mask
+from hello.utils.compare import equal_dict
 
 
 def _parse_text_slice(vals):

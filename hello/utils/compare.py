@@ -5,6 +5,28 @@ import cv2 as cv
 import numpy as np
 
 
+def equal_list(a: list, b: list) -> bool:
+    if len(a) != len(b):
+        return False
+
+    for _ai, _bi in zip(a, b):
+        if _ai != _bi:
+            return False
+
+    return True
+
+
+def equal_dict(a: dict, b: dict) -> bool:
+    if len(a) != len(b):
+        return False
+
+    for k, v in a.items():
+        if v != b.get(k):
+            return False
+
+    return True
+
+
 def compare_image_dir(out_dir, base_dir=None, image_dirs=None):
     assert base_dir is not None or image_dirs is not None
 
