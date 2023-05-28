@@ -74,18 +74,25 @@ def coco_add_samples(dataset, dataset_dir=None, data_path=None, labels_path=None
         dataset_dir = Path(dataset_dir)
         if splits == "auto":
             dataset_dirs = [f for f in dataset_dir.glob("*") if f.is_dir()]
+            tags = tags or [f.name for f in dataset_dirs]
         elif isinstance(splits, list):
             dataset_dirs = [dataset_dir / split for split in splits]
+            tags = tags or splits
         else:
             raise ValueError(f"Not supported `{splits=}`")
 
     label_field = label_field or "ground_truth"
 
-    for dataset_dir in dataset_dirs:
+    if tags is None or isinstance(tags, str):
+        tags = [tags] * len(dataset_dirs)
+
+    assert isinstance(tags, list) and len(dataset_dirs) == len(tags)
+
+    for dataset_dir, tag in zip(dataset_dirs, tags):
         images_dir = parse_data_path(dataset_dir, data_path, "data/")
 
         if images_dir is not None:
-            add_images_dir(dataset, images_dir, tags, recursive=False)
+            add_images_dir(dataset, images_dir, tag, recursive=False)
 
         coco_json = parse_labels_path(dataset_dir, labels_path, "labels.json")
 
