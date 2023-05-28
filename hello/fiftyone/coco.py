@@ -152,7 +152,7 @@ def coco_export_images(dataset_or_view, data_path):
         shutil.copyfile(filepath, data_path / filepath.name)
 
 
-def coco_export_labels(dataset_or_view, label_field, labels_path, mask_type="polygons", tolerance=2):
+def coco_export_labels(dataset_or_view, label_field, labels_path, mask_type="polygons", tolerance=1):
     assert mask_type in ("polygons", "rle", "rle-uncompressed", "rle-compressed")
 
     cats, idx = [], 1
@@ -179,7 +179,7 @@ def coco_export_labels(dataset_or_view, label_field, labels_path, mask_type="pol
 
             segmentation = None
             if hasattr(detection, "mask") and detection.mask is not None:
-                segmentation = mask_to_coco_segmentation(detection.mask, bbox, (width, height), mask_type=mask_type, tolerance=tolerance)
+                segmentation = mask_to_coco_segmentation(detection.mask, bbox, (width, height), mask_type, tolerance)
 
             score = detection.confidence if hasattr(detection, "confidence") else 1.0
 
