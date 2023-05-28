@@ -93,7 +93,7 @@ def coco_add_samples(dataset, dataset_dir=None, data_path=None, labels_path=None
             add_detection_labels(dataset, label_field, coco_json, mode="coco")
 
 
-def coco_export(export_dir, dataset, label_field, splits=None):
+def coco_export(export_dir, dataset, label_field, splits=None, **kwargs):
     export_dir = Path(export_dir)
     shutil.rmtree(export_dir, ignore_errors=True)
 
@@ -129,7 +129,7 @@ def coco_export(export_dir, dataset, label_field, splits=None):
 
         coco_export_info(info, curr_dir / "info.py")
         coco_export_images(view, curr_dir / "data/")
-        coco_export_labels(view, label_field, curr_dir / "labels.json")
+        coco_export_labels(view, label_field, curr_dir / "labels.json", **kwargs)
 
     save_tags(dataset, export_dir / "tags.json")
 
@@ -152,7 +152,9 @@ def coco_export_images(dataset_or_view, data_path):
         shutil.copyfile(filepath, data_path / filepath.name)
 
 
-def coco_export_labels(dataset_or_view, label_field, labels_path):
+def coco_export_labels(dataset_or_view, label_field, labels_path, mask_type="polygons", tolerance=2):
+    assert mask_type in ("polygons", "rle", "rle-uncompressed", "rle-compressed")
+
     cats, idx = [], 1
     for name in dataset_or_view.default_classes:
         cats.append({"id": idx, "name": name, "supercategory": "root"})
@@ -177,7 +179,7 @@ def coco_export_labels(dataset_or_view, label_field, labels_path):
 
             segmentation = None
             if hasattr(detection, "mask") and detection.mask is not None:
-                segmentation = mask_to_coco_segmentation(detection.mask, bbox, (width, height))
+                segmentation = mask_to_coco_segmentation(detection.mask, bbox, (width, height), mask_type=mask_type, tolerance=tolerance)
 
             score = detection.confidence if hasattr(detection, "confidence") else 1.0
 
