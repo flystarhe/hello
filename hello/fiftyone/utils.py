@@ -6,6 +6,8 @@ import cv2 as cv
 import fiftyone.core.utils as fou
 import fiftyone.utils.iou as foui
 
+from hello.fiftyone.coco import coco_segmentation_to_mask
+
 
 def equal_list(a: list, b: list) -> bool:
     if len(a) != len(b):
@@ -158,7 +160,7 @@ def load_coco_predictions(labels_path):
     imgs = {img["id"]: img for img in coco["images"]}
     cats = {cat["id"]: cat for cat in coco["categories"]}
 
-    skip_existing = set(["id", "image_id", "category_id", "bbox", "segmentation", "score", "label", "bounding_box", "confidence"])
+    skip_existing = set(["id", "image_id", "category_id", "bbox", "segmentation", "score", "label", "bounding_box", "mask", "confidence"])
 
     db = defaultdict(list)
     for ann in coco["annotations"]:
@@ -172,8 +174,17 @@ def load_coco_predictions(labels_path):
 
         label = _cat["name"]
 
-        x, y, w, h = ann["bbox"]
+        _bbox = ann["bbox"]
+
+        x, y, w, h = _bbox
         bounding_box = [x / width, y / height, w / width, h / height]
+
+        mask = None
+        if "segmentation" in ann:
+            segmentation = ann["segmentation"]
+            if segmentation:
+                frame_size = (width, height)
+                mask = coco_segmentation_to_mask(segmentation, _bbox, frame_size)
 
         confidence = 1.0
         if "score" in ann:
@@ -189,6 +200,7 @@ def load_coco_predictions(labels_path):
         detection = dict(
             label=label,
             bounding_box=bounding_box,
+            mask=mask,
             confidence=confidence,
             **attributes,
         )

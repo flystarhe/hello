@@ -325,7 +325,7 @@ def create_dataset(dataset_name, dataset_type, version="001", classes=[], mask_t
         "version": version,
         "classes": classes,
         "mask_targets": mask_targets,
-        "num_samples": {},
+        "num_samples": [],
         "tail": {},
     }
 
@@ -362,7 +362,7 @@ def load_images_dir(dataset_dir, dataset_name, dataset_type, version="001", clas
         "version": version,
         "classes": classes,
         "mask_targets": mask_targets,
-        "num_samples": {},
+        "num_samples": [],
         "tail": {},
     }
 
