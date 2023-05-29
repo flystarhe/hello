@@ -1,3 +1,5 @@
+import math
+
 import fiftyone as fo
 import fiftyone.brain as fob
 import fiftyone.core.view as fov
@@ -76,12 +78,11 @@ def patches_view(samples, field, **kwargs):
     patches = samples.to_patches(field, **kwargs)
 
     data = []
-    baseline = {c: i * 1e8 for i, c in enumerate(patches.distinct(f"{field}.label"), 1)}
+    baseline = {c: i * 100 for i, c in enumerate(patches.distinct(f"{field}.label"), 1)}
     for metadata, ground_truth in zip(*patches.values(["metadata", field])):
         label, bbox = ground_truth.label, ground_truth.bounding_box
-        width, height = metadata.width, metadata.height
-        area = bbox[2] * width * bbox[3] * height
-        data.append(baseline[label] + area)
+        s = math.log2(bbox[2] * metadata.width) + bbox[3]
+        data.append(baseline[label] + s)
     patches.set_values("ikey", data)
 
     return patches.sort_by("ikey")
