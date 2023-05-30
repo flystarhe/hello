@@ -374,7 +374,7 @@ def list_datasets():
     return fo.list_datasets()
 
 
-def delete_datasets(names=None, non_persistent=True):
+def delete_datasets(names=None, non_persistent=False):
     names = set(names or [])
 
     _vals = set(fo.list_datasets())
