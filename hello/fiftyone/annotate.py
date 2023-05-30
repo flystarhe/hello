@@ -2,7 +2,7 @@ import fiftyone as fo
 import fiftyone.core.view as fov
 
 
-def to_cvat(batch, samples, label_field="ground_truth", label_type="instances",
+def to_cvat(anno_key, samples, label_field="ground_truth", label_type="instances",
             url="http://localhost:8080", username="hejian", password="LFIcvat123",
             task_size=1000, segment_size=200, task_assignee="hejian", job_assignees=["hejian"]):
     """Exports the samples to the given annotation backend.
@@ -12,7 +12,7 @@ def to_cvat(batch, samples, label_field="ground_truth", label_type="instances",
     ``samples.default_mask_targets``.
 
     Args:
-        batch: a name of str or index of int for samples
+        anno_key: must be valid variable names, used for project name
         samples: a :class:`fiftyone.core.collections.SampleCollection`
         label_field ("ground_truth"): a string indicating a new or existing label field to annotate
         label_type ("instances"): a string indicating the type of labels to annotate. The possible values are:
@@ -60,8 +60,6 @@ def to_cvat(batch, samples, label_field="ground_truth", label_type="instances",
     else:
         dataset_name = samples.name
 
-    anno_key = f"{dataset_name}_{label_field}_{label_type}_{batch}"
-
     if anno_key in samples.list_annotation_runs():
         samples.delete_annotation_run(anno_key)
 
@@ -95,7 +93,7 @@ def to_cvat(batch, samples, label_field="ground_truth", label_type="instances",
         project_name=anno_key,
     )
 
-    return anno_key
+    return dataset_name, anno_key
 
 
 def from_cvat(dataset_name, anno_keys, cleanup=False,
