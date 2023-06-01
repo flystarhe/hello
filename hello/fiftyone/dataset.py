@@ -297,7 +297,7 @@ def add_dataset(dataset, skip_existing=True, insert_new=True, fields=None, expan
     raise NotImplementedError
 
 
-def create_dataset(dataset_name, dataset_type, version="001", classes=[], mask_targets={}):
+def create_dataset(dataset_name, dataset_type, version="001", classes=[], mask_targets={}, force=False):
     """Create an empty :class:`fiftyone.core.dataset.Dataset` with the name.
 
     Args:
@@ -310,6 +310,10 @@ def create_dataset(dataset_name, dataset_type, version="001", classes=[], mask_t
         a :class:`fiftyone.core.dataset.Dataset`
     """
     assert dataset_type in {"detection", "segmentation", "unknown"}
+
+    if force:
+        delete_datasets([dataset_name], non_persistent=False, force=False)
+
     dataset = fo.Dataset()
 
     dataset.name = dataset_name
@@ -374,16 +378,23 @@ def list_datasets():
     return fo.list_datasets()
 
 
-def delete_datasets(names=None, non_persistent=False):
-    names = set(names or [])
+def delete_datasets(names=None, non_persistent=False, force=False):
+    names, has_names = set(names or []), set(fo.list_datasets())
 
-    _vals = set(fo.list_datasets())
+    if "*" in names:
+        names = set(has_names)
 
-    bad_names = names - _vals
+    keep_names = set([name for name in names if name.startswith("keep_")])
+    if keep_names and not force:
+        print(f"Ignoring {len(keep_names)} kept datasets (eg {list(keep_names)[:3]})")
+        names = names - keep_names
+
+    bad_names = names - has_names
     if bad_names:
         print(f"Ignoring {len(bad_names)} nonexistent datasets (eg {list(bad_names)[:3]})")
+        names = names - bad_names
 
-    for name in sorted(names & _vals):
+    for name in sorted(names):
         fo.delete_dataset(name, verbose=True)
 
     if non_persistent:
