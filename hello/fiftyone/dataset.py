@@ -311,8 +311,9 @@ def create_dataset(dataset_name, dataset_type, version="001", classes=[], mask_t
     """
     assert dataset_type in {"detection", "segmentation", "unknown"}
 
-    if force:
-        delete_datasets([dataset_name], non_persistent=False, force=False)
+    if fo.dataset_exists(dataset_name):
+        assert force, "the dataset name already exists!"
+        fo.delete_dataset(dataset_name, verbose=True)
 
     dataset = fo.Dataset()
 
