@@ -88,6 +88,30 @@ def sort_by_filename(dataset):
     return view
 
 
+def match_labels(dataset, labels=None, ids=None, tags=None, filter=None, fields=None, bool=None):
+    """Selects the samples from the collection that contain (or do not
+    contain) at least one label that matches the specified criteria.
+
+    Note that, unlike :meth:`select_labels` and :meth:`filter_labels`, this
+    stage will not filter the labels themselves; it only selects the
+    corresponding samples.
+
+    Args:
+        dataset: a :class:`fiftyone.core.collections.SampleCollection`
+        labels (None): by :meth:`fiftyone.core.session.Session.selected_labels`
+        ids (None): an ID or iterable of IDs of the labels to select
+        tags (None): a tag or iterable of tags of labels to select
+        filter (None): a :class:`fiftyone.core.expressions.ViewExpression`
+        fields (None): a field or iterable of fields from which to select
+        bool (None): have (None or True) or do not have (False) at least one label
+
+    Returns:
+        a :class:`fiftyone.core.view.DatasetView`
+    """
+    view = dataset.match_labels(labels=labels, ids=ids, tags=tags, filter=filter, fields=fields, bool=bool)
+    return view
+
+
 def select_labels(dataset, labels=None, ids=None, tags=None, fields=None, omit_empty=True):
     """Selects only the specified labels from the collection.
 
@@ -98,6 +122,9 @@ def select_labels(dataset, labels=None, ids=None, tags=None, fields=None, omit_e
         tags (None): a tag or iterable of tags of labels to select
         fields (None): a field or iterable of fields from which to select
         omit_empty (True): whether to omit samples that have no labels after filtering
+
+    Returns:
+        a :class:`fiftyone.core.view.DatasetView`
     """
     view = dataset.select_labels(labels=labels, ids=ids, tags=tags, fields=fields, omit_empty=omit_empty)
     return view
@@ -113,6 +140,9 @@ def exclude_labels(dataset, labels=None, ids=None, tags=None, fields=None, omit_
         tags (None): a tag or iterable of tags of labels to exclude
         fields (None): a field or iterable of fields from which to exclude
         omit_empty (True): whether to omit samples that have no labels after filtering
+
+    Returns:
+        a :class:`fiftyone.core.view.DatasetView`
     """
     view = dataset.exclude_labels(labels=labels, ids=ids, tags=tags, fields=fields, omit_empty=omit_empty)
     return view
@@ -207,3 +237,36 @@ def filter_duplicate_labels(dataset, label_field, iou_thresh=0.999, method="simp
 
     view = dataset.match_labels(ids=dup_ids, fields=label_field)
     return view
+
+
+def set_values(dataset, field_name, values, **kwargs):
+    """Sets the field or embedded field on each sample or frame in the
+    collection to the given values.
+
+    Args:
+        dataset: a :class:`fiftyone.core.collections.SampleCollection`
+        field_name: a field or ``embedded.field.name``
+        values: an iterable of values, one for each sample in the collection
+    """
+    dataset.set_values(field_name, values, **kwargs)
+
+
+def set_label_values(dataset, field_name, values, **kwargs):
+    """Sets the fields of the specified labels in the collection to the
+    given values.
+
+    Examples::
+
+        view = dataset.filter_labels("predictions", F("confidence") > 0.99)
+
+        label_ids = view.values("predictions.detections.id", unwind=True)
+        values = {_id: True for _id in label_ids}
+
+        dataset.set_label_values("predictions.detections.high_conf", values)
+
+    Args:
+        dataset: a :class:`fiftyone.core.collections.SampleCollection`
+        field_name: a field or ``embedded.field.name``
+        values: a dict mapping label IDs to values
+    """
+    dataset.set_label_values(field_name, values, **kwargs)
