@@ -23,7 +23,7 @@ def regular_preprocess(img_path, out_path, transformers, dtype=np.uint8):
     return out_path
 
 
-def todo(src, dst, mode, imgsz, layout, ext):
+def todo(src, dst, mode, imgsz, layout, ext, **kwargs):
     in_dir = Path(src)
 
     if dst is None:
@@ -44,8 +44,12 @@ def todo(src, dst, mode, imgsz, layout, ext):
     imgs = [f for f in in_dir.glob("**/*")
             if f.suffix in img_formats]
 
+    pad_value = kwargs.get("pad_value", "114,114,114")
+    if isinstance(pad_value, str):
+        pad_value = tuple(map(float, pad_value.split(",")))
     transformers = [
-        PadCropTransformer(target_size=imgsz),
+        PadCropTransformer(target_size=imgsz, pad_value=pad_value) if kwargs.get("crop") else Transformer(),
+        PadResizeTransformer(target_size=imgsz, pad_value=pad_value) if kwargs.get("resize") else Transformer(),
         BGR2RGBTransformer() if ext == "rgb" else Transformer(),
         BGR2NV12Transformer() if ext == "nv12" else Transformer(),
         HWC2CHWTransformer() if layout == "CHW" else Transformer(),
@@ -76,6 +80,12 @@ def parse_args(args=None):
                         choices=["chw", "hwc"])
     parser.add_argument("--ext", type=str, default="rgb",
                         choices=["rgb", "bgr", "nv12"])
+    parser.add_argument("--crop", action="store_true",
+                        help="use `PadCropTransformer`")
+    parser.add_argument("--resize", action="store_true",
+                        help="use `PadResizeTransformer`")
+    parser.add_argument("--pad-value", type=str, default="114,114,114",
+                        help="channel order is bgr")
 
     args = parser.parse_args(args=args)
     return vars(args)
