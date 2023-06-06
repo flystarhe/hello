@@ -46,7 +46,7 @@ pip install opencv-python --ignore-installed
 
 # fiftyone
 pip install --upgrade fiftyone
-pip install fiftyone>=0.20.1
+pip install fiftyone>=0.21.0
 
 # pyomniunwarp
 pip install -U pyomniunwarp>=0.2.4
