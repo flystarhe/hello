@@ -6,10 +6,9 @@ tmpl_f32 = """\
 model_parameters:
   onnx_model: '{onnx_model}'
   march: 'bernoulli2'
-  layer_out_dump: False
-  log_level: 'debug'
-  working_dir: 'model_output'
   output_model_file_prefix: '{model_prefix}'
+  working_dir: './model_output'
+  layer_out_dump: False
 
 input_parameters:
   input_name: '{input_name}'
@@ -17,6 +16,7 @@ input_parameters:
   input_layout_rt: '{input_layout_rt}'
   input_type_train: '{input_type_train}'
   input_layout_train: '{input_layout_train}'
+  input_space_and_range: '{input_space_and_range}'
   input_shape: ''
   input_batch: 1
   norm_type: '{norm_type}'
@@ -25,10 +25,10 @@ input_parameters:
 
 calibration_parameters:
   cal_data_dir: '{cal_data_dir}'
+  cal_data_type: '{cal_data_type}'
   calibration_type: '{calibration_type}'
   max_percentile: {max_percentile}
   per_channel: {per_channel}
-  preprocess_on: False
 
 compiler_parameters:
   compile_mode: '{compile_mode}'
@@ -63,7 +63,7 @@ def parse_args(args=None):
     parser.add_argument("--model-prefix", type=str, default=None,
                         help="model conversion generated name prefix")
 
-    parser.add_argument("--input-name", type=str, default="images",
+    parser.add_argument("--input-name", type=str, default="data",
                         help="node name of model input")
     parser.add_argument("--input-type-rt", type=str, default="nv12",
                         choices=["nv12", "rgb", "bgr", "gray", "featuremap", "yuv444"])
@@ -73,6 +73,8 @@ def parse_args(args=None):
                         choices=["rgb", "bgr", "gray", "featuremap", "yuv444"])
     parser.add_argument("--input-layout-train", type=str, default="NCHW",
                         choices=["NHWC", "NCHW"])
+    parser.add_argument("--input-space-and-range", type=str, default="regular",
+                        choices=["regular", "bt601_video"])
     parser.add_argument("--norm-type", type=str, default="data_scale",
                         choices=["no_preprocess", "data_mean", "data_scale", "data_mean_and_scale"])
     parser.add_argument("--mean-value", type=str, default="",
@@ -82,6 +84,8 @@ def parse_args(args=None):
 
     parser.add_argument("--cal-data-dir", type=str, default="./calibration_data_rgb_f32",
                         help="reference images of model quantization")
+    parser.add_argument("--cal-data-type", type=str, default="float32",
+                        choices=["float32", "uint8"])
     parser.add_argument("--calibration-type", type=str, default="default",
                         choices=["kl", "max", "default", "load"])
     parser.add_argument("--max-percentile", type=str, default="1.0",
