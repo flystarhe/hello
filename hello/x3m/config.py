@@ -1,8 +1,8 @@
 from pathlib import Path
 
 tmpl_f32 = """\
-# X3M SDK: Version_20220512
-# https://developer.horizon.ai/api/v1/fileData/documents/ai_toolchain_develop/horizon_ai_toolchain_user_guide/chapter_3_model_conversion.html#model-conversion
+# X3M SDK: Version_20230128
+# https://developer.horizon.ai/api/v1/fileData/documents/ai_toolchain_develop/horizon_ai_toolchain_user_guide/ptq_user_guide/chapter_model_conversion.html#model-conversion
 model_parameters:
   onnx_model: '{onnx_model}'
   march: 'bernoulli2'
@@ -35,6 +35,7 @@ compiler_parameters:
   debug: {compile_debug}
   core_num: {core_num}
   optimize_level: '{optimize_level}'
+  input_source: {{"{input_name}": "ddr"}}
 """
 
 
