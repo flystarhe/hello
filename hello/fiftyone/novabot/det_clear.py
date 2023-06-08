@@ -52,7 +52,7 @@ new_classes = [
     ["background"],
 ]
 
-dataset = hoc.remap_detections_dataset(dataset, new_classes, "ground_truth", background="background", least_one=False)
+dataset = hoc.remap_detections_dataset(dataset, new_classes, "ground_truth", background="background", least_one=True)
 print(f"{dataset.default_classes=}\n{dataset.default_mask_targets=}")
 print("count-labels:", dataset.count("ground_truth.detections"))
 print("count-images:", dataset.count("filepath"))
