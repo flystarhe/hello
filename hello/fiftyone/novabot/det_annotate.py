@@ -193,5 +193,5 @@ ret = hoc.count_values(dataset, "tags")
 hoco.coco_export(f"exports/{dataset_name}", dataset, label_field="ground_truth", splits=["train", "issue"])
 
 # %%
-hoc.random_split(dataset.match_tags("train"), splits={"val": 0.2, "train": 0.8}, seed=51)
+hoc.random_split(dataset.match_tags("train"), splits={"val": 0.1, "train": 0.9}, seed=51)
 hoco.coco_export(f"exports/{dataset_name}", dataset, label_field="ground_truth", splits=["train", "val", "issue"])
