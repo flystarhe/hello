@@ -285,9 +285,9 @@ def compare_info_py(file1, file2, keys=None, verbose=True):
     return results
 
 
-def tree(root):
+def tree(root, pattern="*/*.tar"):
     groups = defaultdict(list)
-    for f in Path(root).glob("*/*.tar"):
+    for f in Path(root).glob(pattern):
         groups[f.parent.as_posix()].append(f)
 
     for group_name in sorted(groups.keys()):
