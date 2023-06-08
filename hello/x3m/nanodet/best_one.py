@@ -124,7 +124,7 @@ def test_notebook():
     print(f"{sess.input_names}, {sess.output_names}, {sess.layout}")
 
     image = cv.imread(image_file, 1)  # bgr
-    image = cv.resize(image, infer_scale)  # (w, h)
+    image = cv.resize(image, infer_scale)  # (w, h, c)
     pad_image = np.full(input_shape + (3,), (114, 114, 114), dtype="uint8")
     pad_image[:360, :640, :] = image
 
@@ -133,6 +133,7 @@ def test_notebook():
     outputs = sess.run(output_names, {input_name: image_data}, input_offset=128)
     bbox, score, cls_id = post_process(outputs, input_shape, reg_max=7)
 
-    show_bbox(image_file, infer_scale, [bbox], [score], [cls_id], cls_names=["charging station", "other object"])
+    cls_names = ["charging station", "other object"]
+    show_bbox(image_file, infer_scale, [bbox], [score], [cls_id], cls_names)
 
     return bbox, score, cls_id
