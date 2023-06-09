@@ -9,7 +9,7 @@ import hello.fiftyone.view as hov
 print(hello.__version__)
 
 
-def get_images(root, files, out_dir):
+def get_images(root, files, out_dir, exclude_names, include_names):
     sub_dirs = []
 
     if root is not None:
@@ -18,7 +18,7 @@ def get_images(root, files, out_dir):
 
     out_dir = Path(out_dir)
     for i, f in enumerate(files, 1):
-        sub_dir = hot.extract_images(out_dir / f"patch{i:02d}", [f])
+        sub_dir = hot.extract_images(out_dir / f"patch{i:02d}", [f], exclude_names=exclude_names, include_names=include_names)
         sub_dirs.append((sub_dir, Path(f).stem))
 
     return sub_dirs
@@ -70,7 +70,13 @@ def test_images():
         "novabot_front_img_20230501_big_test_ver001.tar",
     ]
 
-    sub_dirs = get_images(root, files, f"tmp/{dataset_name}")
+    # {exclude/include}_names: None or json file path or dict or list
+    # for big train dataset, e.g.
+    # exclude_names = hot.get_image_names(tar_file_path)
+    exclude_names = None
+    include_names = None
+
+    sub_dirs = get_images(root, files, f"tmp/{dataset_name}", exclude_names, include_names)
     dataset, counts = get_dataset(dataset_name, dataset_type, version, classes, mask_targets, sub_dirs)
 
     hod.export_image_dataset(f"exports/{dataset_name}", dataset, splits=None)
@@ -89,7 +95,13 @@ def test_uniqueness():
         "novabot_front_img_20230525_us_evening_ver001.tar",
     ]
 
-    sub_dirs = get_images(root, files, f"tmp/{dataset_name}")
+    # {exclude/include}_names: None or json file path or dict or list
+    # for big train dataset, e.g.
+    # exclude_names = hot.get_image_names(tar_file_path)
+    exclude_names = None
+    include_names = None
+
+    sub_dirs = get_images(root, files, f"tmp/{dataset_name}", exclude_names, include_names)
     dataset, counts = get_dataset(dataset_name, dataset_type, version, classes, mask_targets, sub_dirs)
 
     view, unique_tag = get_uniqueness(dataset, counts, [500] * len(files))
