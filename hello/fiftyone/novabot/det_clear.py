@@ -24,11 +24,15 @@ dataset = hod.create_dataset(dataset_name, dataset_type, version, classes, mask_
 label_classes = dataset.default_classes
 
 from_dir = "/workspace/users/hejian/tmp/novabot_front_det_20230314_zhengshu_batch01_object9_ver005/ok"
-hod.add_images_dir(dataset, f"{from_dir}/data", None)
+hod.add_images_dir(dataset, f"{from_dir}/data", "train")
+hod.add_detection_labels(dataset, "ground_truth", f"{from_dir}/labels.json", label_classes, mode="coco")
+
+from_dir = "/workspace/users/hejian/tmp/novabot_front_det_20230314_zhengshu_batch01_object9_ver005/hard"
+hod.add_images_dir(dataset, f"{from_dir}/data", "val")
 hod.add_detection_labels(dataset, "ground_truth", f"{from_dir}/labels.json", label_classes, mode="coco")
 
 from_dir = "/workspace/users/hejian/tmp/novabot_front_det_20230505_zhengshu_batch02_object9_ver003b/train"
-hod.add_images_dir(dataset, f"{from_dir}/data", None)
+hod.add_images_dir(dataset, f"{from_dir}/data", "train")
 hod.add_detection_labels(dataset, "ground_truth", f"{from_dir}/labels.json", label_classes, mode="coco")
 
 ret = hoc.count_values(dataset, "ground_truth.detections.label")
@@ -129,7 +133,7 @@ print("count-images:", dataset.count("filepath"))
 # ---
 
 # %%
-hoco.coco_export(f"exports/{dataset_name}", dataset, label_field="ground_truth", splits=["train", "issue"])
+hoco.coco_export(f"exports/{dataset_name}", dataset, label_field="ground_truth", splits=["train", "val", "issue"])
 
 # %%
 hoc.random_split(dataset.match_tags("train"), splits={"val": 0.1, "train": 0.9}, seed=51)
