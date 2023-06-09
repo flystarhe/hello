@@ -18,7 +18,8 @@ def get_images(root, files, out_dir, exclude_names, include_names):
 
     out_dir = Path(out_dir)
     for i, f in enumerate(files, 1):
-        sub_dir = hot.extract_images(out_dir / f"patch{i:02d}", [f], exclude_names=exclude_names, include_names=include_names)
+        kwargs = dict(data_path="data", exclude_names=exclude_names, include_names=include_names)
+        sub_dir = hot.extract_images(out_dir / f"patch{i:02d}", [f], **kwargs)
         sub_dirs.append((sub_dir, Path(f).stem))
 
     return sub_dirs
