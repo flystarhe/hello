@@ -1,6 +1,7 @@
 # %%
 import hello
 import hello.fiftyone.dataset as hod
+import hello.fiftyone.tarinfo as hot
 import hello.fiftyone.view as hov
 
 print(hello.__version__)
@@ -15,13 +16,14 @@ mask_targets = {}
 hod.delete_datasets([dataset_name], non_persistent=False)
 dataset = hod.create_dataset(dataset_name, dataset_type, version, classes, mask_targets)
 
-from_dir = "/workspace/users/hejian/tmp/novabot_front_img_20230404_big_test_ver001/train"
+from_dir = "/workspace/users/hejian/tmp/novabot_front_det_20230404_big_train_object9_ver001.tar"
+from_dir = hot.extract_images(f"tmp/{dataset_name}", [from_dir], data_path="data")
 hod.add_images_dir(dataset, f"{from_dir}/data", "cal")
 
 print("count-images:", dataset.count("filepath"))
 
 # %%
-view = hov.uniqueness(dataset, 200, model="clip-vit-base32-torch")
+view = hov.uniqueness(dataset, 100, model="clip-vit-base32-torch")
 
 print("count-images:", view.count("filepath"))
 

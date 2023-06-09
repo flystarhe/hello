@@ -22,6 +22,8 @@ label_mask_targets = dataset.default_mask_targets
 
 from_dir = "/workspace/users/hejian/tmp/Segmentation/train"
 hod.add_images_dir(dataset, f"{from_dir}/data", None)
+
+from_dir = "/workspace/users/hejian/tmp/Segmentation/train"
 hod.add_segmentation_labels(dataset, "ground_truth", f"{from_dir}/labels", label_mask_targets, mode="png")
 
 # %%
