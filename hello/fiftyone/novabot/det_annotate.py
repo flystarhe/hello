@@ -141,7 +141,12 @@ view = view.filter_labels(
 print("count-labels-old:", view.count("ground_truth_iter.detections"))
 print("count-labels-new:", view.count("ground_truth.detections"))
 
-session = fo.launch_app(view, port=20002, address="192.168.0.119", auto=False)  # tag sample for `issue`
+session = fo.launch_app(view, port=20002, address="192.168.0.119", auto=False)  # tag sample for `ok/ng`
+
+# %%
+view.tag_samples("train")
+view.untag_samples("issue")
+view.match_tags("ng").tag_samples("issue")
 
 # %%
 view = dataset.match_tags("issue")
@@ -190,7 +195,7 @@ ret = hoc.count_values(dataset, "tags")
 # ---
 
 # %%
-hoco.coco_export(f"exports/{dataset_name}", dataset, label_field="ground_truth", splits=["train", "issue"])
+hoco.coco_export(f"exports/{dataset_name}", dataset, label_field="ground_truth", splits=["train", "val", "issue"])
 
 # %%
 hoc.random_split(dataset.match_tags("train"), splits={"val": 0.1, "train": 0.9}, seed=51)
