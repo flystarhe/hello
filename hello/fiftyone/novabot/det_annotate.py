@@ -85,7 +85,7 @@ bbox_area = (
     F("$metadata.height") * F("bounding_box")[3]
 )
 view = dataset.filter_labels(
-    "ground_truth", (1000 <= bbox_area), only_matches=False
+    "ground_truth", (512 <= bbox_area), only_matches=False
 )
 
 print("count-labels:", view.count("ground_truth.detections"))
@@ -128,8 +128,8 @@ results = dataset.evaluate_detections(
 view = dataset.match((F("eval_fp") > 0) | (F("eval_fn") > 0))
 print("length:", view.count("filepath"))
 
-view.tag_samples("issue")
 view.untag_samples("train")
+view.tag_samples("issue")
 
 view = view.filter_labels(
     "ground_truth_iter", F("eval") != "tp", only_matches=False
@@ -144,8 +144,9 @@ print("count-labels-new:", view.count("ground_truth.detections"))
 session = fo.launch_app(view, port=20002, address="192.168.0.119", auto=False)  # tag sample for `ok/ng`
 
 # %%
-view.tag_samples("train")
-view.untag_samples("issue")
+view.match_tags("ok").untag_samples("issue")
+view.match_tags("ok").tag_samples("train")
+view.match_tags("ng").untag_samples("train")
 view.match_tags("ng").tag_samples("issue")
 
 # %%
@@ -182,11 +183,11 @@ ret = hoc.count_values(dataset, "tags")
 
 # %%
 view = dataset.match_tags("train")
-session = fo.launch_app(view, port=20004, address="192.168.0.119", auto=False)  # tag sample for `drop`
+session = fo.launch_app(view, port=20004, address="192.168.0.119", auto=False)  # tag sample for `ng`
 
 # %%
-dataset.match_tags("drop").untag_samples("train")
-dataset.match_tags("drop").tag_samples("issue")
+dataset.match_tags("ng").untag_samples("train")
+dataset.match_tags("ng").tag_samples("issue")
 ret = hoc.count_values(dataset, "tags")
 
 # %% [markdown]

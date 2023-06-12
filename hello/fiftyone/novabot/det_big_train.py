@@ -71,7 +71,7 @@ print("count-labels:", dataset.count("ground_truth.detections"))
 
 # %%
 label_ids = []
-range_a, range_b = 0, 16
+range_a, range_b = 0, 64
 for sample_detections in dataset.values("ground_truth.detections"):
     for detection in sample_detections:
         x, y, w, h = detection.bounding_box
@@ -87,7 +87,7 @@ ret = hoc.count_values(dataset, "ground_truth.detections.tags")
 
 # %%
 label_ids = []
-range_a, range_b = 16, 16 * 16 * 9
+range_a, range_b = 64, 16 * 16 * 9
 for sample_detections in dataset.values("ground_truth.detections"):
     for detection in sample_detections:
         x, y, w, h = detection.bounding_box
