@@ -11,7 +11,7 @@ import hello.fiftyone.dataset as hod
 print(hello.__version__)
 
 # %%
-dataset_name = "novabot_front_det_20230531_big_train_object9_ver001b"
+dataset_name = "novabot_front_det_20230531_big_train_object9_ver003b"
 dataset_type = "detection"
 version = "object9"
 classes = ["person", "animal", "shoes", "wheel", "other obstacle", "obstacle", "leaf debris", "faeces", "rock", "charging station", "background"]
@@ -71,7 +71,23 @@ print("count-labels:", dataset.count("ground_truth.detections"))
 
 # %%
 label_ids = []
-range_a, range_b = 0, 16 * 16 * 9
+range_a, range_b = 0, 16
+for sample_detections in dataset.values("ground_truth.detections"):
+    for detection in sample_detections:
+        x, y, w, h = detection.bounding_box
+        area = w * 1920 * h * 1080
+        if range_a <= area < range_b:
+            label_ids.append(detection.id)
+print(f"[{range_a}, {range_b}]: {len(label_ids)=}")
+ret = hoc.count_values(dataset, "ground_truth.detections.tags")
+
+# %%
+dataset.select_labels(ids=label_ids).tag_labels("ignore")
+ret = hoc.count_values(dataset, "ground_truth.detections.tags")
+
+# %%
+label_ids = []
+range_a, range_b = 16, 16 * 16 * 9
 for sample_detections in dataset.values("ground_truth.detections"):
     for detection in sample_detections:
         x, y, w, h = detection.bounding_box
@@ -95,7 +111,7 @@ for sample_detections in dataset.values("ground_truth.detections"):
         if range_a <= area < range_b:
             label_ids.append(detection.id)
 print(f"[{range_a}, {range_b}]: {len(label_ids)=}")
-ret = hoc.count_values(dataset, "ground_truth.detections.iscrowd")
+ret = hoc.count_values(dataset, "ground_truth.detections.tags")
 
 # %%
 dataset.untag_labels(["issue", "ignore", "todo"])
@@ -113,9 +129,8 @@ session = fo.launch_app(view=patches, port=20001, address="192.168.0.119", auto=
 
 # %%
 dataset.untag_samples("issue")
-dataset.tag_samples("train")
 dataset.select_labels(tags="issue", omit_empty=True).tag_samples("issue")
-dataset.match_tags("issue").untag_samples("train")
+dataset.match_tags("issue").untag_samples(["train", "val"])
 ret = hoc.count_values(dataset, "tags")
 
 # %%
