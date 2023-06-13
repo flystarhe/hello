@@ -62,7 +62,7 @@ dataset.default_classes = dataset.default_classes[:-1]
 print(f"{dataset.default_classes=}\n{dataset.default_mask_targets=}")
 
 # %%
-hod.delete_duplicate_labels(dataset, "ground_truth", iou_thresh=0.95, method="simple", iscrowd=None, classwise=False)
+hod.delete_duplicate_labels(dataset, "ground_truth", iou_thresh=0.99, method="simple", iscrowd=None, classwise=False)
 print("count-labels:", dataset.count("ground_truth.detections"))
 
 # %% [markdown]
