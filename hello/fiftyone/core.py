@@ -223,7 +223,7 @@ def save_tags(dataset, out_file):
     for sample in dataset:
         data.append([Path(sample.filepath).name, sample.tags])
 
-    return hou.save_json({"count": len(data), "tags": dataset.distinct("tags"), "data": data}, out_file)
+    return hou.save_json({"total": len(data), "tags": dataset.count_values("tags"), "data": data}, out_file)
 
 
 def tag_from(dataset, by_dir=None, by_json=None, in_names=None):

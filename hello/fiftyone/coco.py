@@ -141,7 +141,7 @@ def coco_export(export_dir, dataset, label_field, splits=None, **kwargs):
     save_tags(dataset, export_dir / "tags.json")
 
     with open(export_dir / "README.md", "w") as f:
-        f.write("# README\n\n## Data Processing\n\n")
+        f.write("# README\n\n## Data Processing\n\n**from:**\n\n")
 
     return str(export_dir)
 

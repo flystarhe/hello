@@ -216,7 +216,7 @@ def extract_images(out_dir, files, data_path="data", exclude_names=None, include
 
     with open(Path(out_dir) / "README.md", "w") as f:
         from_data = "\n".join([Path(file).name for file in files])
-        f.write(f"# README\n\n## Data Processing\n\n**from**\n\n```python\n{from_data}\n```\n\n")
+        f.write(f"# README\n\n## Data Processing\n\n**from:**\n\n```python\n{from_data}\n```\n\n")
 
     print(f"{n_total} images from {len(files)} tars")
     return out_dir
