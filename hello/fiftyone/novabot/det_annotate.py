@@ -24,7 +24,7 @@ dataset = hod.create_dataset(dataset_name, dataset_type, version, classes, mask_
 label_classes = dataset.default_classes
 
 from_dir = "/workspace/users/hejian/todo/novabot_front_det_20230314_zhengshu_batch01_object9_ver004/train"
-hod.add_images_dir(dataset, f"{from_dir}/data", None)
+hod.add_images_dir(dataset, f"{from_dir}/data", "train")
 
 from_dir = "/workspace/users/hejian/todo/novabot_front_det_20230314_zhengshu_batch01_object9_ver004/train"
 hod.add_detection_labels(dataset, "ground_truth", f"{from_dir}/labels.json", label_classes, mode="coco")
@@ -125,6 +125,7 @@ results = dataset.evaluate_detections(
 )
 
 # %%
+dataset.untag_samples("ng")
 view = dataset.match((F("eval_fp") > 0) | (F("eval_fn") > 0))
 print("length:", view.count("filepath"))
 
@@ -141,11 +142,12 @@ view = view.filter_labels(
 print("count-labels-old:", view.count("ground_truth_iter.detections"))
 print("count-labels-new:", view.count("ground_truth.detections"))
 
-session = fo.launch_app(view, port=20002, address="192.168.0.119", auto=False)  # tag sample for `ok/ng`
+session = fo.launch_app(view, port=20002, address="192.168.0.119", auto=False)  # tag sample for `ng`
 
 # %%
-view.match_tags("ok").untag_samples("issue")
-view.match_tags("ok").tag_samples("train")
+view.untag_samples("issue")
+view.tag_samples("train")
+
 view.match_tags("ng").untag_samples("train")
 view.match_tags("ng").tag_samples("issue")
 
@@ -173,6 +175,7 @@ ret = hoc.count_values(dataset, "ground_truth.detections.label")
 print("count-images:", dataset.count("filepath"))
 
 # %%
+dataset.untag_samples("ok")
 view = dataset.match_tags("issue")
 session = fo.launch_app(view, port=20003, address="192.168.0.119", auto=False)  # tag sample for `ok`
 
@@ -182,6 +185,7 @@ dataset.match_tags("ok").tag_samples("train")
 ret = hoc.count_values(dataset, "tags")
 
 # %%
+dataset.untag_samples("ng")
 view = dataset.match_tags("train")
 session = fo.launch_app(view, port=20004, address="192.168.0.119", auto=False)  # tag sample for `ng`
 

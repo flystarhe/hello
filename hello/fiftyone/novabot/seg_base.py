@@ -8,7 +8,7 @@ import hello.fiftyone.dataset as hod
 print(hello.__version__)
 
 # %%
-dataset_name = "novabot_front_seg_20230404_test_640_suzhou_mall_val_ok_ver001"
+dataset_name = "novabot_front_seg_20230404_test_640_suzhou_mall_ver001"
 dataset_type = "segmentation"
 version = "map9"
 classes = ["unlabeled", "background", "lawn", "road", "terrain", "obstacle", "leaf debris", "faeces", "unknown", "charging station", "ignore"]
@@ -21,7 +21,7 @@ dataset = hod.create_dataset(dataset_name, dataset_type, version, classes, mask_
 label_mask_targets = dataset.default_mask_targets
 
 from_dir = "/workspace/users/hejian/tmp/Segmentation/train"
-hod.add_images_dir(dataset, f"{from_dir}/data", None)
+hod.add_images_dir(dataset, f"{from_dir}/data", "train")
 
 from_dir = "/workspace/users/hejian/tmp/Segmentation/train"
 hod.add_segmentation_labels(dataset, "ground_truth", f"{from_dir}/labels", label_mask_targets, mode="png")

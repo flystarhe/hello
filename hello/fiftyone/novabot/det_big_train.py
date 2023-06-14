@@ -114,7 +114,7 @@ print(f"[{range_a}, {range_b}]: {len(label_ids)=}")
 ret = hoc.count_values(dataset, "ground_truth.detections.tags")
 
 # %%
-dataset.untag_labels(["issue", "ignore", "todo"])
+dataset.untag_labels("todo")
 dataset.tag_labels("train")
 dataset.select_labels(ids=label_ids).tag_labels("todo")
 dataset.select_labels(tags=["todo"]).untag_labels("train")

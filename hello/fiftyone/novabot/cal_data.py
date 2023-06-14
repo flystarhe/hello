@@ -16,8 +16,10 @@ mask_targets = {}
 hod.delete_datasets([dataset_name], non_persistent=False)
 dataset = hod.create_dataset(dataset_name, dataset_type, version, classes, mask_targets)
 
-from_dir = "/workspace/users/hejian/tmp/novabot_front_det_20230404_big_train_object9_ver001.tar"
-from_dir = hot.extract_images(f"tmp/{dataset_name}", [from_dir], data_path="data")
+tar_files = [
+    "/workspace/users/hejian/tmp/novabot_front_det_20230404_big_train_object9_ver001.tar",
+]
+from_dir = hot.extract_images(f"tmp/{dataset_name}", tar_files, data_path="data")
 hod.add_images_dir(dataset, f"{from_dir}/data", "cal")
 
 print("count-images:", dataset.count("filepath"))

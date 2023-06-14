@@ -18,7 +18,7 @@ hod.delete_datasets([dataset_name], non_persistent=False)
 dataset = hod.create_dataset(dataset_name, dataset_type, version, classes, mask_targets)
 
 from_dir = "/workspace/users/hejian/todo/novabot_front_det_20230525_zhengshu_batch02_object9_ver002/nothing"
-hod.add_images_dir(dataset, f"{from_dir}/data", None)
+hod.add_images_dir(dataset, f"{from_dir}/data", "train")
 
 print("count-images:", dataset.count("filepath"))
 
