@@ -5,7 +5,7 @@ import fiftyone.utils.iou as foui
 from fiftyone import ViewField as F
 
 
-def uniqueness(dataset, count, model=None):
+def uniqueness(dataset, count, brain_key="img_sim", model=None):
     """The uniqueness of a Dataset.
 
     Args:
@@ -42,7 +42,7 @@ def uniqueness(dataset, count, model=None):
         unique_view = view.select(sample_ids, ordered=True)
         return unique_view.limit(count)
 
-    results = fob.compute_similarity(dataset, brain_key="img_sim", model=model)
+    results = fob.compute_similarity(dataset, brain_key=brain_key, model=model)
     results.find_unique(count)
 
     unique_ids = results.unique_ids

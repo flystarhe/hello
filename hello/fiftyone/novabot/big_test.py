@@ -51,8 +51,11 @@ def get_uniqueness(dataset, counts, n, by=None, model="clip-vit-base32-torch"):
 
     dataset.untag_samples(unique_tag)
     for tag, count in tasks:
+        print(f"[I] unique({tag=}, {count=})")
+        for brain_key in dataset.list_brain_runs():
+            dataset.delete_brain_run(brain_key)
         view = dataset.match_tags([tag]).sort_by("filepath")
-        view = hov.uniqueness(view, count, model=model)
+        view = hov.uniqueness(view, count, brain_key="img_sim", model=model)
         view.tag_samples(unique_tag)
 
     return dataset.match_tags(unique_tag), unique_tag
