@@ -23,7 +23,7 @@ hod.add_images_dir(dataset, f"{from_dir}/data", "train")
 print("count-images:", dataset.count("filepath"))
 
 # %%
-view = dataset
+view = dataset  # 多个Tag默认取最新的
 
 hoa.to_cvat(
     "det_20230525_nothing_anything", view,
