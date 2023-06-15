@@ -1,4 +1,5 @@
 import shutil
+from collections import defaultdict
 from pathlib import Path
 
 import cv2 as cv
@@ -247,6 +248,41 @@ def tag_from(dataset, by_dir=None, by_json=None, in_names=None):
                 sample.save()
 
     return dataset
+
+
+def tag_from_text(dataset, text_file, tag_map=None, remove_prefix=False):
+    """Tag dataset from a text file(cvat export: ImageNet 1.0).
+
+    Examples::
+
+        000471_0622023132018.jpg 0
+        000472_0622023132018.jpg 1
+        000473_0622023132019.jpg 1
+        000474_0622023132019.jpg 0 1
+        000475_0622023132019.jpg 0
+        000476_0622023132019.jpg 0
+    """
+    if tag_map is None:
+        tag_map = {"0": "ok", "1": "ng"}
+
+    data = defaultdict(list)
+    with open(text_file, "r") as f:
+        for l in f.readlines():
+            if ".jpg" in l:
+                a, *b = l.strip().split(" ")
+                if b:
+                    a, b = Path(a).stem, tag_map[b[-1]]
+                    if remove_prefix:
+                        a = a.split("_", maxsplit=1)[1]
+                    data[b].append(a)
+
+    filepaths, ids = dataset.values(["filepath", "id"])
+    id_map = {Path(k).stem: v for k, v in zip(filepaths, ids)}
+
+    for tag, stems in data.items():
+        matched_ids = [id_map[stem] for stem in stems]
+        view = dataset.select(matched_ids)
+        view.tag_samples(tag)
 
 
 def random_split(dataset, splits=None, seed=51):
