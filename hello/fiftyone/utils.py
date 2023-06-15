@@ -130,11 +130,15 @@ def load_yolo_predictions(labels_path, classes):
     return db
 
 
-def load_coco_predictions(labels_path):
+def load_coco_predictions(labels_path, remove_prefix=False):
     with open(labels_path, "r") as f:
         coco = json.load(f)
 
     assert "categories" in coco and "images" in coco and "annotations" in coco
+
+    if remove_prefix:
+        for img in coco["images"]:
+            img["file_name"] = Path(img["file_name"]).name.split("_", maxsplit=1)[1]
 
     imgs = {img["id"]: img for img in coco["images"]}
     cats = {cat["id"]: cat for cat in coco["categories"]}
@@ -189,14 +193,14 @@ def load_coco_predictions(labels_path):
     return {stem: db[stem] for stem in stems}
 
 
-def load_predictions(labels_path, classes=None, mode="text"):
+def load_predictions(labels_path, classes=None, mode="text", remove_prefix=False):
     if mode == "text":
         return load_text_predictions(labels_path)
     elif mode == "yolo":
         assert isinstance(classes, list)
         return load_yolo_predictions(labels_path, classes)
     elif mode == "coco":
-        return load_coco_predictions(labels_path)
+        return load_coco_predictions(labels_path, remove_prefix)
     else:
         raise NotImplementedError
 

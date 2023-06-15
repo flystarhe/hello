@@ -113,7 +113,7 @@ def add_yolo_labels(dataset, label_field, labels_path, classes):
     )
 
 
-def add_detection_labels(dataset, label_field, labels_path, classes=None, mode="text"):
+def add_detection_labels(dataset, label_field, labels_path, classes=None, mode="text", remove_prefix=False):
     """Adds detection labels to the dataset.
 
     .. note::
@@ -143,7 +143,7 @@ def add_detection_labels(dataset, label_field, labels_path, classes=None, mode="
     filepaths, ids = dataset.values(["filepath", "id"])
     id_map = {Path(k).stem: v for k, v in zip(filepaths, ids)}
 
-    db = hou.load_predictions(labels_path, classes=classes, mode=mode)
+    db = hou.load_predictions(labels_path, classes=classes, mode=mode, remove_prefix=remove_prefix)
 
     stems_adds = set(db.keys())
     stems_base = set(id_map.keys())
