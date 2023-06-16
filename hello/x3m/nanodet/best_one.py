@@ -1,3 +1,4 @@
+import cv2 as cv
 import numpy as np
 
 
@@ -37,7 +38,7 @@ def get_single_level_center_priors(featmap_size, stride):
     h, w = featmap_size
     y_range = np.arange(h, dtype=np.float32) * stride
     x_range = np.arange(w, dtype=np.float32) * stride
-    y, x = np.meshgrid(y_range, x_range)
+    y, x = np.meshgrid(y_range, x_range, indexing="ij")
     y = y.flatten()
     x = x.flatten()
     strides = np.full((x.shape[0],), stride, dtype=np.float32)
@@ -46,7 +47,7 @@ def get_single_level_center_priors(featmap_size, stride):
 
 
 def get_single_level_bboxes(cls_preds, reg_preds, input_shape, reg_max=7):
-    h, w, _ = cls_preds.shape
+    h, w = cls_preds.shape[:2]
     stride = input_shape[0] // h
 
     center_priors = get_single_level_center_priors((h, w), stride)
@@ -77,15 +78,34 @@ def post_process(outputs, input_shape, reg_max=7):
     return bbox, score, cls_id
 
 
+def pre_process(image, infer_scale, input_shape):
+    """For single image inference.
+
+    Examples::
+
+        infer_scale = (640, 360)  # (w/3, h/3)
+        input_shape = (384, 640)  # (h, w), divisible by 64
+    """
+    if isinstance(image, str):
+        image = cv.imread(image, 1)  # bgr
+
+    image = cv.resize(image, infer_scale)  # (h, w, c)
+
+    pad_image = np.full(input_shape + (3,), (114, 114, 114), dtype="uint8")
+    pad_image[:infer_scale[1], :infer_scale[0], :] = image
+
+    image_data = pad_image[np.newaxis, ...]  # (1, h, w, c)
+    return image_data
+
+
 def show_bbox(bgr_image, infer_scale, bboxes, scores, cls_ids, cls_names=None):
-    import cv2 as cv
     from IPython.display import display
     from PIL import Image
     if isinstance(bgr_image, str):
         bgr_image = cv.imread(bgr_image, 1)
 
     f = 1.0
-    if bgr_image.shape[:2] != tuple(infer_scale):
+    if bgr_image.shape[0] != infer_scale[1]:
         f = bgr_image.shape[0] / infer_scale[1]  # scale(w, h)
 
     for bbox, score, cls_id in zip(bboxes, scores, cls_ids):
@@ -112,23 +132,17 @@ def test_notebook():
         nohup jupyter notebook --ip='*' --port=9000 --notebook-dir='/workspace' --NotebookApp.token='hi' --no-browser --allow-root > /workspace/nohup.out 2>&1 &
         # localhost:7000/tree?token=hi
     """
-    import cv2 as cv
     from horizon_tc_ui import HB_ONNXRuntime
 
     infer_scale = (640, 360)  # (w/3, h/3)
-    input_shape = (384, 640)  # divisible by 64
+    input_shape = (384, 640)  # (h, w), divisible by 64
     image_file = "data/20230309_163529_i000246.jpg"
     model_file = "test/model_output/nanodet_384x640_x3_bgr_quantized_model.onnx"
 
     sess = HB_ONNXRuntime(model_file=model_file)
     print(f"{sess.input_names}, {sess.output_names}, {sess.layout}")
 
-    image = cv.imread(image_file, 1)  # bgr
-    image = cv.resize(image, infer_scale)  # (w, h, c)
-    pad_image = np.full(input_shape + (3,), (114, 114, 114), dtype="uint8")
-    pad_image[:360, :640, :] = image
-
-    image_data = pad_image[np.newaxis, ...]  # (1, h, w, c)
+    image_data = pre_process(image_file, infer_scale, input_shape)
     input_name, output_names = sess.input_names[0], sess.output_names
     outputs = sess.run(output_names, {input_name: image_data}, input_offset=128)
     bbox, score, cls_id = post_process(outputs, input_shape, reg_max=7)
