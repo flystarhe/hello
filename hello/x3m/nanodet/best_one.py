@@ -52,7 +52,7 @@ def get_single_level_bboxes(cls_preds, reg_preds, input_shape, reg_max=7):
 
     center_priors = get_single_level_center_priors((h, w), stride)
     dis_preds = distribution_project(reg_preds, reg_max) * center_priors[:, 2, None]
-    # TODO regress_ranges is `{stride: (stride * 6, stride * 14) for stride in strides}`
+    # TODO regress_ranges is `{stride: (stride * 4, stride * 10) for stride in strides}`
     # or set regress_ranges: `{8: (32, 80), 16: (64, 160), 32: (128, 320), 64: (256, 10000)}`
     bboxes = distance2bbox(center_priors[..., :2], dis_preds, input_shape)
     scores = sigmoid(cls_preds).reshape((h * w, -1))

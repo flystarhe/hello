@@ -19,7 +19,7 @@ def distribution_project(reg_pred, reg_max=7):
 
 
 def get_single_level_post_process(output, input_shape, reg_max=7):
-    # TODO regress_ranges is `{stride: (stride * 6, stride * 14) for stride in strides}`
+    # TODO regress_ranges is `{stride: (stride * 4, stride * 10) for stride in strides}`
     # or set regress_ranges: `{8: (32, 80), 16: (64, 160), 32: (128, 320), 64: (256, 10000)}`
     # `charging station`
     cls_id = 0
