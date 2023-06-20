@@ -36,7 +36,7 @@ compiler_parameters:
   debug: {compile_debug}
   core_num: {core_num}
   optimize_level: '{optimize_level}'
-  input_source: {{"{input_name}": "ddr"}}
+  #input_source: {{"{input_name}": "ddr"}}
 """
 
 
@@ -46,7 +46,8 @@ def todo(mode, **kwargs):
     else:
         config_text = "TBD"
 
-    with open("config.yaml", "w") as f:
+    tag = kwargs["input_type_rt"]
+    with open(f"config_{tag}.yaml", "w") as f:
         f.write(config_text)
     print(config_text)
 
