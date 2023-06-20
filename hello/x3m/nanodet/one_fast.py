@@ -111,6 +111,7 @@ def test_notebook():
 
         docker pull openexplorer/ai_toolchain_centos_7_xj3:v2.4.2
         docker run -it --rm -p 7000:9000 --ipc=host -v $(pwd):/workspace openexplorer/ai_toolchain_centos_7_xj3:v2.4.2 bash
+        pip install -U hello2 -i https://pypi.org/simple
         nohup jupyter notebook --ip='*' --port=9000 --notebook-dir='/workspace' --NotebookApp.token='hi' --no-browser --allow-root > /workspace/nohup.out 2>&1 &
         # localhost:7000/tree?token=hi
     """
@@ -131,5 +132,4 @@ def test_notebook():
 
     cls_names = ["charging station", "other object"]
     show_bbox(image_file, infer_scale, [bbox], [score], [cls_id], cls_names)
-
     return bbox, score, cls_id

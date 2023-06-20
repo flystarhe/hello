@@ -29,6 +29,7 @@ calibration_parameters:
   calibration_type: '{calibration_type}'
   max_percentile: {max_percentile}
   per_channel: {per_channel}
+  run_on_bpu: 'Resize;Resize_155'
 
 compiler_parameters:
   compile_mode: '{compile_mode}'

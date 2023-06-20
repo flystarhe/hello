@@ -69,7 +69,7 @@ def test_notebook():
     infer_scale = (960, 540)  # (w/2, h/2)
     input_shape = (544, 960)  # (h, w), divisible by 32
     image_file = "data/20230309_163529_i000246.jpg"
-    model_file = "t04231652_bisenetv2e_map2_2x4_512x512_160k_adamw_onnx/model_output_bgr/mmseg_544x960_bgr_quantized_model.onnx"
+    model_file = "test/model_output/mmseg_544x960_bgr_quantized_model.onnx"
 
     sess = HB_ONNXRuntime(model_file=model_file)
     print(f"{sess.input_names}, {sess.output_names}, {sess.layout}")
