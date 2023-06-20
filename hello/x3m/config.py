@@ -7,7 +7,7 @@ model_parameters:
   onnx_model: '{onnx_model}'
   march: 'bernoulli2'
   output_model_file_prefix: '{model_prefix}'
-  working_dir: './model_output'
+  working_dir: './model_output_{input_type_rt}'
   layer_out_dump: False
 
 input_parameters:
@@ -113,9 +113,7 @@ def main(args=None):
     print(f"{__file__}: {kwargs}")
 
     if kwargs["model_prefix"] is None:
-        input_type = kwargs["input_type_rt"]
-        model_name = Path(kwargs["onnx_model"]).stem
-        kwargs["model_prefix"] = f"{model_name}_{input_type}"
+        kwargs["model_prefix"] = Path(kwargs["onnx_model"]).stem
 
     print(todo(**kwargs))
 
