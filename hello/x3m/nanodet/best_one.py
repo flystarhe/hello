@@ -140,7 +140,7 @@ def test_notebook():
     infer_scale = (640, 360)  # (w/3, h/3)
     input_shape = (384, 640)  # (h, w), divisible by 64
     image_file = "data/20230309_163529_i000246.jpg"
-    model_file = "test/model_output/nanodet_384x640_x3_bgr_quantized_model.onnx"
+    model_file = "test/model_output/nanodet_384x640_x3_quantized_model.onnx"
 
     sess = HB_ONNXRuntime(model_file=model_file)
     print(f"{sess.input_names}, {sess.output_names}, {sess.layout}")

@@ -1,6 +1,40 @@
 # ai_toolchain/horizon_model_convert_sample/01_common/python/data/transformer.py
 import cv2 as cv
 import numpy as np
+from PIL import Image
+
+
+def bgr_to_nv12(image):
+    # image(bgr): ndarray, hwc
+    image = image.astype(np.uint8)
+    height, width = image.shape[0], image.shape[1]
+    yuv420p = cv.cvtColor(image, cv.COLOR_BGR2YUV_I420).reshape((height * width * 3 // 2,))
+    y = yuv420p[:height * width]
+    uv_planar = yuv420p[height * width:].reshape((2, height * width // 4))
+    uv_packed = uv_planar.transpose((1, 0)).reshape((height * width // 2,))
+    nv12 = np.zeros_like(yuv420p)
+    nv12[:height * width] = y
+    nv12[height * width:] = uv_packed
+    return nv12, (height, width)
+
+
+def nv12_to_yuv444(data, target_size, layout="HWC"):
+    # data(nv12): ndarray, from `bgr_to_nv12()`
+    nv12_data = data.flatten()
+
+    height, width = target_size
+    yuv444 = np.empty([height, width, 3], dtype=np.uint8)
+    yuv444[:, :, 0] = nv12_data[:width * height].reshape(height, width)
+    u = nv12_data[width * height::2].reshape(height // 2, width // 2)
+    yuv444[:, :, 1] = Image.fromarray(u).resize((width, height), resample=0)
+    v = nv12_data[width * height + 1::2].reshape(height // 2, width // 2)
+    yuv444[:, :, 2] = Image.fromarray(v).resize((width, height), resample=0)
+    data = yuv444.astype(np.uint8)
+
+    if layout == "CHW":
+        data = np.transpose(data, (2, 0, 1))
+
+    return data
 
 
 class Transformer(object):
@@ -163,13 +197,10 @@ class BGR2NV12Transformer(Transformer):
         if image.ndim == 3:
             image = image.astype(np.uint8)
             height, width = image.shape[0], image.shape[1]
-            yuv420p = cv.cvtColor(image, cv.COLOR_BGR2YUV_I420).reshape(
-                (height * width * 3 // 2,))
+            yuv420p = cv.cvtColor(image, cv.COLOR_BGR2YUV_I420).reshape((height * width * 3 // 2,))
             y = yuv420p[:height * width]
-            uv_planar = yuv420p[height * width:].reshape(
-                (2, height * width // 4))
-            uv_packed = uv_planar.transpose((1, 0)).reshape(
-                (height * width // 2,))
+            uv_planar = yuv420p[height * width:].reshape((2, height * width // 4))
+            uv_packed = uv_planar.transpose((1, 0)).reshape((height * width // 2,))
             nv12 = np.zeros_like(yuv420p)
             nv12[:height * width] = y
             nv12[height * width:] = uv_packed

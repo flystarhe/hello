@@ -60,7 +60,7 @@ def post_process(outputs, input_shape, reg_max=7):
     return bbox, score, cls_id
 
 
-def pre_process(image, infer_scale, input_shape):
+def pre_process(image, infer_scale, input_shape, mode="bgr", layout="CHW"):
     """For single image inference.
 
     Examples::
@@ -76,7 +76,17 @@ def pre_process(image, infer_scale, input_shape):
     pad_image = np.full(input_shape + (3,), (114, 114, 114), dtype="uint8")
     pad_image[:infer_scale[1], :infer_scale[0], :] = image
 
-    image_data = pad_image[np.newaxis, ...]  # (1, h, w, c)
+    if mode == "rgb":
+        cv.cvtColor(pad_image, cv.COLOR_BGR2RGB, pad_image)  # inplace
+    elif mode == "nv12":
+        from hello.x3m.transforms import bgr_to_nv12, nv12_to_yuv444
+        data, target_size = bgr_to_nv12(pad_image)
+        pad_image = nv12_to_yuv444(data, target_size, "HWC")
+
+    if layout == "CHW":
+        pad_image = np.transpose(pad_image, (2, 0, 1))
+
+    image_data = pad_image[np.newaxis, ...]
     return image_data
 
 
@@ -120,12 +130,12 @@ def test_notebook():
     infer_scale = (640, 360)  # (w/3, h/3)
     input_shape = (384, 640)  # (h, w), divisible by 64
     image_file = "data/20230309_163529_i000246.jpg"
-    model_file = "test/model_output/nanodet_384x640_x3_bgr_quantized_model.onnx"
+    model_file = "test/model_output/nanodet_384x640_x3_quantized_model.onnx"
 
     sess = HB_ONNXRuntime(model_file=model_file)
     print(f"{sess.input_names}, {sess.output_names}, {sess.layout}")
 
-    image_data = pre_process(image_file, infer_scale, input_shape)
+    image_data = pre_process(image_file, infer_scale, input_shape, mode="bgr", layout="CHW")
     input_name, output_names = sess.input_names[0], sess.output_names
     outputs = sess.run(output_names, {input_name: image_data}, input_offset=128)
     bbox, score, cls_id = post_process(outputs, input_shape, reg_max=7)
