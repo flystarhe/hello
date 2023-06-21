@@ -16,18 +16,16 @@ def find_videos(input_dir):
     return video_paths
 
 
-def print_info(video_path):
+def get_info(video_path):
     cap = cv.VideoCapture(video_path)
-
     fps = int(cap.get(cv.CAP_PROP_FPS))
     count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
     width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+    cap.release()
 
     video_info = ", ".join(Path(video_path).parts[-2:])
-    print(f"{video_info}, seconds={count//fps:04d}, size={width}x{height}, {fps=}")
-
-    cap.release()
+    return f"{video_info}, seconds={count//fps:04d}, size={width}x{height}, {fps=}"
 
 
 def func(input_dir):
@@ -39,10 +37,14 @@ def func(input_dir):
     else:
         video_paths = find_videos(input_dir)
 
+    data = []
     for video_path in video_paths:
-        print_info(video_path)
+        data.append(get_info(video_path))
 
-    return "\n[END]"
+    _sum = sum([int(t.split(",")[2].split("=")[1]) for t in data])
+    data.append(f"\n{_sum}s, {_sum//60:04d}:{_sum%60:02d}")
+
+    return "\n".join(data)
 
 
 def parse_args(args=None):
