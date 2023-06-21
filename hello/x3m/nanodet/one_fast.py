@@ -39,10 +39,10 @@ def get_single_level_post_process(output, input_shape, reg_max=7):
     stride = input_shape[0] // output.shape[0]
     cy, cx = i * stride, j * stride
 
-    x1 = np.clip(cx - offset_left, 0, input_shape[1])
-    y1 = np.clip(cy - offset_top, 0, input_shape[0])
-    x2 = np.clip(cx + offset_right, 0, input_shape[1])
-    y2 = np.clip(cy + offset_bottom, 0, input_shape[0])
+    x1 = np.clip(cx - offset_left * stride, 0, input_shape[1])
+    y1 = np.clip(cy - offset_top * stride, 0, input_shape[0])
+    x2 = np.clip(cx + offset_right * stride, 0, input_shape[1])
+    y2 = np.clip(cy + offset_bottom * stride, 0, input_shape[0])
 
     bbox = [x1, y1, x2, y2]
     return bbox, score, cls_id
@@ -135,7 +135,7 @@ def test_notebook():
     sess = HB_ONNXRuntime(model_file=model_file)
     print(f"{sess.input_names}, {sess.output_names}, {sess.layout}")
 
-    image_data = pre_process(image_file, infer_scale, input_shape, mode="bgr", layout="HWC")
+    image_data = pre_process(image_file, infer_scale, input_shape, mode="nv12", layout="HWC")
     input_name, output_names = sess.input_names[0], sess.output_names
     outputs = sess.run(output_names, {input_name: image_data}, input_offset=128)
     bbox, score, cls_id = post_process(outputs, input_shape, reg_max=7)

@@ -88,7 +88,7 @@ def test_notebook():
     sess = HB_ONNXRuntime(model_file=model_file)
     print(f"{sess.input_names}, {sess.output_names}, {sess.layout}")
 
-    image_data = pre_process(image_file, infer_scale, input_shape, mode="bgr", layout="HWC")
+    image_data = pre_process(image_file, infer_scale, input_shape, mode="nv12", layout="HWC")
     input_name, output_names = sess.input_names[0], sess.output_names
     outputs = sess.run(output_names, {input_name: image_data}, input_offset=128)
     mask = post_process(outputs, input_shape, infer_scale)
