@@ -42,7 +42,7 @@ def func(input_dir):
         data.append(get_info(video_path))
 
     _sum = sum([int(t.split(",")[2].split("=")[1]) for t in data])
-    data.append(f"\n{_sum}s, {_sum//60:04d}:{_sum%60:02d}")
+    data.append(f"\n{_sum}s, {_sum//60}:{_sum%60:02d}")
 
     return "\n".join(data)
 
