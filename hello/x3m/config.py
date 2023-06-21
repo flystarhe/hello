@@ -70,7 +70,7 @@ def parse_args(args=None):
                         help="node name of model input")
     parser.add_argument("--input-type-rt", type=str, default="nv12",
                         choices=["nv12", "rgb", "bgr", "gray", "featuremap", "yuv444"])
-    parser.add_argument("--input-layout-rt", type=str, default="NCHW",
+    parser.add_argument("--input-layout-rt", type=str, default="",
                         choices=["", "NHWC", "NCHW"])
     parser.add_argument("--input-type-train", type=str, default="rgb",
                         choices=["rgb", "bgr", "gray", "featuremap", "yuv444"])

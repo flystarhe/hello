@@ -6,8 +6,9 @@ def post_process(outputs, input_shape, infer_scale):
     output = outputs[0]  # (b, h, w, c)
     output = output[0]  # (h, w, num_classes)
 
-    # ('background', 'charging station')
-    seg_mask = (output[..., 1] > output[..., 0])
+    # classes: ('background', 'charging station')
+    seg_pred = np.argmax(output, axis=-1)
+    seg_mask = (seg_pred == 1)
 
     assert seg_mask.shape == tuple(input_shape)
 
@@ -60,6 +61,12 @@ def show_mask(image, infer_scale, mask):
     bgr_image = np.concatenate((image, mixed, bgr_mask), axis=0)
     rgb_image = cv.cvtColor(bgr_image, cv.COLOR_BGR2RGB)
     display(Image.fromarray(rgb_image, "RGB"))
+
+
+def test_post_process():
+    output = np.random.rand(1, 2, 8, 8) * 1.0
+    ret = post_process([output], (8, 8), (8, 8))
+    return ret
 
 
 def test_notebook():
