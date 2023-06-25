@@ -7,6 +7,27 @@ from skimage import measure
 mask_utils = fou.lazy_import("pycocotools.mask", callback=lambda: fou.ensure_import("pycocotools"))
 
 
+def get_mask_from_patch(mask, bbox, frame_size):
+    """Returns a COCO segmentation mask.(whole)
+
+    Args:
+        mask: an boolean numpy array defining the object mask
+        bbox: a bounding box for the object in ``[xmin, ymin, width, height]`` format
+        frame_size: the ``(width, height)`` of the image
+    """
+    width, height = frame_size
+    img_mask = np.zeros((height, width), dtype=bool)
+
+    x1, y1 = int(round(bbox[0])), int(round(bbox[1]))
+
+    mask_h, mask_w = mask.shape
+    x2, y2 = min(x1 + mask_w, width), min(y1 + mask_h, height)
+
+    img_mask[y1:y2, x1:x2] = mask[:y2 - y1, :x2 - x1]
+
+    return img_mask
+
+
 def mask_to_coco_segmentation(mask, bbox, frame_size, mask_type="polygons", tolerance=1):
     """Returns a RLE object.
 
@@ -23,7 +44,6 @@ def mask_to_coco_segmentation(mask, bbox, frame_size, mask_type="polygons", tole
     x1, y1 = int(round(bbox[0])), int(round(bbox[1]))
 
     mask_h, mask_w = mask.shape
-
     x2, y2 = min(x1 + mask_w, width), min(y1 + mask_h, height)
 
     img_mask[y1:y2, x1:x2] = mask[:y2 - y1, :x2 - x1]
@@ -43,7 +63,7 @@ def mask_to_coco_segmentation(mask, bbox, frame_size, mask_type="polygons", tole
 
 
 def coco_segmentation_to_mask(segmentation, bbox, frame_size):
-    """Returns a COCO segmentation mask.
+    """Returns a COCO segmentation mask.(patch)
 
     Args:
         segmentation: segmentation mask for the object.

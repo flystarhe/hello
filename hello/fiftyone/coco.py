@@ -2,9 +2,12 @@ import os
 import shutil
 from pathlib import Path
 
+import cv2 as cv
 import fiftyone as fo
+import numpy as np
 
-from hello.fiftyone.coco_utils import mask_to_coco_segmentation
+from hello.fiftyone.coco_utils import (get_mask_from_patch,
+                                       mask_to_coco_segmentation)
 from hello.fiftyone.core import count_values, save_tags
 from hello.fiftyone.dataset import (add_detection_labels, add_images_dir,
                                     tmpl_info)
@@ -137,6 +140,7 @@ def coco_export(export_dir, dataset, label_field, splits=None, **kwargs):
         coco_export_info(info, curr_dir / "info.py")
         coco_export_images(view, curr_dir / "data/")
         coco_export_labels(view, label_field, curr_dir / "labels.json", **kwargs)
+        coco_export_semantic_labels(view, label_field, curr_dir / "labels", **kwargs)
 
     save_tags(dataset, export_dir / "tags.json")
 
@@ -159,7 +163,8 @@ def coco_export_images(dataset_or_view, data_path):
         shutil.copyfile(filepath, data_path / filepath.name)
 
 
-def coco_export_labels(dataset_or_view, label_field, labels_path, mask_type="polygons", tolerance=1):
+def coco_export_labels(dataset_or_view, label_field, labels_path, **kwargs):
+    mask_type, tolerance = kwargs.get("mask_type", "polygons"), kwargs.get("tolerance", 1)
     assert mask_type in ("polygons", "rle", "rle-uncompressed", "rle-compressed")
 
     cats, idx = [], 1
@@ -198,6 +203,37 @@ def coco_export_labels(dataset_or_view, label_field, labels_path, mask_type="pol
             idx += 1
 
     return save_json({"categories": cats, "images": imgs, "annotations": anns}, labels_path)
+
+
+def coco_export_semantic_labels(dataset_or_view, label_field, labels_path, **kwargs):
+    unlabeled_index = kwargs.get("unlabeled_index", 0)
+
+    if not kwargs.get("to_segmentations", False):
+        return
+
+    labels_path.mkdir(parents=True, exist_ok=True)
+
+    label2index = {label: index for index, label in dataset_or_view.default_mask_targets.items()}
+
+    stem2scale = {}
+    for filepath, width, height in zip(*dataset_or_view.values(["filepath", "metadata.width", "metadata.height"])):
+        stem2scale[Path(filepath).stem] = (width, height)
+
+    for filepath, detections in zip(*dataset_or_view.values(["filepath", f"{label_field}.detections"])):
+        detections = sorted(detections, key=lambda obj: obj.bounding_box[2] * obj.bounding_box[3], reverse=True)
+
+        filestem = Path(filepath).stem
+        width, height = stem2scale[filestem]
+        _mask = np.full((height, width), unlabeled_index, dtype="uint8")
+        for detection in detections:
+            index = label2index[detection.label]
+
+            x, y, w, h = detection.bounding_box
+            bbox = [x * width, y * height, w * width, h * height]
+
+            if hasattr(detection, "mask") and detection.mask is not None:
+                _mask[get_mask_from_patch(detection.mask, bbox, (width, height))] = index
+        cv.imwrite(str(labels_path / f"{filestem}.png"), _mask)
 
 
 def parse_data_path(dataset_dir=None, data_path=None, default=None):
