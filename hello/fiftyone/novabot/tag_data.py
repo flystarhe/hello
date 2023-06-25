@@ -31,7 +31,7 @@ hoa.to_cvat(
     label_type="classification",
     url="http://192.168.0.119:8080",
     username="hejian", password="LFIcvat123",
-    task_size=1000, segment_size=200, task_assignee="hejian", job_assignees=["hujiahui"])
+    task_size=1000, segment_size=200, task_assignee="hejian", job_assignees=["hejian"])
 
 # %%
 _dataset_name = "novabot_front_det_20230525_zhengshu_batch02_object9_ver002a"

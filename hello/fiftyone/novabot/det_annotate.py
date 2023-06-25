@@ -103,7 +103,7 @@ hoa.to_cvat(
     label_type="detections",
     url="http://192.168.0.119:8080",
     username="hejian", password="LFIcvat123",
-    task_size=1000, segment_size=200, task_assignee="hejian", job_assignees=["hujiahui"])
+    task_size=1000, segment_size=200, task_assignee="hejian", job_assignees=["hejian"])
 
 # %%
 _dataset_name = "2023.05.31.16.21.28"
@@ -160,7 +160,7 @@ hoa.to_cvat(
     label_type="detections",
     url="http://192.168.0.119:8080",
     username="hejian", password="LFIcvat123",
-    task_size=1000, segment_size=200, task_assignee="hejian", job_assignees=["hujiahui"])
+    task_size=1000, segment_size=200, task_assignee="hejian", job_assignees=["hejian"])
 
 # %%
 _dataset_name = ""
