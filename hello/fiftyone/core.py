@@ -264,6 +264,10 @@ def tag_from_text(dataset, text_file, tag_map=None, remove_prefix=False):
     """
     if tag_map is None:
         tag_map = {"0": "ok", "1": "ng"}
+    elif isinstance(tag_map, str):
+        with open(tag_map, "r") as f:
+            names = [name.strip() for name in f.readlines() if name.strip()]
+        tag_map = {i: name for i, name in enumerate(names, 0)}
 
     data = defaultdict(list)
     with open(text_file, "r") as f:
