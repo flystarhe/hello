@@ -52,24 +52,7 @@ def map_labels(dataset, mapping, field_name="ground_truth"):
     return dataset
 
 
-def map_default_classes(dataset, classes):
-    new_classes = [c[0] if isinstance(c, list) else c for c in classes]
-
-    dataset.default_classes = new_classes
-    return dataset
-
-
-def map_default_mask_targets(dataset, classes, ignore_index=255):
-    new_classes = [c[0] if isinstance(c, list) else c for c in classes]
-    new_mask_targets = {i: c for i, c in enumerate(new_classes[:-1])}
-    new_mask_targets[ignore_index] = new_classes[-1]
-
-    dataset.default_mask_targets = new_mask_targets
-    dataset.default_classes = new_classes
-    return dataset
-
-
-def gen_label_mapping(old_classes, new_classes):
+def gen_detections_mapping(old_classes, new_classes):
     """Generate detections mapping.
 
     Args:
@@ -94,7 +77,7 @@ def gen_label_mapping(old_classes, new_classes):
     return mapping
 
 
-def gen_mask_mapping(old_classes, new_classes):
+def gen_segmentation_mapping(old_classes, new_classes):
     """Generate segmentation mapping.
 
     Args:
@@ -122,6 +105,20 @@ def gen_mask_mapping(old_classes, new_classes):
     return mapping
 
 
+def update_dataset_default(dataset, classes, background=None, ignore_index=255):
+    new_classes = [c[0] if isinstance(c, list) else c for c in classes]
+
+    if background is not None:
+        new_classes = [c for c in new_classes if c != background]
+
+    new_mask_targets = {i: c for i, c in enumerate(new_classes[:-1])}
+    new_mask_targets[ignore_index] = new_classes[-1]
+
+    dataset.default_mask_targets = new_mask_targets
+    dataset.default_classes = new_classes
+    return dataset
+
+
 def remap_detections_dataset(dataset, new_classes=None, field_name="ground_truth", background="background", least_one=False):
     """Steps: map labels -> check dataset.classes -> filter valid samples
 
@@ -138,9 +135,9 @@ def remap_detections_dataset(dataset, new_classes=None, field_name="ground_truth
 
     if new_classes is not None:
         old_classes = dataset.default_classes
-        mapping = gen_label_mapping(old_classes, new_classes)
+        mapping = gen_detections_mapping(old_classes, new_classes)
         dataset = map_labels(dataset, mapping, field_name=field_name)
-        dataset = map_default_classes(dataset, new_classes)
+        dataset = update_dataset_default(dataset, new_classes, background=background)
 
     dataset = dataset.filter_labels(field_name, F("label") != background, only_matches=least_one).clone()
 
@@ -161,12 +158,12 @@ def remap_segmentation_dataset(dataset, new_classes=None, field_name="ground_tru
     """
     dataset.save()
 
-    def _check_sample(field_data, only_matches):
+    def _check_sample(field_data, index_stop, only_matches):
         if not only_matches:
             return True
         if field_data:
             mask = field_data.mask
-            return ((0 < mask) & (mask < ignore_index)).sum() > 0
+            return ((0 < mask) & (mask < index_stop)).sum() > 0
         return False
 
     default_mask_targets = dataset.default_mask_targets
@@ -174,11 +171,11 @@ def remap_segmentation_dataset(dataset, new_classes=None, field_name="ground_tru
 
     if new_classes is not None:
         old_classes = dataset.default_classes
-        mapping = gen_mask_mapping(old_classes, new_classes)
+        mapping = gen_segmentation_mapping(old_classes, new_classes)
         dataset = map_labels(dataset, mapping, field_name=field_name)
-        dataset = map_default_mask_targets(dataset, new_classes, ignore_index)
+        dataset = update_dataset_default(dataset, new_classes, ignore_index=ignore_index)
 
-    dataset = dataset.select([s.id for s in dataset if _check_sample(s[field_name], least_one)]).clone()
+    dataset = dataset.select([s.id for s in dataset if _check_sample(s[field_name], ignore_index, least_one)]).clone()
 
     return dataset
 
