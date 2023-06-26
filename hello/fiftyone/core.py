@@ -250,7 +250,7 @@ def tag_from(dataset, by_dir=None, by_json=None, in_names=None):
     return dataset
 
 
-def tag_from_text(dataset, text_file, tag_map=None, remove_prefix=False):
+def tag_from_text(dataset, text_file, tag_map="synsets.txt", remove_prefix=False):
     """Tag dataset from a text file(cvat export: ImageNet 1.0).
 
     Examples::
@@ -262,12 +262,12 @@ def tag_from_text(dataset, text_file, tag_map=None, remove_prefix=False):
         000475_0622023132019.jpg 0
         000476_0622023132019.jpg 0
     """
-    if tag_map is None:
-        tag_map = {"0": "ok", "1": "ng"}
-    elif isinstance(tag_map, str):
+    if isinstance(tag_map, str):
+        if not Path(tag_map).is_file():
+            tag_map = Path(text_file).parent / tag_map
         with open(tag_map, "r") as f:
             names = [name.strip() for name in f.readlines() if name.strip()]
-        tag_map = {i: name for i, name in enumerate(names, 0)}
+        tag_map = {str(i): name for i, name in enumerate(names, 0)}
 
     data = defaultdict(list)
     with open(text_file, "r") as f:
