@@ -52,9 +52,8 @@ def map_labels(dataset, mapping, field_name="ground_truth"):
     return dataset
 
 
-def map_default_classes(dataset, classes, background="background"):
+def map_default_classes(dataset, classes):
     new_classes = [c[0] if isinstance(c, list) else c for c in classes]
-    new_classes = new_classes[:-1] + [background]
 
     dataset.default_classes = new_classes
     return dataset
@@ -141,7 +140,7 @@ def remap_detections_dataset(dataset, new_classes=None, field_name="ground_truth
         old_classes = dataset.default_classes
         mapping = gen_label_mapping(old_classes, new_classes)
         dataset = map_labels(dataset, mapping, field_name=field_name)
-        dataset = map_default_classes(dataset, new_classes, background=background)
+        dataset = map_default_classes(dataset, new_classes)
 
     dataset = dataset.filter_labels(field_name, F("label") != background, only_matches=least_one).clone()
 
@@ -169,6 +168,9 @@ def remap_segmentation_dataset(dataset, new_classes=None, field_name="ground_tru
             mask = field_data.mask
             return ((0 < mask) & (mask < ignore_index)).sum() > 0
         return False
+
+    default_mask_targets = dataset.default_mask_targets
+    dataset.default_classes = [v for _, v in default_mask_targets.items()]
 
     if new_classes is not None:
         old_classes = dataset.default_classes
