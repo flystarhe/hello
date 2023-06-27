@@ -56,8 +56,8 @@ def gen_detections_mapping(old_classes, new_classes):
     """Generate detections mapping.
 
     Args:
-        old_classes (list): ``['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'background']``
-        new_classes (list): ``['c0', 'c1', 'c2', ['c3', 'c4', 'c5'], 'background']``
+        old_classes (list): ``['c0', 'c1', 'c2', 'c3', 'c4', 'c5']``
+        new_classes (list): ``['c0', 'c1', 'c2', ['c3', 'c4', 'c5']]``
 
     Returns:
         a :class:`dict`
@@ -119,14 +119,14 @@ def update_dataset_default(dataset, classes, background=None, ignore_index=255):
     return dataset
 
 
-def remap_detections_dataset(dataset, new_classes=None, field_name="ground_truth", background="background", least_one=False):
+def remap_detections_dataset(dataset, new_classes=None, field_name="ground_truth", background=None, least_one=False):
     """Steps: map labels -> check dataset.classes -> filter valid samples
 
     Args:
         dataset: a :class:`fiftyone.core.dataset.Dataset`
         new_classes (None): refer to :func:`gen_label_mapping`
         field_name (str, optional): defaults to "ground_truth"
-        background (str, optional): defaults to "background"
+        background (str, optional): defaults to None
 
     Returns:
         a :class:`fiftyone.core.dataset.Dataset`
@@ -165,9 +165,6 @@ def remap_segmentation_dataset(dataset, new_classes=None, field_name="ground_tru
             mask = field_data.mask
             return ((0 < mask) & (mask < index_stop)).sum() > 0
         return False
-
-    default_mask_targets = dataset.default_mask_targets
-    dataset.default_classes = [v for _, v in default_mask_targets.items()]
 
     if new_classes is not None:
         old_classes = dataset.default_classes

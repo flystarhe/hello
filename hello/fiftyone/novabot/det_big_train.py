@@ -14,7 +14,7 @@ print(hello.__version__)
 dataset_name = "novabot_front_det_20230531_big_train_object9_ver003b"
 dataset_type = "detection"
 version = "object9"
-classes = ["person", "animal", "shoes", "wheel", "other obstacle", "obstacle", "leaf debris", "faeces", "rock", "charging station", "background"]
+classes = ["person", "animal", "shoes", "wheel", "other obstacle", "obstacle", "leaf debris", "faeces", "rock", "charging station"]
 mask_targets = {}
 
 hod.delete_datasets([dataset_name], non_persistent=False)
@@ -56,10 +56,6 @@ dataset = hoc.remap_detections_dataset(dataset, new_classes, "ground_truth", bac
 print(f"{dataset.default_classes=}\n{dataset.default_mask_targets=}")
 print("count-labels:", dataset.count("ground_truth.detections"))
 print("count-images:", dataset.count("filepath"))
-
-# %%
-dataset.default_classes = dataset.default_classes[:-1]
-print(f"{dataset.default_classes=}\n{dataset.default_mask_targets=}")
 
 # %%
 hod.delete_duplicate_labels(dataset, "ground_truth", iou_thresh=0.99, method="simple", iscrowd=None, classwise=False)
@@ -144,8 +140,8 @@ print("count-images:", dataset.count("filepath"))
 # ---
 
 # %%
-hoco.coco_export(f"exports/{dataset_name}", dataset, label_field="ground_truth", splits=["train", "val", "issue"])
+hoco.coco_export(f"exports/{dataset_name}", dataset, label_field="ground_truth", splits=["train", "val", "issue"], to_segmentations=False)
 
 # %%
 hoc.random_split(dataset.match_tags("train"), splits={"val": 0.1, "train": 0.9}, seed=51)
-hoco.coco_export(f"exports/{dataset_name}", dataset, label_field="ground_truth", splits=["train", "val", "issue"])
+hoco.coco_export(f"exports/{dataset_name}", dataset, label_field="ground_truth", splits=["train", "val", "issue"], to_segmentations=False)
