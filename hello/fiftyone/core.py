@@ -223,24 +223,28 @@ def save_tags(dataset, out_file):
     return hou.save_json({"total": len(data), "tags": dataset.count_values("tags"), "data": data}, out_file)
 
 
-def tag_from(dataset, by_dir=None, by_json=None, in_names=None):
+def tag_from(dataset, by_dir=None, by_json=None, by_dict=None, by_list=None, is_in=None):
     data = None
     if by_dir is not None:
-        data = {f.name: [f.parent.name] for f in Path(by_dir).glob("**/*.jpg")}
+        data = {filepath.name: [filepath.parent.name] for filepath in Path(by_dir).glob("**/*.jpg")}
     elif by_json is not None:
-        data = {filename: tags for filename, tags in hou.load_json(by_json)["data"]}
+        data = {Path(filename).name: tags for filename, tags in hou.load_json(by_json)["data"]}
+    elif by_dict is not None:
+        data = {Path(filename).name: tags for filename, tags in by_dict.items()}
+    elif by_list is not None:
+        data = {Path(filename).name: tags for filename, tags in by_list}
     else:
-        print(f"[W] ``{by_dir=}`` & ``{by_json}``, do nothing")
+        print(f"[W] ``{by_dir=}`` & ``{by_json=}``, do nothing")
 
     if data:
-        if in_names:
-            in_names = set(in_names)
+        if is_in:
+            is_in = set(is_in)
         for sample in dataset:
             tags = data.get(Path(sample.filepath).name)
             if tags:
-                if in_names:
-                    tags = list(in_names & set(tags))
-                sample.tags.extend(tags)
+                if is_in:
+                    tags = list(is_in & set(tags))
+                sample.tags = list(set(sample.tags + tags))
                 sample.save()
 
     return dataset

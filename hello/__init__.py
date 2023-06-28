@@ -1,7 +1,7 @@
 """A collection of useful tools!"""
 import sys
 
-__version__ = "2.0.13"
+__version__ = "2.0.14"
 
 help_doc_str = """\
 usage: hello [--version] [--help]
