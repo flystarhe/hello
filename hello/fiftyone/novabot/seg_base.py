@@ -40,5 +40,10 @@ session = fo.launch_app(dataset, port=20006, address="192.168.0.119", auto=False
 ret = hoc.count_values(dataset, "tags")
 
 # %%
+files = []
+hoc.change_tag(dataset.match_tags("train"), files, add="val", rm="train")
+ret = hoc.count_values(dataset, "tags")
+
+# %%
 hoc.random_split(dataset, splits={"val": 0.1, "train": 0.9}, seed=51)
 hod.export_dataset(f"exports/{dataset_name}", dataset, mask_label_field="ground_truth", splits=["train", "val", "test"])

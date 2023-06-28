@@ -134,6 +134,11 @@ dataset = dataset.exclude_labels(tags="ignore", omit_empty=False)
 ret = hoc.count_values(dataset, "ground_truth.detections.label")
 print("count-images:", dataset.count("filepath"))
 
+# %%
+files = []
+hoc.change_tag(dataset.match_tags("train"), files, add="val", rm="train")
+ret = hoc.count_values(dataset, "tags")
+
 # %% [markdown]
 # end
 #
