@@ -10,6 +10,7 @@ from fiftyone.utils.labels import segmentations_to_detections
 from prettytable import PrettyTable
 from tqdm import tqdm
 
+import hello.fiftyone.tarinfo as hot
 import hello.io.utils as hou
 
 
@@ -287,6 +288,33 @@ def tag_from_text(dataset, text_file, tag_map="synsets.txt", remove_prefix=False
         matched_ids = [id_map[stem] for stem in stems]
         view = dataset.select(matched_ids)
         view.tag_samples(tag)
+
+
+def change_tag(dataset, files, data_path="data", add=None, rm=None):
+    """Change the tags of some samples in this dataset.
+
+    Args:
+        dataset: a :class:`fiftyone.core.dataset.Dataset`
+        files (list): a list of archived dataset file
+        data_path (str, optional): defaults to "data"
+        add (str, optional): defaults to None
+        rm (str, optional): defaults to None
+    """
+    stems = [Path(filename).stem for filename in hot.check_files(files, data_path)]
+
+    filepaths, ids = dataset.values(["filepath", "id"])
+    id_map = {Path(k).stem: v for k, v in zip(filepaths, ids)}
+
+    matched_ids = [id_map[stem] for stem in stems if stem in id_map]
+    view = dataset.select(matched_ids)
+
+    if rm:
+        view.untag_samples(rm)
+
+    if add:
+        view.tag_samples(add)
+
+    print(f"Change tags({add=}, {rm=}): {len(view)=}")
 
 
 def random_split(dataset, splits=None, seed=51):
