@@ -285,6 +285,24 @@ def compare_info_py(file1, file2, keys=None, verbose=True):
     return results
 
 
+def parse_dataset_name(filepath):
+    """Parse {CAMERA}, {STAGE} and {NAME} from dataset name.
+
+    Naming Format: ``{CAMERA_NAME}_{STAGE_NAME}_{YYYYmmdd}_{SUMMARY_KEYWORDS}_ver{000}.tar``.
+    CAMERA_NAME in ``{novabot_360,novabot_front}``, STAGE_NAME in ``{raw,img,det,seg,dep}``.
+
+    >>> parse_dataset_name("novabot_360_img_20230629_chengdu_street_view_pm12_ver001a.tar")
+
+    Args:
+        filepath: path of dataset archive file
+    """
+    _pattern = re.compile(r"(novabot(?:_[a-z0-9]+){1,2})_(img|raw|det|seg|dep)_(\d{8}(?:_[a-z0-9]+){1,9})_ver\d{3}")
+    _m = _pattern.match(Path(filepath).name)
+    if _m:
+        return _m.groups()
+    return None
+
+
 def tree(root, pattern="*/*.tar"):
     groups = defaultdict(list)
     for f in Path(root).glob(pattern):
