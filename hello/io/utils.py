@@ -38,9 +38,10 @@ def load_json(json_file):
     return data
 
 
-def save_json(data, json_file, indent=None, separators=(",", ":")):
+def save_json(data, json_file, ensure_ascii=False, indent=None, separators=(",", ":")):
     make_dir(Path(json_file).parent)
 
     with open(json_file, "w") as f:
-        json.dump(data, f, indent=indent, separators=separators)
+        json.dump(data, f, ensure_ascii=ensure_ascii,
+                  indent=indent, separators=separators)
     return json_file
